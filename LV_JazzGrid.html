@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Jazz Grid"/>
+<meta name="theme-color" content="#1e293b"/>
+<title>Jazz Grid – Bass 5 strings</title>
+
+<!-- Icône inline SVG encodée base64 -->
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWUyOTNiIi8+PHRleHQgeT0iLjllbSIgZm9udC1zaXplPSI3NSIgeD0iMTAiPvCfjZg8L3RleHQ+PC9zdmc+"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWUyOTNiIi8+PHRleHQgeT0iLjllbSIgZm9udC1zaXplPSI3NSIgeD0iMTAiPvCfjZg8L3RleHQ+PC9zdmc+"/>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#f8fafc;min-height:100vh;padding:16px;}
+h1{font-size:20px;font-weight:800;color:#1e293b;margin-bottom:4px;}
+.sub{font-size:12px;color:#64748b;margin-bottom:16px;}
+.dropzone{border:2px dashed #cbd5e1;border-radius:12px;padding:28px 16px;text-align:center;cursor:pointer;background:#fff;transition:all .2s;margin-bottom:16px;}
+.dropzone.drag{border-color:#3b82f6;background:#eff6ff;}
+.dropzone .icon{font-size:32px;}
+.dropzone p{margin:6px 0 3px;font-weight:600;color:#374151;font-size:14px;}
+.dropzone small{color:#9ca3af;font-size:11px;}
+.error{background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;color:#dc2626;margin-bottom:14px;font-size:13px;}
+.btns{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+button{border:none;border-radius:7px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:12px;color:#fff;}
+.btn-pdf{background:#1e293b;} .btn-html{background:#059669;} .btn-new{background:#6b7280;}
+.grid-wrap{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.08);}
+.header{border-bottom:2px solid #1e293b;padding-bottom:10px;margin-bottom:14px;}
+.header h2{font-size:17px;font-weight:800;color:#1e293b;}
+.meta{display:flex;gap:12px;margin-top:4px;flex-wrap:wrap;font-size:11px;color:#475569;}
+.meta strong{color:#1e293b;}
+.meta span span{color:#94a3b8;}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.structure{margin-top:4px;font-size:11px;color:#475569;}
+.legend{margin-top:8px;display:flex;gap:14px;font-size:10px;color:#64748b;flex-wrap:wrap;}
+.section-block{margin-bottom:16px;}
+.section-label{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.section-tag{color:#fff;border-radius:4px;padding:1px 10px;font-weight:800;font-size:12px;}
+.section-line{height:1px;flex:1;opacity:.4;}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;}
+.cell{border-radius:6px;min-height:130px;padding:6px 8px 8px;position:relative;border-width:1.5px;border-style:solid;}
+.cell-num{font-size:9px;color:#9ca3af;position:absolute;top:3px;left:5px;}
+.cell-body{margin-top:13px;display:flex;flex-direction:column;gap:6px;}
+.chord-block{display:flex;flex-direction:column;gap:2px;}
+.arp-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.chord-name{font-family:Georgia,serif;font-weight:900;letter-spacing:-.5px;line-height:1;flex-shrink:0;}
+.div{opacity:.35;font-size:11px;align-self:center;}
+.arp-notes{display:flex;gap:3px;}
+.note-stack{display:flex;flex-direction:column;align-items:center;min-width:18px;}
+.note-stack .n{font-size:11px;font-weight:700;font-family:Georgia,serif;line-height:1.1;}
+.note-stack .d{font-size:8.5px;line-height:1;}
+.tens-row{display:flex;align-items:center;gap:4px;padding-left:4px;flex-wrap:wrap;}
+.tens-label{font-size:8px;font-weight:700;opacity:.7;min-width:16px;}
+.modes-block{padding-left:4px;margin-top:2px;}
+.mode-line{font-size:8.5px;line-height:1.6;}
+.mode-line strong{font-weight:700;}
+.barline-end{position:absolute;right:0;top:0;bottom:0;width:5px;border-radius:0 6px 6px 0;opacity:.7;}
+/* HTML output */
+.html-box{margin-bottom:16px;background:#fff;border:1px solid #cbd5e1;border-radius:10px;padding:14px;}
+.html-box-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.html-box-header span{font-weight:700;font-size:12px;color:#1e293b;}
+textarea{width:100%;height:160px;font-size:11px;font-family:monospace;border:1px solid #e2e8f0;border-radius:6px;padding:8px;background:#f8fafc;color:#334155;resize:vertical;}
+.html-hint{margin:6px 0 0;font-size:11px;color:#94a3b8;}
+@media print{
+  body{padding:4px;background:#fff;}
+  .btns,.dropzone,.html-box,h1,.sub{display:none!important;}
+  .grid-wrap{box-shadow:none;padding:8px;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+@media(max-width:600px){
+  .row{grid-template-columns:repeat(2,1fr);}
+  .cell{min-height:110px;}
+}
+</style>
+</head>
+<body>
+
+<h1>🎸 Jazz Grid Generator</h1>
+<p class="sub">Bass 5 strings • Arpèges • Tensions • Modes</p>
+
+<div class="dropzone" id="dz">
+  <div class="icon">🎼</div>
+  <p>Glissez-déposez votre .musicxml</p>
+  <small>ou appuyez pour sélectionner</small>
+  <input type="file" id="fileInput" accept=".musicxml,.xml" style="display:none"/>
+</div>
+
+<div id="error" class="error" style="display:none"></div>
+<div id="htmlBox" class="html-box" style="display:none">
+  <div class="html-box-header">
+    <span>💾 Code HTML — Copiez dans un fichier .html</span>
+    <button class="btn-pdf" onclick="copyHTML()">📋 Copier</button>
+  </div>
+  <textarea id="htmlOut" readonly></textarea>
+  <p class="html-hint">Copiez → collez dans un éditeur texte → enregistrez en .html</p>
+</div>
+<div id="btns" class="btns" style="display:none">
+  <button class="btn-pdf" onclick="window.print()">🖨️ PDF</button>
+  <button class="btn-html" onclick="exportHTML()">💾 HTML</button>
+  <button class="btn-new" onclick="reset()">↩ Nouveau</button>
+</div>
+<div id="gridWrap" style="display:none" class="grid-wrap">
+  <div class="header">
+    <h2 id="hTitle"></h2>
+    <div class="meta" id="hMeta"></div>
+    <div class="badges" id="hBadges"></div>
+    <div class="structure" id="hStruct"></div>
+    <div class="legend">
+      <span><span style="color:#1e40af;font-weight:700">■</span> Arpège (note/degré)</span>
+      <span><span style="color:#7c3aed;font-weight:700">■</span> Tensions</span>
+      <span><span style="color:#0369a1;font-weight:700">①②</span> Modes</span>
+    </div>
+  </div>
+  <div id="grid"></div>
+</div>
+
+<script>
+// ── Theory ──────────────────────────────────────────────────────────────────
+const CHR=["C","C#","D","Eb","E","F","F#","G","Ab","A","Bb","B"];
+function ni(n){const e={"Db":"C#","D#":"Eb","E#":"F","Fb":"E","Gb":"F#","G#":"Ab","A#":"Bb","B#":"C","Cb":"B"};return CHR.indexOf(e[n]||n);}
+function tr(root,s){const i=ni(root);return i===-1?"?":CHR[(i+s+12)%12];}
+
+const CD={
+  "major-seventh":    {arp:{d:["1","3","5","△7"],   i:[0,4,7,11]},t:[{s:2,l:"9"},{s:6,l:"#11"},{s:9,l:"13"}],       m:[{n:"Ionien",   i:[0,2,4,5,7,9,11]},{n:"Lydien",    i:[0,2,4,6,7,9,11]}]},
+  "major":            {arp:{d:["1","3","5","6"],     i:[0,4,7,9]}, t:[{s:2,l:"9"},{s:6,l:"#11"},{s:9,l:"13"}],       m:[{n:"Ionien",   i:[0,2,4,5,7,9,11]},{n:"Lydien",    i:[0,2,4,6,7,9,11]}]},
+  "dominant":         {arp:{d:["1","3","5","♭7"],   i:[0,4,7,10]},t:[{s:2,l:"9"},{s:1,l:"♭9"},{s:3,l:"#9"},{s:6,l:"#11"},{s:9,l:"13"},{s:8,l:"♭13"}],m:[{n:"Mixolydien",i:[0,2,4,5,7,9,10]},{n:"Lydien ♭7",i:[0,2,4,6,7,9,10]}]},
+  "minor-seventh":    {arp:{d:["1","♭3","5","♭7"],  i:[0,3,7,10]},t:[{s:2,l:"9"},{s:5,l:"11"},{s:9,l:"13"}],        m:[{n:"Dorien",   i:[0,2,3,5,7,9,10]},{n:"Éolien",    i:[0,2,3,5,7,8,10]}]},
+  "minor":            {arp:{d:["1","♭3","5","6"],   i:[0,3,7,9]}, t:[{s:2,l:"9"},{s:5,l:"11"},{s:9,l:"13"}],        m:[{n:"Dorien",   i:[0,2,3,5,7,9,10]},{n:"Éolien",    i:[0,2,3,5,7,8,10]}]},
+  "half-diminished":  {arp:{d:["1","♭3","♭5","♭7"], i:[0,3,6,10]},t:[{s:2,l:"9"},{s:5,l:"11"},{s:8,l:"♭13"}],      m:[{n:"Locrien",  i:[0,1,3,5,6,8,10]},{n:"Locrien #2",i:[0,2,3,5,6,8,10]}]},
+  "diminished":       {arp:{d:["1","♭3","♭5","♭♭7"],i:[0,3,6,9]}, t:[{s:2,l:"9"},{s:5,l:"11"},{s:8,l:"♭13"}],      m:[{n:"Dim. ½T", i:[0,2,3,5,6,8,9,11]},{n:"Dim. T-½",i:[0,1,3,4,6,7,9,10]}]},
+  "diminished-seventh":{arp:{d:["1","♭3","♭5","♭♭7"],i:[0,3,6,9]},t:[{s:2,l:"9"},{s:5,l:"11"},{s:8,l:"♭13"}],     m:[{n:"Dim. ½T", i:[0,2,3,5,6,8,9,11]},{n:"Dim. T-½",i:[0,1,3,4,6,7,9,10]}]},
+  "augmented":        {arp:{d:["1","3","#5","△7"],  i:[0,4,8,11]},t:[{s:2,l:"9"},{s:6,l:"#11"}],                   m:[{n:"Lydien aug.",i:[0,2,4,6,8,9,11]},{n:"Ionien #5",i:[0,2,4,5,8,9,11]}]},
+  "suspended-fourth": {arp:{d:["1","4","5","♭7"],   i:[0,5,7,10]},t:[{s:2,l:"9"},{s:9,l:"13"}],                    m:[{n:"Mixo.sus4",i:[0,2,5,7,9,10]},  {n:"Dorien",    i:[0,2,3,5,7,9,10]}]},
+  "suspended-second": {arp:{d:["1","2","5","♭7"],   i:[0,2,7,10]},t:[{s:5,l:"11"},{s:9,l:"13"}],                   m:[{n:"Mixolydien",i:[0,2,4,5,7,9,10]},{n:"Dorien",   i:[0,2,3,5,7,9,10]}]},
+  "major-sixth":      {arp:{d:["1","3","5","6"],     i:[0,4,7,9]}, t:[{s:2,l:"9"},{s:6,l:"#11"}],                  m:[{n:"Ionien",   i:[0,2,4,5,7,9,11]},{n:"Lydien",    i:[0,2,4,6,7,9,11]}]},
+  "minor-sixth":      {arp:{d:["1","♭3","5","6"],   i:[0,3,7,9]}, t:[{s:2,l:"9"},{s:5,l:"11"}],                    m:[{n:"Dorien",   i:[0,2,3,5,7,9,10]},{n:"Mél. min.", i:[0,2,3,5,7,9,11]}]},
+  "":                 {arp:{d:["1","3","5","△7"],   i:[0,4,7,11]},t:[{s:2,l:"9"},{s:6,l:"#11"},{s:9,l:"13"}],      m:[{n:"Ionien",   i:[0,2,4,5,7,9,11]},{n:"Lydien",    i:[0,2,4,6,7,9,11]}]},
+};
+CD["none"]=CD["dominant-ninth"]=CD["dominant-11th"]=CD["dominant-13th"]=CD["dominant"];
+CD["major-ninth"]=CD["major-seventh"];
+CD["minor-ninth"]=CD["minor-seventh"];
+CD["power"]=CD[""];
+
+function getData(root,kind){
+  const d=CD[kind]||CD[""];
+  const arp=d.arp.i.map((iv,i)=>({note:tr(root,iv),deg:d.arp.d[i]}));
+  const tens=d.t.map(t=>({note:tr(root,t.s),label:t.l}));
+  const modes=d.m.map(m=>({name:m.n,notes:m.i.map(iv=>tr(root,iv)).join(" ")}));
+  return{arp,tens,modes};
+}
+
+// ── Colors ──────────────────────────────────────────────────────────────────
+const COLS=[
+  {bg:"#dbeafe",b:"#3b82f6",l:"#1d4ed8",a:"#1e40af",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#fce7f3",b:"#ec4899",l:"#be185d",a:"#9d174d",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#d1fae5",b:"#10b981",l:"#065f46",a:"#064e3b",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#fef3c7",b:"#f59e0b",l:"#92400e",a:"#78350f",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#ede9fe",b:"#8b5cf6",l:"#5b21b6",a:"#4c1d95",t:"#db2777",mo:"#0369a1"},
+  {bg:"#fee2e2",b:"#ef4444",l:"#991b1b",a:"#7f1d1d",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#e0f2fe",b:"#0ea5e9",l:"#075985",a:"#0c4a6e",t:"#7c3aed",mo:"#0369a1"},
+  {bg:"#f0fdf4",b:"#22c55e",l:"#14532d",a:"#052e16",t:"#7c3aed",mo:"#0369a1"},
+];
+
+// ── Parse ────────────────────────────────────────────────────────────────────
+function fifthsToKey(f,mode){
+  const maj=["C","G","D","A","E","B","F#","C#","F","Bb","Eb","Ab","Db","Gb","Cb"];
+  return (mode==="minor"?maj[((f%15)+15)%15]+"m":maj[((f%15)+15)%15])||"C";
+}
+function fmtChord(h){
+  const km={"major":"△","minor":"m","dominant":"7","major-seventh":"△7","minor-seventh":"m7",
+    "half-diminished":"ø7","diminished":"°","diminished-seventh":"°7","augmented":"+",
+    "suspended-fourth":"sus4","suspended-second":"sus2","major-sixth":"6","minor-sixth":"m6",
+    "dominant-ninth":"9","major-ninth":"△9","minor-ninth":"m9","dominant-11th":"11",
+    "dominant-13th":"13","power":"5","":"","none":""};
+  const s=km[h.kind]!==undefined?km[h.kind]:h.kind;
+  return h.root+s+(h.bass?"/"+h.bass:"");
+}
+function parseXML(str){
+  const doc=new DOMParser().parseFromString(str,"application/xml");
+  const title=doc.querySelector("work-title,movement-title,credit-words")?.textContent?.trim()||"Untitled";
+  const keyEl=doc.querySelector("key");
+  const key=fifthsToKey(parseInt(keyEl?.querySelector("fifths")?.textContent||"0"),keyEl?.querySelector("mode")?.textContent||"major");
+  let tempo=null;
+  const se=doc.querySelector("sound[tempo]");
+  if(se) tempo=Math.round(parseFloat(se.getAttribute("tempo")));
+  const beats=doc.querySelector("beats")?.textContent||"4";
+  const beatType=doc.querySelector("beat-type")?.textContent||"4";
+  const measures=[];
+  doc.querySelectorAll("measure").forEach(mEl=>{
+    const num=mEl.getAttribute("number");
+    const harmonies=[];
+    mEl.querySelectorAll("harmony").forEach(h=>{
+      const rs=h.querySelector("root-step")?.textContent||"";
+      const ra=parseInt(h.querySelector("root-alter")?.textContent||"0");
+      const root=rs+(ra===1?"#":ra===-1?"b":"");
+      const kind=h.querySelector("kind")?.textContent?.trim()||"";
+      const bs=h.querySelector("bass-step")?.textContent||"";
+      const ba=parseInt(h.querySelector("bass-alter")?.textContent||"0");
+      const bass=bs?bs+(ba===1?"#":ba===-1?"b":""):"";
+      harmonies.push({root,kind,bass});
+    });
+    if(!harmonies.length){const f=mEl.querySelector("note pitch step")?.textContent;if(f)harmonies.push({root:f,kind:"",bass:""});}
+    const barlineEnd=mEl.querySelector("barline[location='right'] bar-style")?.textContent==="light-heavy"||!!mEl.querySelector("repeat[direction='backward']");
+    measures.push({num,harmonies,barlineEnd});
+  });
+  return{title,key,tempo,timeSig:`${beats}/${beatType}`,measures};
+}
+function detectSections(measures){
+  const labels="ABCDEFGH".split("");
+  const sections=[];let si=0,cur=[];
+  measures.forEach((m,i)=>{
+    cur.push(m);
+    if(m.barlineEnd||cur.length===8||i===measures.length-1){sections.push({label:labels[si%labels.length],measures:cur});si++;cur=[];}
+  });
+  return sections;
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let appData=null;
+let appSections=[];
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function renderCell(m,col){
+  const sz=m.harmonies.length>2?18:24;
+  const chordsHTML=m.harmonies.length===0
+    ?`<span style="color:#9ca3af;font-size:13px">%</span>`
+    :m.harmonies.map(h=>{
+      const{arp,tens,modes}=getData(h.root,h.kind);
+      const arpH=arp.map(n=>`<span class="note-stack"><span class="n" style="color:${col.a}">${n.note}</span><span class="d" style="color:${col.b}">${n.deg}</span></span>`).join("");
+      const tenH=tens.map(t=>`<span class="note-stack"><span class="n" style="color:${col.t}">${t.note}</span><span class="d" style="color:${col.t};font-weight:700">${t.label}</span></span>`).join("");
+      const modH=modes.map((mo,i)=>`<div class="mode-line" style="color:${col.mo}"><strong>${i===0?"①":"②"} ${mo.name}</strong> <span style="color:#334155;font-weight:600">${mo.notes}</span></div>`).join("");
+      return`<div class="chord-block">
+        <div class="arp-row">
+          <span class="chord-name" style="font-size:${sz}px;color:${col.l};min-width:${sz*1.8}px">${fmtChord(h)}</span>
+          <span class="div" style="color:${col.b}">│</span>
+          <span class="arp-notes">${arpH}</span>
+        </div>
+        <div class="tens-row"><span class="tens-label" style="color:${col.t}">T:</span>${tenH}</div>
+        <div class="modes-block">${modH}</div>
+      </div>`;
+    }).join("");
+  return`<div class="cell" style="background:${col.bg};border-color:${col.b}">
+    <span class="cell-num">${m.num}</span>
+    <div class="cell-body">${chordsHTML}</div>
+    ${m.barlineEnd?`<div class="barline-end" style="background:${col.b}"></div>`:""}
+  </div>`;
+}
+
+function renderGrid(data,sections){
+  document.getElementById("hTitle").textContent=data.title;
+  document.getElementById("hMeta").innerHTML=
+    `<span><span>Tonalité : </span><strong>${data.key}</strong></span>
+     <span><span>Mesure : </span><strong>${data.timeSig}</strong></span>
+     ${data.tempo?`<span><span>Tempo : </span><strong>♩=${data.tempo}</strong></span>`:""}
+     <span><span>Mesures : </span><strong>${data.measures.length}</strong></span>`;
+  document.getElementById("hBadges").innerHTML=sections.map((s,i)=>{
+    const c=COLS[i%COLS.length];
+    return`<span style="background:${c.bg};border:1px solid ${c.b};color:${c.l};border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700">${s.label} (${s.measures.length} m.)</span>`;
+  }).join("");
+  document.getElementById("hStruct").innerHTML=`<strong>Structure :</strong> ${sections.map(s=>s.label).join(" – ")}`;
+
+  let html="";
+  sections.forEach((sec,si)=>{
+    const col=COLS[si%COLS.length];
+    html+=`<div class="section-block">
+      <div class="section-label">
+        <span class="section-tag" style="background:${col.l}">${sec.label}</span>
+        <div class="section-line" style="background:${col.b}"></div>
+      </div>`;
+    for(let i=0;i<sec.measures.length;i+=4){
+      const row=sec.measures.slice(i,i+4);
+      html+=`<div class="row">`;
+      row.forEach(m=>{ html+=renderCell(m,col); });
+      for(let e=row.length;e<4;e++) html+=`<div></div>`;
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  });
+  document.getElementById("grid").innerHTML=html;
+  document.getElementById("gridWrap").style.display="block";
+  document.getElementById("btns").style.display="flex";
+}
+
+// ── Export HTML ───────────────────────────────────────────────────────────────
+function exportHTML(){
+  if(!appData) return;
+  const gridHTML=document.getElementById("gridWrap").outerHTML;
+  const html=`<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${appData.title}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#f8fafc;padding:16px;}
+.grid-wrap{background:#fff;border-radius:12px;padding:18px;max-width:1000px;margin:0 auto;}
+.header{border-bottom:2px solid #1e293b;padding-bottom:10px;margin-bottom:14px;}
+.header h2{font-size:17px;font-weight:800;color:#1e293b;}
+.meta{display:flex;gap:12px;margin-top:4px;flex-wrap:wrap;font-size:11px;color:#475569;}
+.meta strong{color:#1e293b;} .meta span span{color:#94a3b8;}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.structure{margin-top:4px;font-size:11px;color:#475569;}
+.legend{margin-top:8px;display:flex;gap:14px;font-size:10px;color:#64748b;flex-wrap:wrap;}
+.section-block{margin-bottom:16px;}
+.section-label{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.section-tag{color:#fff;border-radius:4px;padding:1px 10px;font-weight:800;font-size:12px;}
+.section-line{height:1px;flex:1;opacity:.4;}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;}
+.cell{border-radius:6px;min-height:130px;padding:6px 8px 8px;position:relative;border-width:1.5px;border-style:solid;}
+.cell-num{font-size:9px;color:#9ca3af;position:absolute;top:3px;left:5px;}
+.cell-body{margin-top:13px;display:flex;flex-direction:column;gap:6px;}
+.chord-block{display:flex;flex-direction:column;gap:2px;}
+.arp-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.chord-name{font-family:Georgia,serif;font-weight:900;letter-spacing:-.5px;line-height:1;flex-shrink:0;}
+.div{opacity:.35;font-size:11px;align-self:center;}
+.arp-notes{display:flex;gap:3px;}
+.note-stack{display:flex;flex-direction:column;align-items:center;min-width:18px;}
+.note-stack .n{font-size:11px;font-weight:700;font-family:Georgia,serif;line-height:1.1;}
+.note-stack .d{font-size:8.5px;line-height:1;}
+.tens-row{display:flex;align-items:center;gap:4px;padding-left:4px;flex-wrap:wrap;}
+.tens-label{font-size:8px;font-weight:700;opacity:.7;min-width:16px;}
+.modes-block{padding-left:4px;margin-top:2px;}
+.mode-line{font-size:8.5px;line-height:1.6;}
+.mode-line strong{font-weight:700;}
+.barline-end{position:absolute;right:0;top:0;bottom:0;width:5px;border-radius:0 6px 6px 0;opacity:.7;}
+@media print{
+  body{padding:4px;background:#fff;}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .grid-wrap{box-shadow:none;}
+}
+@media(max-width:600px){.row{grid-template-columns:repeat(2,1fr);}}
+</style></head><body>${gridHTML}</body></html>`;
+  document.getElementById("htmlOut").value=html;
+  document.getElementById("htmlBox").style.display="block";
+  document.getElementById("htmlBox").scrollIntoView({behavior:"smooth"});
+}
+
+function copyHTML(){
+  const ta=document.getElementById("htmlOut");
+  ta.select();
+  document.execCommand("copy");
+  alert("HTML copié !");
+}
+
+// ── File handling ─────────────────────────────────────────────────────────────
+function handleFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.(musicxml|xml)$/i)){showError("Fichier .musicxml requis");return;}
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      appData=parseXML(e.target.result);
+      appSections=detectSections(appData.measures);
+      hideError();
+      renderGrid(appData,appSections);
+    }catch(err){showError("Erreur parsing : "+err.message);}
+  };
+  r.readAsText(file);
+}
+function showError(msg){const el=document.getElementById("error");el.textContent=msg;el.style.display="block";}
+function hideError(){document.getElementById("error").style.display="none";}
+function reset(){
+  appData=null;appSections=[];
+  document.getElementById("gridWrap").style.display="none";
+  document.getElementById("btns").style.display="none";
+  document.getElementById("htmlBox").style.display="none";
+  document.getElementById("fileInput").value="";
+  hideError();
+}
+
+// ── Events ────────────────────────────────────────────────────────────────────
+const dz=document.getElementById("dz");
+const fi=document.getElementById("fileInput");
+dz.addEventListener("click",()=>fi.click());
+fi.addEventListener("change",e=>handleFile(e.target.files[0]));
+dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag");});
+dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
+dz.addEventListener("drop",e=>{e.preventDefault();dz.classList.remove("drag");handleFile(e.dataTransfer.files[0]);});
+
+// ── Service Worker (PWA offline) ──────────────────────────────────────────────
+if("serviceWorker" in navigator){
+  const swCode=`
+const CACHE="jazz-grid-v1";
+self.addEventListener("install",e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(["./"]) )));
+self.addEventListener("fetch",e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+`;
+  const blob=new Blob([swCode],{type:"application/javascript"});
+  const swURL=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swURL).catch(()=>{});
+}
+
+// ── Web App Manifest (PWA installable) ───────────────────────────────────────
+const manifest={
+  name:"Jazz Grid Generator",
+  short_name:"Jazz Grid",
+  description:"Grille jazz pour bassiste 5 cordes",
+  start_url:".",
+  display:"standalone",
+  background_color:"#f8fafc",
+  theme_color:"#1e293b",
+  icons:[{src:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWUyOTNiIi8+PHRleHQgeT0iLjllbSIgZm9udC1zaXplPSI3NSIgeD0iMTAiPvCfjZg8L3RleHQ+PC9zdmc+",sizes:"192x192",type:"image/svg+xml"},{src:"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWUyOTNiIi8+PHRleHQgeT0iLjllbSIgZm9udC1zaXplPSI3NSIgeD0iMTAiPvCfjZg8L3RleHQ+PC9zdmc+",sizes:"512x512",type:"image/svg+xml"}]
+};
+const mBlob=new Blob([JSON.stringify(manifest)],{type:"application/json"});
+const mURL=URL.createObjectURL(mBlob);
+const mLink=document.createElement("link");
+mLink.rel="manifest";mLink.href=mURL;
+document.head.appendChild(mLink);
+</script>
+</body>
+</html>
