@@ -31,11 +31,27 @@
   #chart-meta input { width:120px; text-align:center; }
 
   .section { margin-bottom:30px; background:#16213e; border-radius:8px; overflow:hidden; border:1px solid #2d4a7a; }
-  .section-header { background:#0f3460; padding:8px 14px; display:flex; align-items:center; gap:8px; }
-  .section-label { font-weight:bold; color:#f0a500; font-size:0.9rem; border:none; background:transparent; outline:none; width:120px; }
+  .section-header { background:#0f3460; padding:8px 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .section-header-top { display:flex; align-items:center; gap:8px; width:100%; }
+  .section-label { font-weight:bold; color:#f0a500; font-size:0.9rem; border:none; background:transparent; outline:none; width:140px; border-bottom:1px dashed #f0a50055; }
+  .section-label::placeholder { color:#f0a50066; }
+  .section-annot-row { width:100%; display:flex; align-items:center; gap:8px; padding-top:4px; border-top:1px dashed #1a3060; margin-top:2px; }
+  .section-annot-input { flex:1; background:transparent; border:none; outline:none; color:#93c5fd; font-size:0.78rem; font-style:italic; font-family:Georgia,serif; }
+  .section-annot-input::placeholder { color:#2d4a7a; }
+  .section-annot-badge { font-size:0.65rem; color:#3d6aaa; white-space:nowrap; }
   .section-actions { margin-left:auto; display:flex; gap:6px; }
   .section-actions button { background:none; border:1px solid #555; color:#aaa; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:0.75rem; }
   .section-actions button:hover { border-color:#f0a500; color:#f0a500; }
+
+  /* Section annotation display (below header, above grid) */
+  .section-annot-display { padding:6px 14px 4px; background:#0a2040; font-size:0.78rem; font-style:italic; color:#93c5fd; border-bottom:1px solid #1a3060; display:flex; gap:8px; align-items:flex-start; }
+  .section-annot-display .annot-icon { color:#3d6aaa; flex-shrink:0; margin-top:1px; }
+
+  @media print {
+    .section-annot-row { border-top-color:#ccc; }
+    .section-annot-input { color:#444; }
+    .section-annot-display { background:#f5f5f5; color:#444; border-bottom-color:#ccc; }
+  }
 
   .measures-grid { display:grid; padding:12px; gap:6px; }
   .measure { background:#1e3a5f; border:1px solid #2d5a8a; border-radius:4px; padding:4px; position:relative; cursor:pointer; transition:border-color 0.2s; display:flex; flex-direction:column; gap:2px; }
@@ -168,6 +184,7 @@
   <button class="btn" onclick="exportJSON()">💾 Export JSON</button>
   <input type="file" id="import-json" accept=".json" style="display:none">
   <button class="btn secondary" onclick="document.getElementById('import-json').click()">📥 Import JSON</button>
+  <button class="btn secondary" onclick="exportMusicXML()">🎼 Export MusicXML</button>
 </div>
 
 <div id="dropzone" onclick="document.getElementById('file-input').click()">
@@ -472,21 +489,53 @@ function render(){
 function renderSection(section,si){
   const cols=parseInt(document.getElementById('global-cols').value)||4;
   const div=document.createElement('div'); div.className='section';
+
+  // Header
   const hdr=document.createElement('div'); hdr.className='section-header';
-  const li=document.createElement('input'); li.className='section-label'; li.value=section.label||''; li.placeholder='Section...';
+
+  // Top row: label + actions
+  const topRow=document.createElement('div'); topRow.className='section-header-top';
+  const li=document.createElement('input'); li.className='section-label';
+  li.value=section.label||''; li.placeholder='Nom de section…';
   li.addEventListener('change',()=>{chartData.sections[si].label=li.value;});
   const acts=document.createElement('div'); acts.className='section-actions';
   ['+ Mesure','⧉ Dupliquer','✕ Supprimer'].forEach((t,k)=>{
     const b=document.createElement('button'); b.textContent=t;
     b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k]; acts.appendChild(b);
   });
-  hdr.append(li,acts);
+  topRow.append(li,acts);
+
+  // Annotation row
+  const annotRow=document.createElement('div'); annotRow.className='section-annot-row';
+  const annotBadge=document.createElement('span'); annotBadge.className='section-annot-badge'; annotBadge.textContent='✎';
+  const annotInput=document.createElement('input'); annotInput.type='text'; annotInput.className='section-annot-input';
+  annotInput.value=section.annotation||''; annotInput.placeholder='Annotation de section : tempo, style, indication, contexte…';
+  annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(si,annotInput.value,annotDisplayEl);});
+  annotInput.addEventListener('input',()=>{renderSectionAnnotDisplay(si,annotInput.value,annotDisplayEl);});
+  annotRow.append(annotBadge,annotInput);
+
+  hdr.append(topRow,annotRow);
+
+  // Annotation display band (below header)
+  const annotDisplayEl=document.createElement('div');
+  renderSectionAnnotDisplay(si,section.annotation||'',annotDisplayEl);
+
   const grid=document.createElement('div'); grid.className='measures-grid';
   grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
   section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));
   const ab=document.createElement('button'); ab.className='add-measure-btn'; ab.textContent='+'; ab.onclick=()=>addMeasure(si);
-  grid.appendChild(ab); div.append(hdr,grid); return div;
+  grid.appendChild(ab);
+
+  div.append(hdr,annotDisplayEl,grid); return div;
 }
+
+function renderSectionAnnotDisplay(si,text,el){
+  if(!text||!text.trim()){el.style.display='none';el.className='section-annot-display';return;}
+  el.style.display='flex'; el.className='section-annot-display';
+  el.innerHTML=`<span class="annot-icon">💬</span><span>${escapeHtml(text)}</span>`;
+}
+
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function renderMeasure(measure,si,mi){
   const div=document.createElement('div'); div.className='measure';
@@ -758,6 +807,179 @@ function duplicateSection(si){ const c=JSON.parse(JSON.stringify(chartData.secti
 function deleteSection(si){ if(chartData.sections.length<=1)return alert('Impossible de supprimer la dernière section.');chartData.sections.splice(si,1);render(); }
 function addMeasure(si){ const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b}],repeatStart:false,repeatEnd:false,annotation:null});render(); }
 function deleteMeasure(si,mi){ chartData.sections[si].measures.splice(mi,1);render(); }
+
+function exportMusicXML(){
+  // Sync meta
+  chartData.title=document.getElementById('chart-title').value;
+  chartData.key=document.getElementById('meta-key').value;
+  chartData.tempo=parseInt(document.getElementById('meta-tempo').value)||120;
+  chartData.timeSig=document.getElementById('meta-time').value;
+
+  const [beatsStr,beatTypeStr]=chartData.timeSig.split('/');
+  const beats=parseInt(beatsStr)||4, beatType=parseInt(beatTypeStr)||4;
+  const DIVISIONS=2; // quarter note divisions
+
+  // Key to fifths
+  const keyToFifths={'C':0,'G':1,'D':2,'A':3,'E':4,'B':5,'F#':6,'Db':-5,'Gb':-6,'Cb':-7,'F':-1,'Bb':-2,'Eb':-3,'Ab':-4};
+  const fifths=keyToFifths[chartData.key]??0;
+  const mode=chartData.key.includes('m')?'minor':'major';
+
+  // Chord symbol → MusicXML kind
+  const qualityToKind={
+    '':       {kind:'major',       text:''},
+    'maj7':   {kind:'major-seventh',  text:'maj7'},
+    'maj9':   {kind:'major-ninth',    text:'maj9'},
+    'maj13':  {kind:'major-13th',     text:'maj13'},
+    '6':      {kind:'major-sixth',    text:'6'},
+    '6/9':    {kind:'major-sixth',    text:'6/9'},
+    'm':      {kind:'minor',          text:'m'},
+    'm6':     {kind:'minor-sixth',    text:'m6'},
+    'm7':     {kind:'minor-seventh',  text:'m7'},
+    'm9':     {kind:'minor-ninth',    text:'m9'},
+    'm11':    {kind:'minor-11th',     text:'m11'},
+    'm13':    {kind:'minor-13th',     text:'m13'},
+    'mM7':    {kind:'major-minor',    text:'mM7'},
+    '7':      {kind:'dominant',       text:'7'},
+    '9':      {kind:'dominant-ninth', text:'9'},
+    '11':     {kind:'dominant-11th',  text:'11'},
+    '13':     {kind:'dominant-13th',  text:'13'},
+    'dim':    {kind:'diminished',     text:'dim'},
+    'dim7':   {kind:'diminished-seventh',text:'dim7'},
+    'm7b5':   {kind:'half-diminished',text:'ø7'},
+    'aug':    {kind:'augmented',      text:'aug'},
+    'sus2':   {kind:'suspended-second',text:'sus2'},
+    'sus4':   {kind:'suspended-fourth',text:'sus4'},
+    '7sus4':  {kind:'suspended-fourth',text:'7sus4'},
+  };
+
+  function parseChordForXML(sym){
+    if(!sym||sym==='%'||sym==='–')return null;
+    const slashParts=sym.split('/');
+    const main=slashParts[0], bassNote=slashParts[1]||null;
+    const rm=main.match(/^([A-G][#b]?)(.*)/); if(!rm)return null;
+    const root=rm[1], quality=rm[2].replace(/[()]/g,'');
+    // Parse root alter
+    let rootStep=root[0], rootAlter=0;
+    if(root[1]==='#')rootAlter=1;
+    if(root[1]==='b')rootAlter=-1;
+    // Bass
+    let bassStep=null, bassAlter=0;
+    if(bassNote){bassStep=bassNote[0];if(bassNote[1]==='#')bassAlter=1;if(bassNote[1]==='b')bassAlter=-1;}
+    const kd=qualityToKind[quality]||{kind:'major',text:quality};
+    return {rootStep,rootAlter,quality,kind:kd.kind,kindText:kd.text,bassStep,bassAlter};
+  }
+
+  function chordToXML(chord, offset){
+    const p=parseChordForXML(chord.symbol); if(!p)return '';
+    const alterXML=v=>v!==0?`<root-alter>${v}</root-alter>`:'';
+    const bassXML=p.bassStep?`<bass><bass-step>${p.bassStep}</bass-step>${p.bassAlter!==0?`<bass-alter>${p.bassAlter}</bass-alter>`:''}</bass>`:'';
+    const offsetXML=offset>0?`<offset>${offset*DIVISIONS}</offset>`:'';
+    return `
+      <harmony>
+        ${offsetXML}
+        <root>
+          <root-step>${p.rootStep}</root-step>
+          ${alterXML(p.rootAlter)}
+        </root>
+        <kind text="${p.kindText}">${p.kind}</kind>
+        ${bassXML}
+      </harmony>`;
+  }
+
+  let measureNumber=1;
+  let measuresXML='';
+  let isFirst=true;
+
+  chartData.sections.forEach((section,si)=>{
+    section.measures.forEach((measure,mi)=>{
+      const chords=measure.chords||[];
+      let harmoniesXML='';
+      let offsetBeats=0;
+      chords.forEach(chord=>{
+        harmoniesXML+=chordToXML(chord,offsetBeats);
+        offsetBeats+=chord.beats||beats;
+      });
+
+      // Barlines
+      let barlineStart='', barlineEnd='';
+      if(measure.repeatStart) barlineStart=`
+      <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>`;
+      if(measure.repeatEnd) barlineEnd=`
+      <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>`;
+
+      // Rehearsal mark at first measure of each section
+      let directionXML='';
+      if(mi===0&&section.label){
+        directionXML=`
+      <direction placement="above">
+        <direction-type><rehearsal enclosure="box">${section.label}</rehearsal></direction-type>
+      </direction>`;
+        // Section annotation as words
+        if(section.annotation){
+          directionXML+=`
+      <direction placement="above">
+        <direction-type><words>${section.annotation.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</words></direction-type>
+      </direction>`;
+        }
+      }
+
+      // Attributes (first measure only)
+      let attributesXML='';
+      if(isFirst){
+        attributesXML=`
+      <attributes>
+        <divisions>${DIVISIONS}</divisions>
+        <key><fifths>${fifths}</fifths><mode>${mode}</mode></key>
+        <time><beats>${beats}</beats><beat-type>${beatType}</beat-type></time>
+        <clef><sign>G</sign><line>2</line></clef>
+      </attributes>
+      <direction placement="above">
+        <direction-type><metronome parentheses="no"><beat-unit>quarter</beat-unit><per-minute>${chartData.tempo}</per-minute></metronome></direction-type>
+        <sound tempo="${chartData.tempo}"/>
+      </direction>`;
+        isFirst=false;
+      }
+
+      // Whole rest (MusicXML requires at least one note/rest per measure)
+      const restDuration=beats*DIVISIONS;
+      const restXML=`
+      <note>
+        <rest measure="yes"/>
+        <duration>${restDuration}</duration>
+        <type>whole</type>
+      </note>`;
+
+      measuresXML+=`
+    <measure number="${measureNumber++}">${barlineStart}${attributesXML}${directionXML}${harmoniesXML}${restXML}${barlineEnd}
+    </measure>`;
+    });
+  });
+
+  const title=chartData.title||'Jazz Chart';
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN"
+  "http://www.musicxml.org/dtds/partwise.dtd">
+<score-partwise version="3.1">
+  <work><work-title>${title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</work-title></work>
+  <identification>
+    <encoding>
+      <software>Jazz Chart Editor</software>
+      <encoding-date>${new Date().toISOString().split('T')[0]}</encoding-date>
+    </encoding>
+  </identification>
+  <part-list>
+    <score-part id="P1"><part-name>${title.replace(/&/g,'&amp;')}</part-name></score-part>
+  </part-list>
+  <part id="P1">${measuresXML}
+  </part>
+</score-partwise>`;
+
+  const blob=new Blob([xml],{type:'application/vnd.recordare.musicxml+xml'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(title||'chart').replace(/\s+/g,'_')+'.musicxml';
+  a.click();
+}
 
 function exportJSON(){
   chartData.title=document.getElementById('chart-title').value; chartData.key=document.getElementById('meta-key').value;
