@@ -4,156 +4,294 @@ This file provides guidance for AI assistants (Claude Code and similar tools) wo
 
 ## Project Overview
 
-**Jazz Grid Generator** is a tool for generating jazz chord grids (lead sheets / chord charts) from `.musicxml` files. MusicXML is an open standard for representing Western music notation, and this project parses it to produce printable or displayable jazz grids commonly used by musicians for rehearsal and performance.
+**Jazz Grid Generator** est un éditeur de grilles d'accords jazz (lead sheets / chord charts) fonctionnant entièrement dans le navigateur. Il permet d'importer des fichiers `.musicxml`, d'éditer les accords, d'annoter les mesures avec des informations de théorie musicale (modes, arpèges, tensions), puis d'exporter en MusicXML, JSON ou d'imprimer directement.
 
-- **License:** Apache 2.0
-- **Author:** virgosfredianilorenzo-cyber
-- **Status:** Early stage — source code not yet committed
+- **Technologie :** HTML/CSS/JavaScript vanilla — application mono-fichier, aucune dépendance externe
+- **Licence :** Apache 2.0
+- **Auteur :** virgosfredianilorenzo-cyber
+- **Statut :** Application fonctionnelle, développée dans `LV_JazzGrid_Editor.html`
 
 ## Repository Structure
 
 ```
 Jazz_grid_generator/
-├── CLAUDE.md          # This file
-├── LICENSE            # Apache License 2.0
-└── README.md          # Project description (French)
+├── CLAUDE.md                  # Ce fichier
+├── LICENSE                    # Apache License 2.0
+├── README.md                  # Description du projet (en français)
+└── LV_JazzGrid_Editor.html    # Application complète (source unique)
 ```
 
-As source code is added, the expected layout is:
+> **Important :** Toute la logique de l'application réside dans `LV_JazzGrid_Editor.html`. Il n'y a pas de build system, pas de bundler, pas de framework — un seul fichier HTML autonome.
 
+## Architecture du fichier HTML
+
+Le fichier est organisé en trois blocs principaux :
+
+### 1. `<style>` — CSS
+
+Thème sombre avec accent doré (`#f0a500`). Sections notables :
+- **Toolbar** : barre d'outils collante en haut
+- **Dropzone** : zone de dépôt de fichier MusicXML
+- **Chart editor** : en-tête du thème + conteneur de sections
+- **`.section` / `.section-header`** : blocs par section (A, B, chorus…)
+- **`.measure` / `.measure-beats` / `.beat`** : cellules de grille
+- **`.measure-theory`** : zone d'annotation théorique en bas de mesure
+- **`#modal-overlay` / `#modal`** : modal d'édition d'accord
+- **`#annot-overlay` / `#annot-modal`** : modal d'annotation musicale
+- **`@media print`** : styles d'impression (fond blanc, éléments UI masqués)
+
+### 2. `<body>` — HTML
+
+Structure principale :
 ```
-Jazz_grid_generator/
-├── CLAUDE.md
-├── LICENSE
-├── README.md
-├── src/               # Main source code
-│   └── jazz_grid/
-├── tests/             # Test files mirroring src/ structure
-├── examples/          # Example .musicxml input files
-├── output/            # Generated grid output (gitignored)
-└── docs/              # Additional documentation
-```
-
-## Development Workflows
-
-### Getting Started
-
-Since the project has no build/dependency configuration yet, follow these steps when adding the first source files:
-
-1. Choose and document the primary language (Python is a natural fit given `music21`, `lxml`, and `musicxml` ecosystem support)
-2. Create a dependency manifest (`requirements.txt` or `pyproject.toml` for Python; `package.json` for Node.js)
-3. Set up a virtual environment (Python) or install dependencies before running anything
-4. Add a `.gitignore` appropriate for the chosen language
-
-### Running the Project
-
-No run commands exist yet. Once source code is present, document them here in the format:
-
-```bash
-# Example (Python):
-python -m jazz_grid input.musicxml -o output.pdf
+#toolbar              ← boutons d'action globaux
+#dropzone             ← écran d'accueil (masqué après import)
+#chart-editor
+  #chart-header       ← titre, tonalité, tempo, mesure, style
+  #sections-container ← généré dynamiquement par render()
+#modal-overlay        ← modal chord editor (caché par défaut)
+#annot-overlay        ← modal annotation (caché par défaut)
 ```
 
-### Running Tests
+### 3. `<script>` — JavaScript
 
-No test framework is configured yet. When adding tests:
+Organisé en sections commentées :
 
-- Python: prefer `pytest` with tests in a `tests/` directory
-- Node.js: prefer `jest` with tests co-located or in `__tests__/`
-- Run tests before committing any functional change
+| Section | Rôle |
+|---------|------|
+| **MUSIC THEORY ENGINE** | Calcul des notes (transposition, arpèges, modes, tensions) |
+| **DATA MODEL** | Structure `chartData` + constantes (roots, qualities, extensions) |
+| **MUSICXML PARSER** | Import `.musicxml` → `chartData` |
+| **RENDER** | `chartData` → DOM |
+| **ANNOTATION MODAL** | Logique du modal d'annotation par mesure |
+| **CHORD MODAL** | Logique du modal d'édition d'accord |
+| **CHART ACTIONS** | Ajout/suppression de sections et mesures |
+| **Export / Import** | MusicXML export, JSON export/import |
+| **Event listeners** | Fichiers, drag & drop, clavier, méta-champs |
 
-Once configured, run tests with:
+## Modèle de données (`chartData`)
 
-```bash
-# Python (pytest)
-pytest
-
-# Node.js (jest)
-npm test
+```javascript
+chartData = {
+  title:   string,      // Titre du thème
+  key:     string,      // Tonalité ex: "C", "Bb", "F#"
+  tempo:   number,      // BPM
+  timeSig: string,      // ex: "4/4", "3/4"
+  style:   string,      // ex: "Swing", "Bossa"
+  sections: [
+    {
+      label:      string,       // Nom de section ex: "A", "B", "Chorus"
+      annotation: string|null,  // Annotation libre de section
+      measures: [
+        {
+          number:      number,
+          repeatStart: boolean,
+          repeatEnd:   boolean,
+          chords: [
+            { symbol: string, beats: number }
+            // symbol ex: "Cmaj7", "Bb7/F", "Am7b5"
+          ],
+          annotation: {          // null si aucune annotation
+            showMode:  boolean,
+            showArp:   boolean,
+            showTens:  boolean,
+            showFree:  boolean,
+            modeIdx:   number,   // index dans MODES_DEF[quality]
+            invIdx:    number,   // index du renversement (0–3)
+            selTens:   string[], // tensions sélectionnées ex: ["b9","#11"]
+            freeText:  string,
+            freeColor: string,   // couleur CSS hex
+            freeBold:  boolean,
+            freeItalic: boolean,
+          } | null
+        }
+      ]
+    }
+  ]
+}
 ```
 
-### Linting and Formatting
+## Moteur de théorie musicale
 
-No linter is configured yet. When adding source code:
+### Constantes
+- **`CHROMATIC`** : échelle chromatique à 12 notes (`['C','C#','D',…,'B']`)
+- **`ENH`** : enharmoniques (`'C#'↔'Db'`, `'F#'↔'Gb'`, etc.)
+- **`ROOTS`** : 17 fondamentales possibles dans l'interface
+- **`QUALITIES`** : 24 qualités d'accords (de `''` majeur à `'7sus4'`)
+- **`EXTS`** : 9 altérations/extensions (`b5`, `#5`, `b9`, `#9`, `#11`, `b13`, `add9`, `add11`, `omit3`)
 
-- Python: use `ruff` for linting, `black` for formatting
-- Node.js: use `eslint` + `prettier`
+### Fonctions utilitaires
+- **`noteIdx(n)`** : index chromatique d'une note (gère les enharmoniques)
+- **`tr(root, semitones)`** : transposition d'une note de N demi-tons (respecte les bémols)
+- **`parseChordSym(sym)`** : extrait `{root, quality}` d'un symbole d'accord
 
-Run the formatter before committing:
+### `ARP_DEF` — Arpèges 4 sons
+Dictionnaire indexé par qualité. Chaque entrée contient :
+- `i` : intervalles en demi-tons depuis la fondamentale
+- `n` : noms de degrés (`'1'`, `'b3'`, `'5'`, `'b7'`, etc.)
 
-```bash
-# Python
-black .
-ruff check .
+### `MODES_DEF` — Modes compatibles
+Dictionnaire indexé par qualité. Chaque entrée est un tableau de modes :
+```javascript
+{ name: 'Dorien', desc: '1 2 b3 4 5 6 b7', i: [0,2,3,5,7,9,10] }
+```
+Exemples : `'7'` → [Mixolydien, Lydien b7, Mixt. b9b13, Altéré] ; `'m7'` → [Dorien, Éolien, Phrygien]
+
+### `TENS_DEF` — Tensions disponibles / à éviter
+Dictionnaire indexé par qualité :
+```javascript
+{ a: ['b9','9','#9','#11','b13','13'],  // available
+  av: [] }                               // avoid
+```
+
+### `TENSION_IV` — Intervalles des tensions
+Associe chaque tension à son intervalle en demi-tons (`'b9':1`, `'9':2`, `'#11':6`, etc.)
+
+## Fonctions clés à connaître
+
+| Fonction | Description |
+|----------|-------------|
+| `parseMusicXML(xmlStr)` | Parse un fichier MusicXML → `chartData` complet |
+| `render()` | Reconstruit tout le DOM à partir de `chartData` |
+| `renderSection(section, si)` | Génère le bloc HTML d'une section |
+| `renderMeasure(measure, si, mi)` | Génère le bloc HTML d'une mesure |
+| `fmtChord(sym)` | Formate un symbole pour l'affichage (`maj7→Δ7`, `m7b5→ø7`, `dim7→°7`) |
+| `getArpNotes(root, quality)` | Retourne les 4 notes de l'arpège |
+| `getInversions(root, quality)` | Retourne les 4 renversements avec notes et degrés |
+| `buildModal()` | Initialise les boutons du chord modal (appelé une seule fois au démarrage) |
+| `openModal(si, mi, ci, chord)` | Ouvre le modal d'édition d'accord |
+| `applyChord()` | Applique les modifications d'accord → `chartData` → `render()` |
+| `deleteChord()` | Supprime un accord de la mesure |
+| `openAnnotModal(si, mi)` | Ouvre le modal d'annotation musicale |
+| `applyAnnotation()` | Applique l'annotation → `chartData` → `render()` |
+| `clearAnnotation()` | Efface toutes les annotations d'une mesure |
+| `toggleSection(key)` | Bascule l'affichage d'un bloc (mode/arp/tens/free) dans le modal annotation |
+| `exportMusicXML()` | Génère et télécharge un fichier `.musicxml` MusicXML 3.1 |
+| `exportJSON()` | Génère et télécharge `chartData` en JSON |
+| `newChart()` | Crée un thème vierge (8 mesures, section A, Cmaj7) |
+| `addSection()` / `duplicateSection(si)` / `deleteSection(si)` | Gestion des sections |
+| `addMeasure(si)` / `deleteMeasure(si, mi)` | Gestion des mesures |
+
+## Variables d'état globales
+
+```javascript
+chartData         // modèle de données principal
+editingTarget     // { si, mi, ci } — cible du chord modal
+selectedRoot      // fondamentale sélectionnée dans le chord modal
+selectedQuality   // qualité sélectionnée dans le chord modal
+selectedExts      // extensions sélectionnées (tableau)
+annotTarget       // { si, mi } — cible de l'annotation modal
+selectedAnnotColor // couleur hex de l'annotation libre
+aShow             // { mode, arp, tens, free } — toggles d'affichage
+aState            // { modeIdx, invIdx, selTens } — état courant dans le modal
+```
+
+## Conventions de code
+
+- **Indices** : `si` = section index, `mi` = measure index, `ci` = chord index
+- **DOM** : manipulation vanilla (`createElement`, `appendChild`, `classList`)
+- **Événements** : mix de `onclick` inline et `addEventListener`
+- **Pas de framework** : aucun React, Vue, jQuery — JS natif uniquement
+- **Rendu** : entièrement impératif, `render()` reconstruit tout le DOM à chaque modification
+- **Symboles jazz** : `Δ7` (maj7), `ø7` (m7b5), `°7` (dim7), `°` (dim) dans l'affichage
+- **MusicXML 3.1** : format cible pour l'export (DTD Recordare)
+- **`DIVISIONS = 2`** : valeur de `<divisions>` dans l'export MusicXML (noire = 2 divisions)
+
+## Fonctionnalités UI
+
+| Fonctionnalité | Implémentation |
+|----------------|----------------|
+| Importation MusicXML | `<input type="file">` + `FileReader` + `parseMusicXML()` |
+| Drag & drop | Events `dragover`/`drop` sur `#dropzone` |
+| Édition d'accord | Clic sur un beat → `openModal()` |
+| Annotation de mesure | Clic sur icône ✏️ → `openAnnotModal()` |
+| Annotation de section | `<input>` inline dans le header de section |
+| Suppression de mesure | Bouton ✕ visible au survol (haut-droit de la mesure) |
+| Colonnes de grille | `<select id="global-cols">` → CSS grid `repeat(N, 1fr)` |
+| Impression | `window.print()` + `@media print` CSS |
+| Export JSON | `Blob` + URL temporaire + `<a>.click()` |
+| Export MusicXML | Génération XML string + `Blob` + téléchargement |
+| Fermeture modals | Touche `Escape` + clic sur l'overlay |
+
+## Flux de données
+
+```
+Fichier .musicxml
+      ↓ parseMusicXML()
+   chartData
+      ↓ render()
+      DOM
+      ↓ (édition utilisateur)
+   chartData  →  exportJSON() / exportMusicXML()
 ```
 
 ## Git Conventions
 
 ### Branches
 
-- `master` — stable main branch; only merge tested, reviewed code
-- `claude/<session-id>` — AI-generated work branches (e.g., `claude/claude-md-mm5ry2hoearvctix-KlTay`)
-- Feature branches should follow: `feature/<short-description>`
-- Bug fix branches: `fix/<short-description>`
+- `master` — branche stable ; n'y fusionner que du code testé
+- `claude/<session-id>` — branches de travail AI (ex: `claude/claude-md-mm5ry2hoearvctix-KlTay`)
+- `feature/<description>` — nouvelles fonctionnalités
+- `fix/<description>` — corrections de bugs
 
-### Commit Messages
+### Messages de commit
 
-Use the imperative mood, short subject line (≤72 chars), and optionally a body:
+Impératif, ligne courte (≤72 cars), corps optionnel :
 
 ```
-Add MusicXML chord parser module
+Add export MusicXML 3.1 with harmony elements
 
-Parse <harmony> elements from MusicXML to extract chord root, quality,
-and bass note for grid rendering.
+Generate <harmony> elements for each chord with root, kind, and optional
+bass note. Include <rehearsal> marks for section labels.
 ```
-
-- Do **not** prefix with `feat:`, `fix:` etc. unless the project adopts Conventional Commits explicitly
-- Reference relevant issue numbers if applicable: `Closes #12`
 
 ### Pull Requests
 
-- Keep PRs focused on a single concern
-- Ensure all tests pass before opening a PR
-- Describe *what* changed and *why* in the PR body
+- Un PR = une fonctionnalité ou correction
+- Décrire *ce qui change* et *pourquoi*
+- Ne jamais pousser directement sur `master`
 
-## Key Domain Concepts
+## Concepts clés du domaine
 
-Understanding these concepts helps when working on the codebase:
+| Terme | Signification |
+|-------|---------------|
+| **Jazz grid** | Grille d'accords : symboles d'accords sur une grille bars × temps |
+| **MusicXML** | Format XML ouvert pour la notation musicale (`.musicxml` / `.xml`) |
+| **`<harmony>`** | Élément MusicXML portant le symbole d'accord |
+| **`<measure>`** | Élément MusicXML représentant une mesure |
+| **Qualité d'accord** | Majeur, mineur, dominant 7e, diminué, etc. |
+| **Renversement** | Disposition des notes d'un accord (position fondamentale, 1er, 2ème, 3ème) |
+| **Tension** | Extension d'accord (9, 11, 13 et leurs altérations) |
+| **Mode** | Gamme associée à un accord (Dorien, Mixolydien, Altéré, etc.) |
+| **Lead sheet** | Partition simplifiée : mélodie + symboles d'accords |
 
-| Term | Meaning |
-|------|---------|
-| **Jazz grid** | A chord chart layout showing chord symbols over a rhythmic grid (bars × beats) |
-| **MusicXML** | Open XML format for music notation (`.musicxml` or `.xml` extension) |
-| **`<harmony>`** | MusicXML element carrying chord symbol information |
-| **`<measure>`** | MusicXML element representing one bar of music |
-| **Chord quality** | Major, minor, dominant 7th, diminished, etc. |
-| **Lead sheet** | Simplified score showing melody + chord symbols |
+## Fichiers importants
 
-## Important Files to Know
+| Fichier | Rôle |
+|---------|------|
+| `LV_JazzGrid_Editor.html` | Application complète — source unique |
+| `README.md` | Description publique du projet (en français) |
+| `LICENSE` | Apache 2.0 |
+| `CLAUDE.md` | Ce fichier — guide pour assistants AI |
 
-| File | Purpose |
-|------|---------|
-| `README.md` | Public-facing project description |
-| `LICENSE` | Apache 2.0 — all contributions must be compatible |
-| `CLAUDE.md` | This file — AI assistant guidance |
+## Directives pour les assistants AI
 
-## Guidelines for AI Assistants
+1. **Lire avant de modifier.** Toujours lire le fichier HTML avant d'y toucher ; ne jamais supposer son contenu.
+2. **Modifications minimales.** Ne changer que ce qui est demandé ; éviter les refactorisations non sollicitées.
+3. **Pas de nouvelle structure inventée.** Ne pas créer de fichiers ou répertoires qui n'ont pas été demandés.
+4. **Respecter la licence.** Tout code ou dépendance ajouté doit être compatible Apache 2.0.
+5. **Pas de dépendances externes.** L'application est intentionnellement sans dépendance — ne pas introduire de CDN, npm, ou bibliothèques sans accord explicite.
+6. **Préserver le pattern de rendu.** Le rendu est impératif et reconstruit le DOM entier via `render()` ; respecter ce pattern.
+7. **Discipline de branches.** Travailler sur la branche `claude/` désignée ; ne jamais pousser sur `master`.
+8. **README en français.** Le README est en français — le conserver ainsi.
+9. **Tester dans le navigateur.** Toute modification de la logique JS doit être vérifiable en ouvrant le fichier HTML dans un navigateur.
+10. **Demander avant de refactoriser.** Si une restructuration importante semble nécessaire (diviser en plusieurs fichiers, introduire un bundler), confirmer avec l'auteur d'abord.
 
-1. **Read before editing.** Always read a file before modifying it; never guess at existing content.
-2. **Minimal changes.** Only change what is necessary to fulfill the request; avoid refactoring unrelated code.
-3. **No invented structure.** Do not create directories or modules that weren't requested and don't exist yet.
-4. **Respect the license.** Any dependencies or code snippets introduced must be Apache 2.0-compatible.
-5. **MusicXML parsing.** Prefer established libraries (`music21` in Python, `musicxml` npm package for Node.js) over hand-rolled XML parsing.
-6. **Tests required.** Any functional logic added should have corresponding tests.
-7. **Branch discipline.** Work on the designated `claude/` branch; never push directly to `master`.
-8. **French README.** The project README is in French — keep it in French or discuss with the owner before changing the language.
-9. **Output files.** Generated grids (PDF, SVG, HTML) should never be committed; add them to `.gitignore`.
-10. **Ask before large refactors.** If structural changes (renaming modules, switching language/framework) seem necessary, confirm with the user first.
+## État actuel (au 2026-03-01)
 
-## Notes on Current State (as of 2026-02-28)
-
-- The repository contains no source code — only `LICENSE` and `README.md`.
-- There is one commit: `bee594b Initial commit`.
-- No build system, test framework, or CI/CD configuration exists yet.
-- The project intent (from the README) is: *"Construire Jazz grid generator à partir de fichiers .musicxml"* — Build a Jazz grid generator from .musicxml files.
-- Technology stack has not been decided; Python is recommended given the music tooling ecosystem.
+- L'application est **fonctionnelle et complète** dans `LV_JazzGrid_Editor.html`.
+- Stack : HTML/CSS/JS vanilla, aucune dépendance externe, aucun build system.
+- Fonctionnalités implémentées : import MusicXML, édition complète de grille, annotations musicales (modes/arpèges/tensions/texte libre), export MusicXML 3.1, export/import JSON, impression.
+- Le moteur de théorie musicale couvre 24 qualités d'accords, modes compatibles, arpèges avec renversements, et tensions disponibles/à éviter.
+- Aucun framework de test n'est configuré.
+- Aucune CI/CD n'est en place.
