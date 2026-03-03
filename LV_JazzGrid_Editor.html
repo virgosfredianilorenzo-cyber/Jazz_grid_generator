@@ -149,21 +149,37 @@
   .add-section-btn { min-height:44px; width:100%; margin:8px 0; font-size:1rem; }
   .cols-select { width:60px; }
 
+  /* PRINT CONTRAST CONTROL */
+  #print-contrast-bar {
+    display:none; position:fixed; bottom:0; left:0; right:0; z-index:150;
+    background:#16213e; border-top:2px solid #f0a500;
+    padding:8px 20px; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  #print-contrast-bar span { font-size:0.82rem; color:#aaa; }
+  #contrast-slider { width:160px; accent-color:#f0a500; }
+  #contrast-preview { font-size:0.75rem; color:#f0a500; }
+
   @media print {
-    body { background:white; color:black; }
-    #toolbar,.section-actions,.add-measure-btn,.add-section-btn,.annotation-icon { display:none !important; }
-    .section { border:1px solid #ccc; background:white; page-break-inside:avoid; }
-    .section-header { background:#eee; }
-    .section-label { color:#333; }
-    .measure { background:white; border:1px solid #ccc; }
-    .chord-symbol { color:black; }
-    .measure-number { color:#999; }
-    .theory-row-value.mode-val { color:#444; }
-    .theory-row-value.arp-val  { color:#222; }
-    .theory-row-value.tens-val { color:#333; }
-    .theory-row-label { color:#777; }
-    .measure-theory { border-top-color:#ccc; }
-    .measure-free-annot { color:#444; border-top-color:#bbb; }
+    body { background:white; }
+    #toolbar, #print-contrast-bar, .section-actions, .add-measure-btn, .add-section-btn, .annotation-icon { display:none !important; }
+    .section { border:2px solid #000; background:white; page-break-inside:avoid; margin-bottom:14px; }
+    .section-header { background:#ddd; }
+    .section-label { color:#000; font-size:1rem; }
+    .section-annot-row { border-top-color:#aaa; }
+    .section-annot-input { color:#222; font-size:0.82rem; }
+    .section-annot-display { background:#eee; color:#222; border-bottom-color:#aaa; }
+    .measure { background:white; border:1.5px solid #333; }
+    .chord-symbol { color:#000 !important; font-size:1.15rem; }
+    .chord-duration { color:#333 !important; }
+    .measure-number { color:#555; }
+    .theory-row-value.mode-val { color:#111 !important; }
+    .theory-row-value.arp-val  { color:#111 !important; }
+    .theory-row-value.tens-val { color:#111 !important; }
+    .theory-row-label { color:#444 !important; }
+    .measure-theory { border-top-color:#aaa; }
+    .measure-free-annot { color:#222 !important; border-top-color:#aaa; }
+    .barline-repeat-start { border-left-color:#000; }
+    .barline-repeat-end   { border-right-color:#000; }
   }
 </style>
 </head>
@@ -180,7 +196,7 @@
     <option value="4" selected>4</option><option value="3">3</option>
     <option value="2">2</option><option value="1">1</option>
   </select>
-  <button class="btn secondary" onclick="window.print()">🖨️ Imprimer</button>
+  <button class="btn secondary" onclick="openPrintPanel()">🖨️ Imprimer</button>
   <button class="btn" onclick="exportJSON()">💾 Export JSON</button>
   <input type="file" id="import-json" accept=".json" style="display:none">
   <button class="btn secondary" onclick="document.getElementById('import-json').click()">📥 Import JSON</button>
@@ -207,7 +223,36 @@
   <button class="add-section-btn" onclick="addSection()">+ Ajouter une section</button>
 </div>
 
-<!-- CHORD MODAL -->
+<!-- SECTION LABEL MODAL -->
+<div id="label-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:300;align-items:center;justify-content:center;">
+  <div style="background:#16213e;border:2px solid #f0a500;border-radius:10px;padding:22px;width:380px;max-width:95vw;">
+    <h3 style="color:#f0a500;margin-bottom:14px;font-size:1rem;">✏️ Lettre de section</h3>
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Lettre principale :</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="letter-btns"></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Suffixe :</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="suffix-btns"></div>
+    </div>
+    <div style="font-size:0.85rem;color:#aaa;margin-bottom:14px;">
+      Aperçu : <span id="label-preview" style="color:#f0a500;font-weight:bold;font-size:1.1rem;margin-left:8px;"></span>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closeLabelModal()">Annuler</button>
+      <button class="btn" onclick="applyLabel()">✓ Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT CONTRAST BAR -->
+<div id="print-contrast-bar">
+  <span>🖨️ Contraste impression :</span>
+  <input type="range" id="contrast-slider" min="1" max="5" value="3" oninput="updateContrastPreview()">
+  <span id="contrast-preview">Standard</span>
+  <button class="btn" onclick="doPrint()" style="padding:5px 14px;">Imprimer</button>
+  <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
+</div>
 <div id="modal-overlay">
   <div id="modal">
     <h3 id="modal-title">Éditer l'accord</h3>
@@ -297,6 +342,113 @@
 </div>
 
 <script>
+// ========================
+// SECTION LABEL MODAL
+// ========================
+const LETTERS=['A','B','C','D','E','F','G','H','I','Intro','Verse','Chorus','Bridge','Outro','Coda','Tag','Vamp','Head'];
+const SUFFIXES=[{label:'(aucun)',val:''},{label:"'  (bis)",val:"'"},{label:"''  (ter)",val:"''"},{label:'1',val:'1'},{label:'2',val:'2'}];
+let labelTarget=null, selLetter='A', selSuffix='';
+
+function buildLabelModal(){
+  const lb=document.getElementById('letter-btns');
+  LETTERS.forEach(l=>{
+    const b=document.createElement('button'); b.className='chord-btn'; b.textContent=l; b.dataset.val=l;
+    b.style.minWidth='36px';
+    b.onclick=()=>{ document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selLetter=l; updateLabelPreview(); };
+    lb.appendChild(b);
+  });
+  const sb=document.getElementById('suffix-btns');
+  SUFFIXES.forEach(s=>{
+    const b=document.createElement('button'); b.className='chord-btn'; b.textContent=s.label; b.dataset.val=s.val;
+    b.style.minWidth='60px';
+    b.onclick=()=>{ document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selSuffix=s.val; updateLabelPreview(); };
+    sb.appendChild(b);
+  });
+}
+
+function updateLabelPreview(){
+  document.getElementById('label-preview').textContent=selLetter+selSuffix;
+}
+
+function openLabelModal(si){
+  labelTarget=si;
+  const cur=chartData.sections[si].label||'A';
+  // Detect suffix
+  const suffMatch=SUFFIXES.slice(1).find(s=>cur.endsWith(s.val));
+  selSuffix=suffMatch?suffMatch.val:'';
+  selLetter=suffMatch?cur.slice(0,-suffMatch.val.length):cur;
+
+  document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));
+  document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));
+  updateLabelPreview();
+  document.getElementById('label-overlay').style.display='flex';
+}
+
+function closeLabelModal(){ document.getElementById('label-overlay').style.display='none'; labelTarget=null; }
+
+function applyLabel(){
+  if(labelTarget===null)return;
+  chartData.sections[labelTarget].label=selLetter+selSuffix;
+  closeLabelModal(); render();
+}
+
+// ========================
+// PRINT CONTRAST
+// ========================
+const CONTRAST_LABELS=['Léger','Standard','Soutenu','Fort','Maximum'];
+const CONTRAST_STYLES=[
+  // 1 - Léger
+  `.section{border-color:#bbb}.section-header{background:#f5f5f5}.measure{border-color:#ccc}.chord-symbol{color:#333!important;font-size:1.05rem}.theory-row-value{color:#555!important}.measure-number{color:#aaa}`,
+  // 2 - Standard
+  `.section{border-color:#999}.section-header{background:#e8e8e8}.measure{border-color:#aaa}.chord-symbol{color:#111!important;font-size:1.1rem}.theory-row-value{color:#333!important}.measure-number{color:#888}`,
+  // 3 - Soutenu
+  `.section{border-color:#555;border-width:2px}.section-header{background:#ccc}.measure{border-color:#666;border-width:1.5px}.chord-symbol{color:#000!important;font-size:1.2rem;font-weight:900}.theory-row-value{color:#222!important}.measure-number{color:#666}`,
+  // 4 - Fort
+  `.section{border-color:#222;border-width:2.5px}.section-header{background:#aaa}.measure{border-color:#333;border-width:2px}.chord-symbol{color:#000!important;font-size:1.3rem;font-weight:900}.theory-row-value{color:#000!important}.measure-number{color:#444}`,
+  // 5 - Maximum
+  `.section{border-color:#000;border-width:3px}.section-header{background:#888}.measure{border-color:#000;border-width:2.5px}.chord-symbol{color:#000!important;font-size:1.4rem;font-weight:900;-webkit-text-stroke:0.3px #000}.theory-row-value{color:#000!important;font-weight:bold}.measure-number{color:#333}`,
+];
+
+let printStyleEl=null;
+
+function openPrintPanel(){
+  const bar=document.getElementById('print-contrast-bar');
+  bar.style.display='flex';
+  updateContrastPreview();
+}
+
+function closePrintPanel(){
+  document.getElementById('print-contrast-bar').style.display='none';
+  removePrintStyle();
+}
+
+function updateContrastPreview(){
+  const v=parseInt(document.getElementById('contrast-slider').value);
+  document.getElementById('contrast-preview').textContent=CONTRAST_LABELS[v-1];
+}
+
+function injectPrintStyle(level){
+  removePrintStyle();
+  const css=CONTRAST_STYLES[level-1];
+  printStyleEl=document.createElement('style');
+  printStyleEl.id='dynamic-print-style';
+  printStyleEl.media='print';
+  printStyleEl.textContent=css;
+  document.head.appendChild(printStyleEl);
+}
+
+function removePrintStyle(){
+  const el=document.getElementById('dynamic-print-style');
+  if(el)el.remove();
+  printStyleEl=null;
+}
+
+function doPrint(){
+  const v=parseInt(document.getElementById('contrast-slider').value);
+  injectPrintStyle(v);
+  setTimeout(()=>{ window.print(); setTimeout(removePrintStyle,1000); },80);
+}
+
 // ========================
 // MUSIC THEORY ENGINE
 // ========================
@@ -495,9 +647,12 @@ function renderSection(section,si){
 
   // Top row: label + actions
   const topRow=document.createElement('div'); topRow.className='section-header-top';
-  const li=document.createElement('input'); li.className='section-label';
-  li.value=section.label||''; li.placeholder='Nom de section…';
-  li.addEventListener('change',()=>{chartData.sections[si].label=li.value;});
+  const li=document.createElement('button');
+  li.className='section-label';
+  li.style.cssText='cursor:pointer;background:none;border:none;border-bottom:1px dashed #f0a50066;padding:2px 6px;text-align:left;';
+  li.title='Cliquer pour changer la lettre';
+  li.textContent=(section.label||'A')+' ✎';
+  li.onclick=()=>openLabelModal(si);
   const acts=document.createElement('div'); acts.className='section-actions';
   ['+ Mesure','⧉ Dupliquer','✕ Supprimer'].forEach((t,k)=>{
     const b=document.createElement('button'); b.textContent=t;
@@ -1010,6 +1165,8 @@ document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.targe
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();}});
 buildModal();
+buildLabelModal();
+document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
 </script>
 </body>
 </html>
