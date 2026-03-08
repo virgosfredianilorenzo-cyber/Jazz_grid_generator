@@ -30,112 +30,120 @@
   #chart-meta { display:flex; justify-content:center; gap:20px; margin-top:8px; flex-wrap:wrap; font-size:0.9rem; color:#aaa; }
   #chart-meta input { width:120px; text-align:center; }
 
+  /* SECTIONS */
   .section { margin-bottom:30px; background:#16213e; border-radius:8px; overflow:hidden; border:1px solid #2d4a7a; }
   .section-header { background:#0f3460; padding:8px 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .section-header-top { display:flex; align-items:center; gap:8px; width:100%; }
-  .section-label { font-weight:bold; color:#f0a500; font-size:0.9rem; border:none; background:transparent; outline:none; width:140px; border-bottom:1px dashed #f0a50055; }
-  .section-label::placeholder { color:#f0a50066; }
+  .section-label { font-weight:bold; color:#f0a500; font-size:0.9rem; border:none; background:none; border-bottom:1px dashed #f0a50055; padding:2px 6px; cursor:pointer; }
   .section-annot-row { width:100%; display:flex; align-items:center; gap:8px; padding-top:4px; border-top:1px dashed #1a3060; margin-top:2px; }
   .section-annot-input { flex:1; background:transparent; border:none; outline:none; color:#93c5fd; font-size:0.78rem; font-style:italic; font-family:Georgia,serif; }
   .section-annot-input::placeholder { color:#2d4a7a; }
-  .section-annot-badge { font-size:0.65rem; color:#3d6aaa; white-space:nowrap; }
+  .section-annot-badge { font-size:0.65rem; color:#3d6aaa; }
   .section-actions { margin-left:auto; display:flex; gap:6px; }
   .section-actions button { background:none; border:1px solid #555; color:#aaa; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:0.75rem; }
   .section-actions button:hover { border-color:#f0a500; color:#f0a500; }
-
-  /* Section annotation display (below header, above grid) */
   .section-annot-display { padding:6px 14px 4px; background:#0a2040; font-size:0.78rem; font-style:italic; color:#93c5fd; border-bottom:1px solid #1a3060; display:flex; gap:8px; align-items:flex-start; }
-  .section-annot-display .annot-icon { color:#3d6aaa; flex-shrink:0; margin-top:1px; }
+  .section-annot-display .annot-icon { color:#3d6aaa; flex-shrink:0; }
 
-  @media print {
-    .section-annot-row { border-top-color:#ccc; }
-    .section-annot-input { color:#444; }
-    .section-annot-display { background:#f5f5f5; color:#444; border-bottom-color:#ccc; }
-  }
-
+  /* GRID */
   .measures-grid { display:grid; padding:12px; gap:6px; }
-  .measure { background:#1e3a5f; border:1px solid #2d5a8a; border-radius:4px; padding:4px; position:relative; cursor:pointer; transition:border-color 0.2s; display:flex; flex-direction:column; gap:2px; }
+
+  /* MEASURE */
+  .measure { background:#1e3a5f; border:1px solid #2d5a8a; border-radius:4px; padding:4px; position:relative; transition:border-color 0.2s; display:flex; flex-direction:column; gap:0; }
   .measure:hover { border-color:#f0a500; }
-  .measure-number { font-size:0.6rem; color:#445; user-select:none; align-self:flex-start; padding-left:2px; }
-  .measure-beats { display:flex; gap:2px; align-items:center; min-height:44px; }
-  .beat { flex:1; text-align:center; }
-  .chord-symbol { font-size:1.05rem; font-weight:bold; color:#eee; line-height:1.2; }
-  .chord-duration { font-size:0.6rem; color:#88a; }
-  .beat.empty .chord-symbol { color:#556; }
-
-  .measure-theory { border-top:1px dashed #2a3a5a; padding-top:3px; display:flex; flex-direction:column; gap:2px; }
-  .theory-row { display:flex; align-items:baseline; gap:4px; font-size:0.63rem; line-height:1.35; }
-  .theory-row-label { color:#7a6aaa; font-size:0.57rem; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px; min-width:18px; flex-shrink:0; }
-  .theory-row-value { font-family:'Courier New',monospace; word-break:break-word; }
-  .theory-row-value.mode-val { color:#c4b5fd; font-style:italic; }
-  .theory-row-value.arp-val  { color:#7dd3fc; }
-  .theory-row-value.tens-val { color:#86efac; }
-
-  .measure-free-annot { font-size:0.65rem; font-style:italic; padding:2px 3px; border-top:1px dashed #3d2a6a; word-break:break-word; line-height:1.3; }
-  .annotation-icon { position:absolute; top:2px; right:20px; font-size:0.65rem; opacity:0; cursor:pointer; transition:opacity 0.2s; color:#a78bfa; background:rgba(26,26,46,0.85); border-radius:3px; padding:1px 3px; }
-  .measure:hover .annotation-icon { opacity:1; }
+  .measure-number { font-size:0.6rem; color:#445; user-select:none; align-self:flex-start; padding-left:2px; margin-bottom:1px; }
   .barline-repeat-start { border-left:4px double #f0a500; }
   .barline-repeat-end   { border-right:4px double #f0a500; }
 
-  /* CHORD MODAL */
-  #modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
-  #modal-overlay.active { display:flex; }
-  #modal { background:#16213e; border:2px solid #f0a500; border-radius:10px; padding:24px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; }
-  #modal h3 { color:#f0a500; margin-bottom:16px; }
+  /* BEAT SLOTS — each chord gets its own column block */
+  .beats-row { display:flex; gap:2px; }
+
+  /* CHORD SLOT — contains chord header + theory rows */
+  .chord-slot { flex:1; display:flex; flex-direction:column; border:1px solid transparent; border-radius:4px; transition:border-color 0.15s; cursor:pointer; min-width:0; }
+  .chord-slot:hover { border-color:#f0a50088; background:rgba(240,165,0,0.06); }
+  .chord-slot:hover .chord-edit-hint { opacity:1; }
+
+  .chord-header { text-align:center; padding:6px 2px 2px; }
+  .chord-symbol { font-size:1.05rem; font-weight:bold; color:#eee; line-height:1.2; }
+  .chord-duration { font-size:0.6rem; color:#88a; }
+  .chord-edit-hint { font-size:0.55rem; color:#f0a500; opacity:0; transition:opacity 0.15s; text-align:center; }
+
+  /* THEORY rows inside each chord slot */
+  .chord-theory { border-top:1px dashed #2a3a5a; padding-top:2px; margin-top:2px; display:flex; flex-direction:column; gap:2px; }
+  .theory-row { display:flex; align-items:baseline; gap:3px; font-size:0.6rem; line-height:1.3; padding:0 2px; }
+  .theory-row-label { color:#7a6aaa; font-size:0.55rem; font-weight:bold; text-transform:uppercase; min-width:16px; flex-shrink:0; }
+  .theory-row-value { font-family:'Courier New',monospace; word-break:break-word; }
+  .mode-val  { color:#c4b5fd; font-style:italic; }
+  .arp-val   { color:#7dd3fc; }
+  .tens-val  { color:#86efac; }
+
+  /* CHORD FREE ANNOT */
+  .chord-free-annot { font-size:0.62rem; font-style:italic; padding:1px 3px; border-top:1px dashed #3d2a6a; word-break:break-word; line-height:1.3; }
+
+  /* ANNOT ICON per chord slot */
+  .chord-annot-icon { font-size:0.58rem; text-align:center; opacity:0; color:#a78bfa; transition:opacity 0.15s; }
+  .chord-slot:hover .chord-annot-icon { opacity:0.8; }
+  .chord-slot.has-annot .chord-annot-icon { opacity:0.6; }
+
+  /* Delete chord btn */
+  .chord-del-btn { position:absolute; top:2px; right:2px; background:none; border:none; color:#c0392b; font-size:0.6rem; cursor:pointer; opacity:0; transition:opacity 0.2s; }
+  .measure:hover .chord-del-btn { opacity:1; }
+
+  /* ADD CHORD inside measure */
+  .add-chord-btn { align-self:stretch; display:flex; align-items:center; justify-content:center; min-width:22px; background:none; border:1px dashed #2d5a8a; border-radius:4px; color:#2d5a8a; cursor:pointer; font-size:1rem; transition:all 0.15s; flex-shrink:0; }
+  .add-chord-btn:hover { border-color:#f0a500; color:#f0a500; }
+
+  /* MODALS */
+  .overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
+  .overlay.active { display:flex; }
+  .modal-box { background:#16213e; border-radius:10px; padding:22px; max-width:95vw; max-height:92vh; overflow-y:auto; }
+
+  /* Chord edit modal */
+  #modal { border:2px solid #f0a500; width:480px; }
+  #modal h3 { color:#f0a500; margin-bottom:14px; }
   .modal-row { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
   .modal-row label { min-width:100px; font-size:0.85rem; color:#aaa; }
   .chord-btn-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin:8px 0; }
   .chord-btn { padding:5px; background:#2d4a7a; border:1px solid #3d6a9a; color:#eee; border-radius:3px; cursor:pointer; font-size:0.75rem; text-align:center; transition:background 0.15s; }
   .chord-btn:hover,.chord-btn.active { background:#f0a500; color:#1a1a2e; }
-  .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
 
-  /* ANNOTATION MODAL */
-  #annot-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.65); z-index:200; align-items:center; justify-content:center; }
-  #annot-overlay.active { display:flex; }
-  #annot-modal { background:#16213e; border:2px solid #a78bfa; border-radius:10px; padding:22px; width:580px; max-width:96vw; max-height:93vh; overflow-y:auto; }
-  #annot-modal h3 { color:#a78bfa; margin-bottom:12px; font-size:1rem; }
-
-  /* SECTION BLOCKS inside modal */
-  .annot-block { background:#12102a; border:1px solid #2d1a5a; border-radius:8px; padding:14px; margin-bottom:12px; }
-  .annot-block-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  /* Annotation modal */
+  #annot-modal-box { border:2px solid #a78bfa; width:580px; }
+  #annot-modal-box h3 { color:#a78bfa; margin-bottom:12px; font-size:1rem; }
+  .annot-block { background:#12102a; border:1px solid #2d1a5a; border-radius:8px; padding:12px; margin-bottom:10px; }
+  .annot-block-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .annot-block-title { font-size:0.72rem; color:#a78bfa; text-transform:uppercase; letter-spacing:1px; font-weight:bold; }
   .toggle-btn { padding:4px 12px; border-radius:20px; border:1px solid #3d2a6a; background:#1a1a2e; color:#aaa; cursor:pointer; font-size:0.75rem; transition:all 0.15s; user-select:none; }
   .toggle-btn.on { background:#2d1a5a; border-color:#a78bfa; color:#c4b5fd; }
 
-  /* MODE CARDS */
   .mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-  .mode-card { background:#1e2a4a; border:1px solid #2d4a7a; border-radius:6px; padding:8px 10px; cursor:pointer; transition:all 0.2s; }
+  .mode-card { background:#1e2a4a; border:1px solid #2d4a7a; border-radius:6px; padding:8px 10px; cursor:pointer; transition:all 0.15s; }
   .mode-card:hover { border-color:#a78bfa; }
   .mode-card.selected { border-color:#a78bfa; background:#2a1a5a; }
-  .mode-card.disabled { opacity:0.35; cursor:default; pointer-events:none; }
   .mode-name { font-weight:bold; color:#c4b5fd; font-size:0.82rem; }
   .mode-notes { font-size:0.7rem; color:#7dd3fc; font-family:'Courier New',monospace; margin-top:2px; }
   .mode-desc { font-size:0.68rem; color:#666; margin-top:1px; font-style:italic; }
   .mode-selected-badge { font-size:0.62rem; color:#a78bfa; background:#1a1a2e; border-radius:10px; padding:1px 6px; border:1px solid #a78bfa; }
 
-  /* ARPÈGE */
-  .arp-root-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .arp-root-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
   .arp-pill { background:#1e3a5f; border:1px solid #3d6aaa; border-radius:10px; padding:3px 10px; font-size:0.8rem; color:#eee; }
   .arp-pill.root { background:#f0a500; color:#1a1a2e; font-weight:bold; border-color:#f0a500; }
-
   .inv-list { display:flex; flex-direction:column; gap:5px; }
   .inv-card { display:flex; align-items:center; gap:10px; background:#1a2a3a; border:1px solid #2d4a7a; border-radius:6px; padding:6px 10px; cursor:pointer; transition:all 0.15s; }
   .inv-card:hover { border-color:#7dd3fc; }
   .inv-card.selected { border-color:#7dd3fc; background:#1a2a4a; }
-  .inv-card.disabled { opacity:0.35; cursor:default; pointer-events:none; }
   .inv-label { font-size:0.7rem; color:#556; min-width:140px; }
   .inv-notes { font-family:'Courier New',monospace; font-size:0.82rem; color:#7dd3fc; }
   .inv-intervals { font-size:0.65rem; color:#556; margin-left:auto; }
   .inv-selected-badge { font-size:0.62rem; color:#7dd3fc; background:#1a1a2e; border-radius:10px; padding:1px 6px; border:1px solid #7dd3fc; margin-left:auto; }
 
-  /* TENSIONS */
   .tens-pills { display:flex; flex-wrap:wrap; gap:6px; }
   .tens-pill { background:#1e3a5f; border:1px solid #3d6aaa; border-radius:10px; padding:3px 10px; font-size:0.8rem; color:#eee; cursor:pointer; transition:all 0.15s; }
   .tens-pill.available { border-color:#4aaa6a; color:#86efac; }
   .tens-pill.available.selected { background:#1e4a2e; }
   .tens-pill.avoid { border-color:#aa4a4a; color:#fca5a5; text-decoration:line-through; cursor:default; }
 
-  /* FREE TEXT */
   #annot-text { width:100%; min-height:52px; background:#1e1630; border:1px solid #a78bfa; color:#eee; padding:8px; border-radius:6px; font-size:0.9rem; font-family:Georgia,serif; resize:vertical; }
   #annot-color-row { display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
   .color-swatch { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
@@ -149,35 +157,28 @@
   .add-section-btn { min-height:44px; width:100%; margin:8px 0; font-size:1rem; }
   .cols-select { width:60px; }
 
-  /* PRINT CONTRAST CONTROL */
-  #print-contrast-bar {
-    display:none; position:fixed; bottom:0; left:0; right:0; z-index:150;
-    background:#16213e; border-top:2px solid #f0a500;
-    padding:8px 20px; align-items:center; gap:16px; flex-wrap:wrap;
-  }
+  /* PRINT */
+  #print-contrast-bar { display:none; position:fixed; bottom:0;left:0;right:0; z-index:150; background:#16213e; border-top:2px solid #f0a500; padding:8px 20px; align-items:center; gap:16px; flex-wrap:wrap; }
   #print-contrast-bar span { font-size:0.82rem; color:#aaa; }
   #contrast-slider { width:160px; accent-color:#f0a500; }
   #contrast-preview { font-size:0.75rem; color:#f0a500; }
 
   @media print {
     body { background:white; }
-    #toolbar, #print-contrast-bar, .section-actions, .add-measure-btn, .add-section-btn, .annotation-icon { display:none !important; }
+    #toolbar,#print-contrast-bar,.section-actions,.add-measure-btn,.add-section-btn,.chord-annot-icon,.chord-edit-hint,.chord-del-btn,.add-chord-btn { display:none !important; }
     .section { border:2px solid #000; background:white; page-break-inside:avoid; margin-bottom:14px; }
     .section-header { background:#ddd; }
-    .section-label { color:#000; font-size:1rem; }
-    .section-annot-row { border-top-color:#aaa; }
-    .section-annot-input { color:#222; font-size:0.82rem; }
+    .section-label { color:#000; }
+    .section-annot-input { color:#222; }
     .section-annot-display { background:#eee; color:#222; border-bottom-color:#aaa; }
     .measure { background:white; border:1.5px solid #333; }
-    .chord-symbol { color:#000 !important; font-size:1.15rem; }
-    .chord-duration { color:#333 !important; }
+    .chord-symbol { color:#000!important; font-size:1.1rem; }
+    .chord-duration { color:#333!important; }
     .measure-number { color:#555; }
-    .theory-row-value.mode-val { color:#111 !important; }
-    .theory-row-value.arp-val  { color:#111 !important; }
-    .theory-row-value.tens-val { color:#111 !important; }
-    .theory-row-label { color:#444 !important; }
-    .measure-theory { border-top-color:#aaa; }
-    .measure-free-annot { color:#222 !important; border-top-color:#aaa; }
+    .mode-val,.arp-val,.tens-val { color:#111!important; }
+    .theory-row-label { color:#444!important; }
+    .chord-theory { border-top-color:#aaa; }
+    .chord-free-annot { color:#222!important; border-top-color:#aaa; }
     .barline-repeat-start { border-left-color:#000; }
     .barline-repeat-end   { border-right-color:#000; }
   }
@@ -223,38 +224,9 @@
   <button class="add-section-btn" onclick="addSection()">+ Ajouter une section</button>
 </div>
 
-<!-- SECTION LABEL MODAL -->
-<div id="label-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:300;align-items:center;justify-content:center;">
-  <div style="background:#16213e;border:2px solid #f0a500;border-radius:10px;padding:22px;width:380px;max-width:95vw;">
-    <h3 style="color:#f0a500;margin-bottom:14px;font-size:1rem;">✏️ Lettre de section</h3>
-    <div style="margin-bottom:12px;">
-      <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Lettre principale :</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="letter-btns"></div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Suffixe :</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;" id="suffix-btns"></div>
-    </div>
-    <div style="font-size:0.85rem;color:#aaa;margin-bottom:14px;">
-      Aperçu : <span id="label-preview" style="color:#f0a500;font-weight:bold;font-size:1.1rem;margin-left:8px;"></span>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;">
-      <button class="btn secondary" onclick="closeLabelModal()">Annuler</button>
-      <button class="btn" onclick="applyLabel()">✓ Appliquer</button>
-    </div>
-  </div>
-</div>
-
-<!-- PRINT CONTRAST BAR -->
-<div id="print-contrast-bar">
-  <span>🖨️ Contraste impression :</span>
-  <input type="range" id="contrast-slider" min="1" max="5" value="3" oninput="updateContrastPreview()">
-  <span id="contrast-preview">Standard</span>
-  <button class="btn" onclick="doPrint()" style="padding:5px 14px;">Imprimer</button>
-  <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
-</div>
-<div id="modal-overlay">
-  <div id="modal">
+<!-- CHORD EDIT MODAL -->
+<div id="modal-overlay" class="overlay">
+  <div id="modal" class="modal-box">
     <h3 id="modal-title">Éditer l'accord</h3>
     <div style="margin-bottom:12px;"><label style="color:#f0a500;font-size:0.8rem;">FONDAMENTALE</label><div class="chord-btn-grid" id="root-btns"></div></div>
     <div style="margin-bottom:12px;"><label style="color:#f0a500;font-size:0.8rem;">QUALITÉ</label><div class="chord-btn-grid" id="quality-btns"></div></div>
@@ -271,52 +243,33 @@
 </div>
 
 <!-- ANNOTATION MODAL -->
-<div id="annot-overlay">
-  <div id="annot-modal">
+<div id="annot-overlay" class="overlay">
+  <div id="annot-modal-box" class="modal-box">
     <h3>✏️ Annotation — <span id="annot-chord-name" style="color:#f0a500"></span></h3>
 
-    <!-- MODES -->
     <div class="annot-block">
-      <div class="annot-block-header">
-        <span class="annot-block-title">🎼 Mode</span>
-        <div class="toggle-btn" id="toggle-mode" onclick="toggleSection('mode')">Afficher dans la mesure</div>
-      </div>
-      <div style="font-size:0.72rem;color:#666;margin-bottom:8px;">Plusieurs modes compatibles — sélectionner celui à afficher</div>
+      <div class="annot-block-header"><span class="annot-block-title">🎼 Mode</span><div class="toggle-btn" id="toggle-mode" onclick="toggleSection('mode')">Afficher dans la mesure</div></div>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:8px;">Modes compatibles — cliquer pour sélectionner :</div>
       <div class="mode-grid" id="modal-modes-list"></div>
     </div>
 
-    <!-- ARPÈGE -->
     <div class="annot-block">
-      <div class="annot-block-header">
-        <span class="annot-block-title">🎹 Arpège 4 sons</span>
-        <div class="toggle-btn" id="toggle-arp" onclick="toggleSection('arp')">Afficher dans la mesure</div>
-      </div>
+      <div class="annot-block-header"><span class="annot-block-title">🎹 Arpège 4 sons</span><div class="toggle-btn" id="toggle-arp" onclick="toggleSection('arp')">Afficher dans la mesure</div></div>
       <div style="font-size:0.72rem;color:#666;margin-bottom:6px;">Notes de base :</div>
       <div class="arp-root-row" id="modal-arp-root"></div>
-      <div style="font-size:0.72rem;color:#666;margin:8px 0 6px;">Renversements — sélectionner celui à afficher :</div>
+      <div style="font-size:0.72rem;color:#666;margin:8px 0 6px;">Renversements :</div>
       <div class="inv-list" id="modal-inv-list"></div>
     </div>
 
-    <!-- TENSIONS -->
     <div class="annot-block">
-      <div class="annot-block-header">
-        <span class="annot-block-title">⚡ Tensions</span>
-        <div class="toggle-btn" id="toggle-tens" onclick="toggleSection('tens')">Afficher dans la mesure</div>
-      </div>
-      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;">Cliquer pour sélectionner les tensions à afficher :</div>
+      <div class="annot-block-header"><span class="annot-block-title">⚡ Tensions</span><div class="toggle-btn" id="toggle-tens" onclick="toggleSection('tens')">Afficher dans la mesure</div></div>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;">Cliquer pour sélectionner :</div>
       <div class="tens-pills" id="modal-tens-pills"></div>
-      <div id="modal-avoid-wrap" style="margin-top:8px;display:none">
-        <div style="font-size:0.65rem;color:#666;margin-bottom:4px;">À éviter :</div>
-        <div class="tens-pills" id="modal-avoid-pills"></div>
-      </div>
+      <div id="modal-avoid-wrap" style="margin-top:8px;display:none"><div style="font-size:0.65rem;color:#666;margin-bottom:4px;">À éviter :</div><div class="tens-pills" id="modal-avoid-pills"></div></div>
     </div>
 
-    <!-- FREE TEXT -->
     <div class="annot-block">
-      <div class="annot-block-header">
-        <span class="annot-block-title">📝 Note libre</span>
-        <div class="toggle-btn" id="toggle-free" onclick="toggleSection('free')">Afficher dans la mesure</div>
-      </div>
+      <div class="annot-block-header"><span class="annot-block-title">📝 Note libre</span><div class="toggle-btn" id="toggle-free" onclick="toggleSection('free')">Afficher dans la mesure</div></div>
       <textarea id="annot-text" placeholder="Indication de jeu, doigtés, remarques..."></textarea>
       <div id="annot-color-row">
         <span style="font-size:0.75rem;color:#aaa;margin-right:4px;">Couleur :</span>
@@ -341,235 +294,120 @@
   </div>
 </div>
 
+<!-- SECTION LABEL MODAL -->
+<div id="label-overlay" class="overlay">
+  <div class="modal-box" style="border:2px solid #f0a500;width:380px;">
+    <h3 style="color:#f0a500;margin-bottom:14px;font-size:1rem;">✏️ Lettre de section</h3>
+    <div style="margin-bottom:12px;"><div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Lettre principale :</div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="letter-btns"></div></div>
+    <div style="margin-bottom:14px;"><div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Suffixe :</div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="suffix-btns"></div></div>
+    <div style="font-size:0.85rem;color:#aaa;margin-bottom:14px;">Aperçu : <span id="label-preview" style="color:#f0a500;font-weight:bold;font-size:1.1rem;margin-left:8px;"></span></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closeLabelModal()">Annuler</button>
+      <button class="btn" onclick="applyLabel()">✓ Appliquer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT BAR -->
+<div id="print-contrast-bar">
+  <span>🖨️ Thème :</span>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="toggle-btn on" id="theme-light-btn" onclick="setPrintTheme('light')">☀️ Clair</button>
+    <button class="toggle-btn" id="theme-dark-btn" onclick="setPrintTheme('dark')">🌙 Sombre</button>
+  </div>
+  <span style="margin-left:8px;">Contraste :</span>
+  <input type="range" id="contrast-slider" min="1" max="5" value="3" oninput="updateContrastPreview()">
+  <span id="contrast-preview">Standard</span>
+  <span style="margin-left:8px;">Couleurs sections :</span>
+  <div style="display:flex;gap:4px;align-items:center;" id="section-color-preview"></div>
+  <button class="btn" onclick="doPrint()" style="padding:5px 14px;">Imprimer</button>
+  <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
+</div>
+
 <script>
-// ========================
-// SECTION LABEL MODAL
-// ========================
-const LETTERS=['A','B','C','D','E','F','G','H','I','Intro','Verse','Chorus','Bridge','Outro','Coda','Tag','Vamp','Head'];
-const SUFFIXES=[{label:'(aucun)',val:''},{label:"'  (bis)",val:"'"},{label:"''  (ter)",val:"''"},{label:'1',val:'1'},{label:'2',val:'2'}];
-let labelTarget=null, selLetter='A', selSuffix='';
-
-function buildLabelModal(){
-  const lb=document.getElementById('letter-btns');
-  LETTERS.forEach(l=>{
-    const b=document.createElement('button'); b.className='chord-btn'; b.textContent=l; b.dataset.val=l;
-    b.style.minWidth='36px';
-    b.onclick=()=>{ document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selLetter=l; updateLabelPreview(); };
-    lb.appendChild(b);
-  });
-  const sb=document.getElementById('suffix-btns');
-  SUFFIXES.forEach(s=>{
-    const b=document.createElement('button'); b.className='chord-btn'; b.textContent=s.label; b.dataset.val=s.val;
-    b.style.minWidth='60px';
-    b.onclick=()=>{ document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); selSuffix=s.val; updateLabelPreview(); };
-    sb.appendChild(b);
-  });
-}
-
-function updateLabelPreview(){
-  document.getElementById('label-preview').textContent=selLetter+selSuffix;
-}
-
-function openLabelModal(si){
-  labelTarget=si;
-  const cur=chartData.sections[si].label||'A';
-  // Detect suffix
-  const suffMatch=SUFFIXES.slice(1).find(s=>cur.endsWith(s.val));
-  selSuffix=suffMatch?suffMatch.val:'';
-  selLetter=suffMatch?cur.slice(0,-suffMatch.val.length):cur;
-
-  document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));
-  document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));
-  updateLabelPreview();
-  document.getElementById('label-overlay').style.display='flex';
-}
-
-function closeLabelModal(){ document.getElementById('label-overlay').style.display='none'; labelTarget=null; }
-
-function applyLabel(){
-  if(labelTarget===null)return;
-  chartData.sections[labelTarget].label=selLetter+selSuffix;
-  closeLabelModal(); render();
-}
-
-// ========================
-// PRINT CONTRAST
-// ========================
-const CONTRAST_LABELS=['Léger','Standard','Soutenu','Fort','Maximum'];
-const CONTRAST_STYLES=[
-  // 1 - Léger
-  `.section{border-color:#bbb}.section-header{background:#f5f5f5}.measure{border-color:#ccc}.chord-symbol{color:#333!important;font-size:1.05rem}.theory-row-value{color:#555!important}.measure-number{color:#aaa}`,
-  // 2 - Standard
-  `.section{border-color:#999}.section-header{background:#e8e8e8}.measure{border-color:#aaa}.chord-symbol{color:#111!important;font-size:1.1rem}.theory-row-value{color:#333!important}.measure-number{color:#888}`,
-  // 3 - Soutenu
-  `.section{border-color:#555;border-width:2px}.section-header{background:#ccc}.measure{border-color:#666;border-width:1.5px}.chord-symbol{color:#000!important;font-size:1.2rem;font-weight:900}.theory-row-value{color:#222!important}.measure-number{color:#666}`,
-  // 4 - Fort
-  `.section{border-color:#222;border-width:2.5px}.section-header{background:#aaa}.measure{border-color:#333;border-width:2px}.chord-symbol{color:#000!important;font-size:1.3rem;font-weight:900}.theory-row-value{color:#000!important}.measure-number{color:#444}`,
-  // 5 - Maximum
-  `.section{border-color:#000;border-width:3px}.section-header{background:#888}.measure{border-color:#000;border-width:2.5px}.chord-symbol{color:#000!important;font-size:1.4rem;font-weight:900;-webkit-text-stroke:0.3px #000}.theory-row-value{color:#000!important;font-weight:bold}.measure-number{color:#333}`,
-];
-
-let printStyleEl=null;
-
-function openPrintPanel(){
-  const bar=document.getElementById('print-contrast-bar');
-  bar.style.display='flex';
-  updateContrastPreview();
-}
-
-function closePrintPanel(){
-  document.getElementById('print-contrast-bar').style.display='none';
-  removePrintStyle();
-}
-
-function updateContrastPreview(){
-  const v=parseInt(document.getElementById('contrast-slider').value);
-  document.getElementById('contrast-preview').textContent=CONTRAST_LABELS[v-1];
-}
-
-function injectPrintStyle(level){
-  removePrintStyle();
-  const css=CONTRAST_STYLES[level-1];
-  printStyleEl=document.createElement('style');
-  printStyleEl.id='dynamic-print-style';
-  printStyleEl.media='print';
-  printStyleEl.textContent=css;
-  document.head.appendChild(printStyleEl);
-}
-
-function removePrintStyle(){
-  const el=document.getElementById('dynamic-print-style');
-  if(el)el.remove();
-  printStyleEl=null;
-}
-
-function doPrint(){
-  const v=parseInt(document.getElementById('contrast-slider').value);
-  injectPrintStyle(v);
-  setTimeout(()=>{ window.print(); setTimeout(removePrintStyle,1000); },80);
-}
-
 // ========================
 // MUSIC THEORY ENGINE
 // ========================
 const CHROMATIC=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const ENH={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb','Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'};
-
 function noteIdx(n){ const i=CHROMATIC.indexOf(n); return i!==-1?i:(ENH[n]?CHROMATIC.indexOf(ENH[n]):-1); }
-function tr(root,s){
-  const idx=noteIdx(root); if(idx===-1)return '?';
-  const r=CHROMATIC[(idx+s+12)%12];
-  return ['F','Bb','Eb','Ab','Db','Gb'].includes(root)&&ENH[r]?ENH[r]:r;
-}
+function tr(root,s){ const idx=noteIdx(root);if(idx===-1)return '?'; const r=CHROMATIC[(idx+s+12)%12]; return ['F','Bb','Eb','Ab','Db','Gb'].includes(root)&&ENH[r]?ENH[r]:r; }
 
-const ARP_DEF = {
-  '':      {i:[0,4,7,12],n:['1','3','5','8']},
-  'maj7':  {i:[0,4,7,11],n:['1','3','5','7']},
-  'maj9':  {i:[0,4,7,11],n:['1','3','5','7']},
-  'maj13': {i:[0,4,7,11],n:['1','3','5','7']},
-  '6':     {i:[0,4,7,9], n:['1','3','5','6']},
-  '6/9':   {i:[0,4,7,9], n:['1','3','5','6']},
-  'm':     {i:[0,3,7,12],n:['1','b3','5','8']},
-  'm6':    {i:[0,3,7,9], n:['1','b3','5','6']},
-  'm7':    {i:[0,3,7,10],n:['1','b3','5','b7']},
-  'm9':    {i:[0,3,7,10],n:['1','b3','5','b7']},
-  'm11':   {i:[0,3,7,10],n:['1','b3','5','b7']},
-  'm13':   {i:[0,3,7,10],n:['1','b3','5','b7']},
-  'mM7':   {i:[0,3,7,11],n:['1','b3','5','7']},
-  '7':     {i:[0,4,7,10],n:['1','3','5','b7']},
-  '9':     {i:[0,4,7,10],n:['1','3','5','b7']},
-  '11':    {i:[0,4,7,10],n:['1','3','5','b7']},
-  '13':    {i:[0,4,7,10],n:['1','3','5','b7']},
-  'dim':   {i:[0,3,6,12],n:['1','b3','b5','8']},
-  'dim7':  {i:[0,3,6,9], n:['1','b3','b5','bb7']},
-  'm7b5':  {i:[0,3,6,10],n:['1','b3','b5','b7']},
-  'aug':   {i:[0,4,8,12],n:['1','3','#5','8']},
-  'sus2':  {i:[0,2,7,12],n:['1','2','5','8']},
-  'sus4':  {i:[0,5,7,12],n:['1','4','5','8']},
-  '7sus4': {i:[0,5,7,10],n:['1','4','5','b7']},
+const ARP_DEF={
+  '':     {i:[0,4,7,12],n:['1','3','5','8']},'maj7':{i:[0,4,7,11],n:['1','3','5','7']},
+  'maj9': {i:[0,4,7,11],n:['1','3','5','7']},'maj13':{i:[0,4,7,11],n:['1','3','5','7']},
+  '6':    {i:[0,4,7,9],n:['1','3','5','6']},'6/9':{i:[0,4,7,9],n:['1','3','5','6']},
+  'm':    {i:[0,3,7,12],n:['1','b3','5','8']},'m6':{i:[0,3,7,9],n:['1','b3','5','6']},
+  'm7':   {i:[0,3,7,10],n:['1','b3','5','b7']},'m9':{i:[0,3,7,10],n:['1','b3','5','b7']},
+  'm11':  {i:[0,3,7,10],n:['1','b3','5','b7']},'m13':{i:[0,3,7,10],n:['1','b3','5','b7']},
+  'mM7':  {i:[0,3,7,11],n:['1','b3','5','7']},
+  '7':    {i:[0,4,7,10],n:['1','3','5','b7']},'9':{i:[0,4,7,10],n:['1','3','5','b7']},
+  '11':   {i:[0,4,7,10],n:['1','3','5','b7']},'13':{i:[0,4,7,10],n:['1','3','5','b7']},
+  'dim':  {i:[0,3,6,12],n:['1','b3','b5','8']},'dim7':{i:[0,3,6,9],n:['1','b3','b5','bb7']},
+  'm7b5': {i:[0,3,6,10],n:['1','b3','b5','b7']},'aug':{i:[0,4,8,12],n:['1','3','#5','8']},
+  'sus2': {i:[0,2,7,12],n:['1','2','5','8']},'sus4':{i:[0,5,7,12],n:['1','4','5','8']},
+  '7sus4':{i:[0,5,7,10],n:['1','4','5','b7']},
 };
-
-function getArpNotes(root,quality){
-  const def=ARP_DEF[quality]||ARP_DEF['maj7'];
-  return def.i.map(s=>tr(root,s));
-}
 
 function getInversions(root,quality){
   const def=ARP_DEF[quality]||ARP_DEF['maj7'];
-  const base=def.i.map(s=>tr(root,s));
-  const baseN=def.n;
-  const labels=['Position fondamentale','1er renversement','2ème renversement','3ème renversement'];
-  return labels.map((label,k)=>({
-    label,
-    notes:[...base.slice(k),...base.slice(0,k)],
-    degrees:[...baseN.slice(k),...baseN.slice(0,k)],
+  const base=def.i.map(s=>tr(root,s)), baseN=def.n;
+  return ['Position fondamentale','1er renversement','2ème renversement','3ème renversement'].map((label,k)=>({
+    label, notes:[...base.slice(k),...base.slice(0,k)], degrees:[...baseN.slice(k),...baseN.slice(0,k)]
   }));
 }
 
-const MODES_DEF = {
-  '':      [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]}],
-  'maj7':  [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
-  'maj9':  [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
-  'maj13': [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
-  '6':     [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]}],
-  '6/9':   [{name:'Ionien',      desc:'1 2 3 4 5 6 7',       i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
-  'm':     [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],
-  'm6':    [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]},{name:'Mél. min.',desc:'1 2 b3 4 5 6 7',i:[0,2,3,5,7,9,11]}],
-  'm7':    [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],
-  'm9':    [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]}],
-  'm11':   [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]}],
-  'm13':   [{name:'Dorien',      desc:'1 2 b3 4 5 6 b7',     i:[0,2,3,5,7,9,10]}],
-  'mM7':   [{name:'Mél. min.',   desc:'1 2 b3 4 5 6 7',      i:[0,2,3,5,7,9,11]}],
-  '7':     [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]},{name:'Mixt. b9b13',desc:'1 b2 3 4 5 b6 b7',i:[0,1,4,5,7,8,10]},{name:'Altéré',desc:'1 b2 #2 3 b5 b6 b7',i:[0,1,3,4,6,8,10]}],
-  '9':     [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],
-  '11':    [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]}],
-  '13':    [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],
-  'dim':   [{name:'Dim. (T-ST)', desc:'1 2 b3 4 b5 b6 6 7',  i:[0,2,3,5,6,8,9,11]}],
-  'dim7':  [{name:'Dim. (ST-T)', desc:'1 b2 b3 3 b5 5 6 b7', i:[0,1,3,4,6,7,9,10]}],
-  'm7b5':  [{name:'Locrien',     desc:'1 b2 b3 4 b5 b6 b7',  i:[0,1,3,5,6,8,10]},{name:'Locrien #2',desc:'1 2 b3 4 b5 b6 b7',i:[0,2,3,5,6,8,10]}],
-  'aug':   [{name:'Lyd. augm.',  desc:'1 2 3 #4 #5 6 7',     i:[0,2,4,6,8,9,11]},{name:'Tons entiers',desc:'1 2 3 #4 #5 b7',i:[0,2,4,6,8,10]}],
-  'sus2':  [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]}],
-  'sus4':  [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]},{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],
-  '7sus4': [{name:'Mixolydien',  desc:'1 2 3 4 5 6 b7',      i:[0,2,4,5,7,9,10]}],
+const MODES_DEF={
+  '':     [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]}],
+  'maj7': [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
+  'maj9': [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
+  'maj13':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
+  '6':    [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]}],
+  '6/9':  [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],
+  'm':    [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],
+  'm6':   [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Mél. min.',desc:'1 2 b3 4 5 6 7',i:[0,2,3,5,7,9,11]}],
+  'm7':   [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],
+  'm9':   [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],
+  'm11':  [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],
+  'm13':  [{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],
+  'mM7':  [{name:'Mél. min.',desc:'1 2 b3 4 5 6 7',i:[0,2,3,5,7,9,11]}],
+  '7':    [{name:'Mixo.',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]},{name:'Mixo. b9b13',desc:'1 b2 3 4 5 b6 b7',i:[0,1,4,5,7,8,10]},{name:'Altéré',desc:'1 b2 #2 3 b5 b6 b7',i:[0,1,3,4,6,8,10]}],
+  '9':    [{name:'Mixo.',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],
+  '11':   [{name:'Mixo.',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}],
+  '13':   [{name:'Mixo.',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],
+  'dim':  [{name:'Dim. (T-ST)',desc:'1 2 b3 4 b5 b6 6 7',i:[0,2,3,5,6,8,9,11]}],
+  'dim7': [{name:'Dim. (ST-T)',desc:'1 b2 b3 3 b5 5 6 b7',i:[0,1,3,4,6,7,9,10]}],
+  'm7b5': [{name:'Locrien',desc:'1 b2 b3 4 b5 b6 b7',i:[0,1,3,5,6,8,10]},{name:'Locrien #2',desc:'1 2 b3 4 b5 b6 b7',i:[0,2,3,5,6,8,10]}],
+  'aug':  [{name:'Lyd. augm.',desc:'1 2 3 #4 #5 6 7',i:[0,2,4,6,8,9,11]},{name:'Tons entiers',desc:'1 2 3 #4 #5 b7',i:[0,2,4,6,8,10]}],
+  'sus2': [{name:'Mixo',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}],
+  'sus4': [{name:'Mixo',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],
+  '7sus4':[{name:'Mixo',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}],
 };
 
 const TENSION_IV={'b9':1,'9':2,'#9':3,'11':5,'#11':6,'b13':8,'13':9,'b2':1,'b7':10,'4':5,'b6':8};
 const TENS_DEF={
-  '':      {a:['9','13'],              av:['b7']},
-  'maj7':  {a:['9','#11','13'],        av:[]},
-  'maj9':  {a:['9','#11','13'],        av:[]},
-  'maj13': {a:['9','#11','13'],        av:[]},
-  '6':     {a:['9','#11'],             av:[]},
-  '6/9':   {a:['9','#11'],             av:[]},
-  'm':     {a:['9','11'],              av:[]},
-  'm6':    {a:['9','11'],              av:[]},
-  'm7':    {a:['9','11'],              av:[]},
-  'm9':    {a:['9','11'],              av:[]},
-  'm11':   {a:['9','11'],              av:[]},
-  'm13':   {a:['9','11','13'],         av:[]},
-  'mM7':   {a:['9','11'],              av:[]},
-  '7':     {a:['b9','9','#9','#11','b13','13'],av:[]},
-  '9':     {a:['#11','b13','13'],      av:[]},
-  '11':    {a:['b9','9','13'],         av:[]},
-  '13':    {a:['b9','9','#9','#11'],   av:[]},
-  'dim':   {a:['9','11','b13'],        av:[]},
-  'dim7':  {a:['9','11','b13'],        av:[]},
-  'm7b5':  {a:['9','11','b13'],        av:[]},
-  'aug':   {a:['9','#11'],             av:[]},
-  'sus2':  {a:['4','b7'],              av:[]},
-  'sus4':  {a:['9','b7'],              av:[]},
-  '7sus4': {a:['b9','9','13'],         av:[]},
+  '':     {a:['9','13'],av:['b7']},'maj7':{a:['9','#11','13'],av:[]},'maj9':{a:['9','#11','13'],av:[]},
+  'maj13':{a:['9','#11','13'],av:[]},'6':{a:['9','#11'],av:[]},'6/9':{a:['9','#11'],av:[]},
+  'm':    {a:['9','11'],av:[]},'m6':{a:['9','11'],av:[]},'m7':{a:['9','11'],av:[]},
+  'm9':   {a:['9','11'],av:[]},'m11':{a:['9','11'],av:[]},'m13':{a:['9','11','13'],av:[]},'mM7':{a:['9','11'],av:[]},
+  '7':    {a:['b9','9','#9','#11','b13','13'],av:[]},'9':{a:['#11','b13','13'],av:[]},
+  '11':   {a:['b9','9','13'],av:[]},'13':{a:['b9','9','#9','#11'],av:[]},
+  'dim':  {a:['9','11','b13'],av:[]},'dim7':{a:['9','11','b13'],av:[]},'m7b5':{a:['9','11','b13'],av:[]},
+  'aug':  {a:['9','#11'],av:[]},'sus2':{a:['4','b7'],av:[]},'sus4':{a:['9','b7'],av:[]},'7sus4':{a:['b9','9','13'],av:[]},
 };
 
 // ========================
 // DATA MODEL
+// annotation now lives on each chord object:
+// chord.annot = { showMode, showArp, showTens, showFree, modeIdx, invIdx, selTens[], freeText, freeColor, freeBold, freeItalic }
 // ========================
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
-let editingTarget=null, selectedRoot='C', selectedQuality='maj7', selectedExts=[];
-let annotTarget=null, selectedAnnotColor='#c4b5fd';
-// Live annotation state in modal
+let editTarget=null; // {si,mi,ci}
+let annotTarget=null; // {si,mi,ci}
+let selectedRoot='C',selectedQuality='maj7',selectedExts=[];
+let selectedAnnotColor='#c4b5fd';
 let aShow={mode:false,arp:false,tens:false,free:false};
-let aState={modeIdx:0, invIdx:0, selTens:[]};
+let aState={modeIdx:0,invIdx:0,selTens:[]};
 
 const ROOTS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
 const QUALITIES=[
@@ -597,7 +435,7 @@ function parseMusicXML(xmlStr){
   let key='C'; const fi=doc.querySelector('fifths'); if(fi){const f=parseInt(fi.textContent);const km={0:'C',1:'G',2:'D',3:'A',4:'E',5:'B',6:'F#','-1':'F','-2':'Bb','-3':'Eb','-4':'Ab','-5':'Db','-6':'Gb'};key=km[f]||'C';}
   const measures=doc.querySelectorAll('measure'),pm=[];
   measures.forEach((m,idx)=>{
-    const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false,annotation:null};
+    const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false};
     m.querySelectorAll('barline').forEach(bl=>{const loc=bl.getAttribute('location'),rep=bl.querySelector('repeat');if(rep){if(loc==='left'||rep.getAttribute('direction')==='forward')md.repeatStart=true;if(loc==='right'||rep.getAttribute('direction')==='backward')md.repeatEnd=true;}});
     m.querySelectorAll('harmony').forEach(h=>{
       const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');
@@ -607,22 +445,27 @@ function parseMusicXML(xmlStr){
       const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};
       if(km[kind]!==undefined)kind=km[kind];
       let bass=''; if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}
-      md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0});
+      md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});
     });
     if(md.chords.length>0){const t=bpm;md.chords.forEach(c=>{c.beats=Math.round(t/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t-s;}
-    else md.chords.push({symbol:'%',beats:bpm});
+    else md.chords.push({symbol:'%',beats:bpm,annot:null});
     pm.push(md);
   });
-  const sections=[]; let cur={label:'A',measures:[]};
-  measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),measures:[]};}cur.measures.push(pm[idx]);});
+  const sections=[]; let cur={label:'A',annotation:'',measures:[]};
+  measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});
   if(cur.measures.length>0)sections.push(cur);
   return {title,key,tempo,timeSig:ts,style:'Swing',sections};
 }
 
 function parseChordSym(sym){
   if(!sym||sym==='%'||sym==='–')return null;
-  const c=sym.split('/')[0], rm=c.match(/^([A-G][#b]?)/);
+  const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);
   return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;
+}
+
+function fmtChord(sym){
+  if(!sym||sym==='%')return '–';
+  return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');
 }
 
 // ========================
@@ -640,18 +483,12 @@ function render(){
 
 function renderSection(section,si){
   const cols=parseInt(document.getElementById('global-cols').value)||4;
-  const div=document.createElement('div'); div.className='section';
-
-  // Header
+  const div=document.createElement('div'); div.className='section'; div.dataset.si=si;
   const hdr=document.createElement('div'); hdr.className='section-header';
 
-  // Top row: label + actions
   const topRow=document.createElement('div'); topRow.className='section-header-top';
-  const li=document.createElement('button');
-  li.className='section-label';
-  li.style.cssText='cursor:pointer;background:none;border:none;border-bottom:1px dashed #f0a50066;padding:2px 6px;text-align:left;';
-  li.title='Cliquer pour changer la lettre';
-  li.textContent=(section.label||'A')+' ✎';
+  const li=document.createElement('button'); li.className='section-label';
+  li.textContent=(section.label||'A')+' ✎'; li.title='Cliquer pour changer la lettre';
   li.onclick=()=>openLabelModal(si);
   const acts=document.createElement('div'); acts.className='section-actions';
   ['+ Mesure','⧉ Dupliquer','✕ Supprimer'].forEach((t,k)=>{
@@ -660,37 +497,31 @@ function renderSection(section,si){
   });
   topRow.append(li,acts);
 
-  // Annotation row
   const annotRow=document.createElement('div'); annotRow.className='section-annot-row';
   const annotBadge=document.createElement('span'); annotBadge.className='section-annot-badge'; annotBadge.textContent='✎';
   const annotInput=document.createElement('input'); annotInput.type='text'; annotInput.className='section-annot-input';
-  annotInput.value=section.annotation||''; annotInput.placeholder='Annotation de section : tempo, style, indication, contexte…';
-  annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(si,annotInput.value,annotDisplayEl);});
-  annotInput.addEventListener('input',()=>{renderSectionAnnotDisplay(si,annotInput.value,annotDisplayEl);});
-  annotRow.append(annotBadge,annotInput);
-
-  hdr.append(topRow,annotRow);
-
-  // Annotation display band (below header)
+  annotInput.value=section.annotation||''; annotInput.placeholder='Annotation de section…';
   const annotDisplayEl=document.createElement('div');
-  renderSectionAnnotDisplay(si,section.annotation||'',annotDisplayEl);
+  annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(section.annotation,annotDisplayEl);});
+  annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));
+  annotRow.append(annotBadge,annotInput);
+  hdr.append(topRow,annotRow);
+  renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);
 
   const grid=document.createElement('div'); grid.className='measures-grid';
   grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;
   section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));
   const ab=document.createElement('button'); ab.className='add-measure-btn'; ab.textContent='+'; ab.onclick=()=>addMeasure(si);
   grid.appendChild(ab);
-
   div.append(hdr,annotDisplayEl,grid); return div;
 }
 
-function renderSectionAnnotDisplay(si,text,el){
-  if(!text||!text.trim()){el.style.display='none';el.className='section-annot-display';return;}
+function renderSectionAnnotDisplay(text,el){
+  if(!text||!text.trim()){el.style.display='none';return;}
   el.style.display='flex'; el.className='section-annot-display';
-  el.innerHTML=`<span class="annot-icon">💬</span><span>${escapeHtml(text)}</span>`;
+  el.innerHTML=`<span class="annot-icon">💬</span><span>${escHtml(text)}</span>`;
 }
-
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function renderMeasure(measure,si,mi){
   const div=document.createElement('div'); div.className='measure';
@@ -699,27 +530,52 @@ function renderMeasure(measure,si,mi){
 
   const numEl=document.createElement('div'); numEl.className='measure-number'; numEl.textContent=mi+1; div.appendChild(numEl);
 
-  const beatsEl=document.createElement('div'); beatsEl.className='measure-beats';
   const chords=measure.chords||[];
-  if(!chords.length){
-    const bt=document.createElement('div'); bt.className='beat empty';
-    bt.innerHTML='<div class="chord-symbol">%</div>'; bt.onclick=()=>openModal(si,mi,-1,null); beatsEl.appendChild(bt);
-  } else {
-    chords.forEach((chord,ci)=>{
-      const bt=document.createElement('div'); bt.className='beat'; bt.style.flex=chord.beats||1;
-      bt.innerHTML=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div>`;
-      bt.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);}; beatsEl.appendChild(bt);
-    });
-  }
-  div.appendChild(beatsEl);
+  const beatsRow=document.createElement('div'); beatsRow.className='beats-row';
 
-  const annot=measure.annotation||{};
-  const firstChord=chords.find(c=>c.symbol&&c.symbol!=='%');
-  const parsed=firstChord?parseChordSym(firstChord.symbol):null;
+  chords.forEach((chord,ci)=>{
+    const slot=renderChordSlot(chord,si,mi,ci);
+    beatsRow.appendChild(slot);
+  });
 
+  // Add chord button inside measure
+  const addBtn=document.createElement('button'); addBtn.className='add-chord-btn'; addBtn.textContent='+'; addBtn.title='Ajouter un accord';
+  addBtn.onclick=e=>{e.stopPropagation();openModal(si,mi,-1,null);}; beatsRow.appendChild(addBtn);
+
+  div.appendChild(beatsRow);
+
+  // Measure action buttons (delete + duplicate)
+  const delM=document.createElement('button'); delM.className='chord-del-btn'; delM.textContent='✕'; delM.title='Supprimer mesure';
+  delM.onclick=e=>{e.stopPropagation();deleteMeasure(si,mi);}; div.appendChild(delM);
+
+  const dupM=document.createElement('button'); dupM.className='chord-del-btn';
+  dupM.style.cssText='position:absolute;top:2px;right:18px;background:none;border:none;color:#f0a500;font-size:0.6rem;cursor:pointer;opacity:0;transition:opacity 0.2s;';
+  dupM.textContent='⧉'; dupM.title='Dupliquer mesure';
+  dupM.onclick=e=>{e.stopPropagation();duplicateMeasure(si,mi);}; div.appendChild(dupM);
+
+  div.addEventListener('mouseenter',()=>dupM.style.opacity='1'); div.addEventListener('mouseleave',()=>dupM.style.opacity='0');
+
+  div.addEventListener('contextmenu',e=>{e.preventDefault();openModal(si,mi,-1,null);});
+  return div;
+}
+
+function renderChordSlot(chord,si,mi,ci){
+  const annot=chord.annot||{};
+  const parsed=parseChordSym(chord.symbol);
+
+  const slot=document.createElement('div');
+  slot.className='chord-slot'+(annot&&(annot.showMode||annot.showArp||annot.showTens||annot.showFree)?' has-annot':'');
+  slot.style.flex=chord.beats||1;
+
+  // Header
+  const hdr=document.createElement('div'); hdr.className='chord-header';
+  hdr.innerHTML=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">clic: éditer</div>`;
+  hdr.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
+  slot.appendChild(hdr);
+
+  // Theory rows
   if(parsed&&(annot.showMode||annot.showArp||annot.showTens)){
-    const td=document.createElement('div'); td.className='measure-theory';
-
+    const td=document.createElement('div'); td.className='chord-theory';
     if(annot.showMode){
       const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
       const idx=Math.min(annot.modeIdx||0,modes.length-1);
@@ -727,175 +583,37 @@ function renderMeasure(measure,si,mi){
       row.innerHTML=`<span class="theory-row-label">Mode</span><span class="theory-row-value mode-val">${modes[idx].name}</span>`;
       td.appendChild(row);
     }
-
     if(annot.showArp){
       const invs=getInversions(parsed.root,parsed.quality);
       const idx=Math.min(annot.invIdx||0,invs.length-1);
       const inv=invs[idx];
-      const label=idx===0?'Arp':['1er','2ème','3ème'][idx-1]+'R';
+      const lbl=idx===0?'Arp':(['1erR','2eR','3eR'][idx-1]);
       const row=document.createElement('div'); row.className='theory-row';
-      row.innerHTML=`<span class="theory-row-label">${label}</span><span class="theory-row-value arp-val">${inv.notes.join(' · ')}</span>`;
+      row.innerHTML=`<span class="theory-row-label">${lbl}</span><span class="theory-row-value arp-val">${inv.notes.join('·')}</span>`;
       td.appendChild(row);
     }
-
     if(annot.showTens&&annot.selTens&&annot.selTens.length){
-      const notes=annot.selTens.map(t=>{const s=TENSION_IV[t]||0;return tr(parsed.root,s);});
+      const notes=annot.selTens.map(t=>tr(parsed.root,TENSION_IV[t]||0));
       const row=document.createElement('div'); row.className='theory-row';
       row.innerHTML=`<span class="theory-row-label">T</span><span class="theory-row-value tens-val">${notes.join(' ')}</span>`;
       td.appendChild(row);
     }
-    div.appendChild(td);
+    slot.appendChild(td);
   }
 
   if(annot.showFree&&annot.freeText){
-    const fa=document.createElement('div'); fa.className='measure-free-annot';
+    const fa=document.createElement('div'); fa.className='chord-free-annot';
     fa.textContent=annot.freeText; fa.style.color=annot.freeColor||'#c4b5fd';
     fa.style.fontWeight=annot.freeBold?'bold':'normal'; fa.style.fontStyle=annot.freeItalic?'italic':'normal';
-    div.appendChild(fa);
+    slot.appendChild(fa);
   }
 
-  const icon=document.createElement('span'); icon.className='annotation-icon'; icon.textContent='✏️'; icon.title='Annoter';
-  icon.onclick=e=>{e.stopPropagation();openAnnotModal(si,mi);}; div.appendChild(icon);
+  // Annotation icon
+  const icon=document.createElement('div'); icon.className='chord-annot-icon'; icon.textContent='✏️';
+  icon.onclick=e=>{e.stopPropagation();openAnnotModal(si,mi,ci,chord);};
+  slot.appendChild(icon);
 
-  const delM=document.createElement('button');
-  delM.textContent='✕'; delM.style.cssText='position:absolute;top:2px;right:2px;background:none;border:none;color:#c0392b;font-size:0.65rem;cursor:pointer;opacity:0;transition:opacity 0.2s;';
-  delM.onclick=e=>{e.stopPropagation();deleteMeasure(si,mi);}; div.appendChild(delM);
-  div.addEventListener('mouseenter',()=>delM.style.opacity='1'); div.addEventListener('mouseleave',()=>delM.style.opacity='0');
-  div.addEventListener('contextmenu',e=>{e.preventDefault();openModal(si,mi,-1,null);});
-  return div;
-}
-
-function fmtChord(sym){
-  if(!sym||sym==='%')return '–';
-  return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');
-}
-
-// ========================
-// ANNOTATION MODAL
-// ========================
-function toggleSection(key){
-  aShow[key]=!aShow[key];
-  document.getElementById('toggle-'+key).classList.toggle('on',aShow[key]);
-}
-function selectAnnotColor(el){ document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active')); el.classList.add('active'); selectedAnnotColor=el.dataset.color; }
-
-function openAnnotModal(si,mi){
-  annotTarget={si,mi};
-  const measure=chartData.sections[si].measures[mi];
-  const annot=measure.annotation||{};
-  // Restore state
-  aShow={mode:!!annot.showMode,arp:!!annot.showArp,tens:!!annot.showTens,free:!!annot.showFree};
-  aState={modeIdx:annot.modeIdx||0, invIdx:annot.invIdx||0, selTens:annot.selTens?[...annot.selTens]:[]};
-  ['mode','arp','tens','free'].forEach(k=>document.getElementById('toggle-'+k).classList.toggle('on',aShow[k]));
-
-  const chords=measure.chords||[];
-  const firstChord=chords.find(c=>c.symbol&&c.symbol!=='%');
-  const parsed=firstChord?parseChordSym(firstChord.symbol):null;
-  document.getElementById('annot-chord-name').textContent=firstChord?fmtChord(firstChord.symbol):'mesure';
-
-  // --- MODES ---
-  const mList=document.getElementById('modal-modes-list'); mList.innerHTML='';
-  if(parsed){
-    const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
-    modes.forEach((mode,i)=>{
-      const notes=mode.i.map(s=>tr(parsed.root,s)).join(' ');
-      const card=document.createElement('div'); card.className='mode-card'+(i===aState.modeIdx?' selected':'');
-      card.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${mode.name}</span>${i===aState.modeIdx?'<span class="mode-selected-badge">✓ sélectionné</span>':''}</div><div class="mode-notes">${notes}</div><div class="mode-desc">${mode.desc}</div>`;
-      card.onclick=()=>{
-        aState.modeIdx=i;
-        mList.querySelectorAll('.mode-card').forEach((c,j)=>{
-          c.classList.toggle('selected',j===i);
-          c.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${modes[j].name}</span>${j===i?'<span class="mode-selected-badge">✓ sélectionné</span>':''}</div><div class="mode-notes">${modes[j].i.map(s=>tr(parsed.root,s)).join(' ')}</div><div class="mode-desc">${modes[j].desc}</div>`;
-        });
-      };
-      mList.appendChild(card);
-    });
-  } else {
-    mList.innerHTML='<div style="color:#556;font-size:0.82rem;">Pas d\'accord détecté.</div>';
-  }
-
-  // --- ARPÈGE & RENVERSEMENTS ---
-  const arpRoot=document.getElementById('modal-arp-root'); arpRoot.innerHTML='';
-  const invList=document.getElementById('modal-inv-list'); invList.innerHTML='';
-  if(parsed){
-    const baseNotes=getArpNotes(parsed.root,parsed.quality);
-    const def=ARP_DEF[parsed.quality]||ARP_DEF['maj7'];
-    baseNotes.forEach((n,i)=>{
-      const p=document.createElement('div'); p.className='arp-pill'+(i===0?' root':'');
-      p.textContent=`${n} (${def.n[i]})`; arpRoot.appendChild(p);
-    });
-    const invs=getInversions(parsed.root,parsed.quality);
-    const invLabels=['Pos. fondamentale','1er renversement','2ème renversement','3ème renversement'];
-    invs.forEach((inv,k)=>{
-      const card=document.createElement('div'); card.className='inv-card'+(k===aState.invIdx?' selected':'');
-      const badge=k===aState.invIdx?'<span class="inv-selected-badge">✓</span>':'';
-      card.innerHTML=`<span class="inv-label">${invLabels[k]}</span><span class="inv-notes">${inv.notes.join(' · ')}</span><span class="inv-intervals">(${inv.degrees.join('-')})</span>${badge}`;
-      card.onclick=()=>{
-        aState.invIdx=k;
-        invList.querySelectorAll('.inv-card').forEach((c,j)=>{
-          c.classList.toggle('selected',j===k);
-          const b=j===k?'<span class="inv-selected-badge">✓</span>':'';
-          c.innerHTML=`<span class="inv-label">${invLabels[j]}</span><span class="inv-notes">${invs[j].notes.join(' · ')}</span><span class="inv-intervals">(${invs[j].degrees.join('-')})</span>${b}`;
-        });
-      };
-      invList.appendChild(card);
-    });
-  }
-
-  // --- TENSIONS ---
-  const tensPills=document.getElementById('modal-tens-pills'); tensPills.innerHTML='';
-  const avoidPills=document.getElementById('modal-avoid-pills'); avoidPills.innerHTML='';
-  const avoidWrap=document.getElementById('modal-avoid-wrap');
-  if(parsed){
-    const tens=TENS_DEF[parsed.quality]||{a:[],av:[]};
-    tens.a.forEach(t=>{
-      const s=TENSION_IV[t]||0, n=tr(parsed.root,s);
-      const sel=aState.selTens.includes(t);
-      const p=document.createElement('div'); p.className='tens-pill available'+(sel?' selected':'');
-      p.textContent=`${t} (${n})`;
-      p.onclick=()=>{
-        if(aState.selTens.includes(t))aState.selTens=aState.selTens.filter(x=>x!==t);
-        else aState.selTens.push(t);
-        p.classList.toggle('selected',aState.selTens.includes(t));
-      };
-      tensPills.appendChild(p);
-    });
-    if(!tens.a.length)tensPills.innerHTML='<span style="color:#556;font-size:0.8rem;">Aucune</span>';
-    if(tens.av&&tens.av.length){
-      avoidWrap.style.display='block';
-      tens.av.forEach(t=>{const s=TENSION_IV[t]||0,n=tr(parsed.root,s);const p=document.createElement('div');p.className='tens-pill avoid';p.textContent=`${t} (${n})`;avoidPills.appendChild(p);});
-    } else avoidWrap.style.display='none';
-  }
-
-  // Free text
-  document.getElementById('annot-text').value=annot.freeText||'';
-  document.getElementById('annot-bold').checked=annot.freeBold||false;
-  document.getElementById('annot-italic').checked=annot.freeItalic!==undefined?annot.freeItalic:true;
-  const color=annot.freeColor||'#c4b5fd'; selectedAnnotColor=color;
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===color));
-
-  document.getElementById('annot-overlay').classList.add('active');
-}
-
-function closeAnnotModal(){ document.getElementById('annot-overlay').classList.remove('active'); annotTarget=null; }
-
-function applyAnnotation(){
-  const {si,mi}=annotTarget;
-  const freeText=document.getElementById('annot-text').value.trim();
-  const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);
-  chartData.sections[si].measures[mi].annotation=hasAny?{
-    showMode:aShow.mode, showArp:aShow.arp, showTens:aShow.tens, showFree:aShow.free&&!!freeText,
-    modeIdx:aState.modeIdx, invIdx:aState.invIdx, selTens:[...aState.selTens],
-    freeText, freeColor:selectedAnnotColor,
-    freeBold:document.getElementById('annot-bold').checked,
-    freeItalic:document.getElementById('annot-italic').checked,
-  }:null;
-  closeAnnotModal(); render();
-}
-
-function clearAnnotation(){
-  chartData.sections[annotTarget.si].measures[annotTarget.mi].annotation=null;
-  closeAnnotModal(); render();
+  return slot;
 }
 
 // ========================
@@ -909,8 +627,9 @@ function buildModal(){
   const ec=document.getElementById('ext-btns');
   EXTS.forEach(e=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=e;b.dataset.val=e;b.onclick=()=>{b.classList.toggle('active');if(b.classList.contains('active')){if(!selectedExts.includes(e))selectedExts.push(e);}else selectedExts=selectedExts.filter(x=>x!==e);document.getElementById('free-chord').value='';};ec.appendChild(b);});
 }
+
 function openModal(si,mi,ci,chord){
-  editingTarget={si,mi,ci}; selectedExts=[];
+  editTarget={si,mi,ci}; selectedExts=[];
   document.querySelectorAll('#root-btns .chord-btn,#quality-btns .chord-btn,#ext-btns .chord-btn').forEach(b=>b.classList.remove('active'));
   const bpm=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;
   if(chord&&chord.symbol&&chord.symbol!=='%'){
@@ -928,7 +647,8 @@ function openModal(si,mi,ci,chord){
   document.getElementById('modal-title').textContent=ci===-1?'Ajouter un accord':'Éditer l\'accord';
   document.getElementById('modal-overlay').classList.add('active');
 }
-function closeModal(){ document.getElementById('modal-overlay').classList.remove('active'); editingTarget=null; }
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('active'); editTarget=null; }
+
 function buildChordSymbol(){
   const free=document.getElementById('free-chord').value.trim(); if(free)return free;
   const bass=document.getElementById('bass-input').value.trim();
@@ -937,205 +657,293 @@ function buildChordSymbol(){
   if(bass)sym+='/'+bass; return sym;
 }
 function applyChord(){
-  const {si,mi,ci}=editingTarget;
+  const {si,mi,ci}=editTarget;
   const symbol=buildChordSymbol(), beats=parseInt(document.getElementById('chord-beats').value)||4;
   const measure=chartData.sections[si].measures[mi];
-  if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats});}
-  else measure.chords[ci]={symbol,beats};
+  if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}
+  else{const existing=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:existing?existing.annot:null};}
   closeModal(); render();
 }
 function deleteChord(){
-  const {si,mi,ci}=editingTarget;
+  const {si,mi,ci}=editTarget;
   if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);
   closeModal(); render();
 }
 
 // ========================
+// ANNOTATION MODAL — per chord
+// ========================
+function toggleSection(key){ aShow[key]=!aShow[key]; document.getElementById('toggle-'+key).classList.toggle('on',aShow[key]); }
+function selectAnnotColor(el){ document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active')); el.classList.add('active'); selectedAnnotColor=el.dataset.color; }
+
+function openAnnotModal(si,mi,ci,chord){
+  annotTarget={si,mi,ci};
+  const annot=chord.annot||{};
+  aShow={mode:!!annot.showMode,arp:!!annot.showArp,tens:!!annot.showTens,free:!!annot.showFree};
+  aState={modeIdx:annot.modeIdx||0,invIdx:annot.invIdx||0,selTens:annot.selTens?[...annot.selTens]:[]};
+  ['mode','arp','tens','free'].forEach(k=>document.getElementById('toggle-'+k).classList.toggle('on',aShow[k]));
+
+  const parsed=parseChordSym(chord.symbol);
+  document.getElementById('annot-chord-name').textContent=fmtChord(chord.symbol);
+
+  // MODES
+  const mList=document.getElementById('modal-modes-list'); mList.innerHTML='';
+  if(parsed){
+    const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
+    modes.forEach((mode,i)=>{
+      const notes=mode.i.map(s=>tr(parsed.root,s)).join(' ');
+      const card=document.createElement('div'); card.className='mode-card'+(i===aState.modeIdx?' selected':'');
+      card.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${mode.name}</span>${i===aState.modeIdx?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${notes}</div><div class="mode-desc">${mode.desc}</div>`;
+      card.onclick=()=>{
+        aState.modeIdx=i;
+        mList.querySelectorAll('.mode-card').forEach((c,j)=>{
+          c.classList.toggle('selected',j===i);
+          const mn=modes[j].i.map(s=>tr(parsed.root,s)).join(' ');
+          c.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${modes[j].name}</span>${j===i?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${mn}</div><div class="mode-desc">${modes[j].desc}</div>`;
+        });
+      };
+      mList.appendChild(card);
+    });
+  } else mList.innerHTML='<div style="color:#556;font-size:0.82rem;">Accord non reconnu.</div>';
+
+  // ARPÈGE
+  const arpRoot=document.getElementById('modal-arp-root'); arpRoot.innerHTML='';
+  const invList=document.getElementById('modal-inv-list'); invList.innerHTML='';
+  if(parsed){
+    const def=ARP_DEF[parsed.quality]||ARP_DEF['maj7'];
+    def.i.forEach((iv,i)=>{const n=tr(parsed.root,iv);const p=document.createElement('div');p.className='arp-pill'+(i===0?' root':'');p.textContent=`${n} (${def.n[i]})`;arpRoot.appendChild(p);});
+    const invs=getInversions(parsed.root,parsed.quality);
+    const invLabels=['Pos. fondamentale','1er renversement','2ème renversement','3ème renversement'];
+    invs.forEach((inv,k)=>{
+      const card=document.createElement('div'); card.className='inv-card'+(k===aState.invIdx?' selected':'');
+      const badge=k===aState.invIdx?'<span class="inv-selected-badge">✓</span>':'';
+      card.innerHTML=`<span class="inv-label">${invLabels[k]}</span><span class="inv-notes">${inv.notes.join(' · ')}</span><span class="inv-intervals">(${inv.degrees.join('-')})</span>${badge}`;
+      card.onclick=()=>{
+        aState.invIdx=k;
+        invList.querySelectorAll('.inv-card').forEach((c,j)=>{
+          c.classList.toggle('selected',j===k);
+          const b2=j===k?'<span class="inv-selected-badge">✓</span>':'';
+          c.innerHTML=`<span class="inv-label">${invLabels[j]}</span><span class="inv-notes">${invs[j].notes.join(' · ')}</span><span class="inv-intervals">(${invs[j].degrees.join('-')})</span>${b2}`;
+        });
+      };
+      invList.appendChild(card);
+    });
+  }
+
+  // TENSIONS
+  const tensPills=document.getElementById('modal-tens-pills'); tensPills.innerHTML='';
+  const avoidPills=document.getElementById('modal-avoid-pills'); avoidPills.innerHTML='';
+  const avoidWrap=document.getElementById('modal-avoid-wrap');
+  if(parsed){
+    const tens=TENS_DEF[parsed.quality]||{a:[],av:[]};
+    tens.a.forEach(t=>{
+      const s=TENSION_IV[t]||0,n=tr(parsed.root,s), sel=aState.selTens.includes(t);
+      const p=document.createElement('div'); p.className='tens-pill available'+(sel?' selected':'');
+      p.textContent=`${t} (${n})`;
+      p.onclick=()=>{if(aState.selTens.includes(t))aState.selTens=aState.selTens.filter(x=>x!==t);else aState.selTens.push(t);p.classList.toggle('selected',aState.selTens.includes(t));};
+      tensPills.appendChild(p);
+    });
+    if(!tens.a.length)tensPills.innerHTML='<span style="color:#556;font-size:0.8rem;">Aucune</span>';
+    if(tens.av&&tens.av.length){avoidWrap.style.display='block';tens.av.forEach(t=>{const s=TENSION_IV[t]||0,n=tr(parsed.root,s);const p=document.createElement('div');p.className='tens-pill avoid';p.textContent=`${t} (${n})`;avoidPills.appendChild(p);});}
+    else avoidWrap.style.display='none';
+  }
+
+  // FREE
+  document.getElementById('annot-text').value=annot.freeText||'';
+  document.getElementById('annot-bold').checked=annot.freeBold||false;
+  document.getElementById('annot-italic').checked=annot.freeItalic!==undefined?annot.freeItalic:true;
+  const color=annot.freeColor||'#c4b5fd'; selectedAnnotColor=color;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===color));
+
+  document.getElementById('annot-overlay').classList.add('active');
+}
+
+function closeAnnotModal(){ document.getElementById('annot-overlay').classList.remove('active'); annotTarget=null; }
+
+function applyAnnotation(){
+  const {si,mi,ci}=annotTarget;
+  const freeText=document.getElementById('annot-text').value.trim();
+  const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);
+  chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{
+    showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,
+    modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],
+    freeText,freeColor:selectedAnnotColor,
+    freeBold:document.getElementById('annot-bold').checked,
+    freeItalic:document.getElementById('annot-italic').checked,
+  }:null;
+  closeAnnotModal(); render();
+}
+
+function clearAnnotation(){
+  const {si,mi,ci}=annotTarget;
+  chartData.sections[si].measures[mi].chords[ci].annot=null;
+  closeAnnotModal(); render();
+}
+
+// ========================
+// SECTION LABEL MODAL
+// ========================
+const LETTERS=['A','B','C','D','E','F','G','H','I','Intro','Verse','Chorus','Bridge','Outro','Coda','Tag','Vamp','Head'];
+const SUFFIXES=[{label:'(aucun)',val:''},{label:"' (bis)",val:"'"},{label:"'' (ter)",val:"''"},{label:'1',val:'1'},{label:'2',val:'2'}];
+let labelTarget=null,selLetter='A',selSuffix='';
+
+function buildLabelModal(){
+  const lb=document.getElementById('letter-btns');
+  LETTERS.forEach(l=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=l;b.dataset.val=l;b.style.minWidth='36px';b.onclick=()=>{document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selLetter=l;updateLabelPreview();};lb.appendChild(b);});
+  const sb=document.getElementById('suffix-btns');
+  SUFFIXES.forEach(s=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=s.label;b.dataset.val=s.val;b.style.minWidth='60px';b.onclick=()=>{document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selSuffix=s.val;updateLabelPreview();};sb.appendChild(b);});
+}
+function updateLabelPreview(){ document.getElementById('label-preview').textContent=selLetter+selSuffix; }
+function openLabelModal(si){
+  labelTarget=si; const cur=chartData.sections[si].label||'A';
+  const sm=SUFFIXES.slice(1).find(s=>cur.endsWith(s.val));
+  selSuffix=sm?sm.val:''; selLetter=sm?cur.slice(0,-sm.val.length):cur;
+  document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));
+  document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));
+  updateLabelPreview();
+  document.getElementById('label-overlay').classList.add('active');
+}
+function closeLabelModal(){ document.getElementById('label-overlay').classList.remove('active'); labelTarget=null; }
+function applyLabel(){ if(labelTarget===null)return; chartData.sections[labelTarget].label=selLetter+selSuffix; closeLabelModal(); render(); }
+
+// ========================
+// PRINT CONTRAST & THEME
+// ========================
+const CONTRAST_LABELS=['Léger','Standard','Soutenu','Fort','Maximum'];
+let printTheme='light';
+
+// Light palette: distinct hues, pastel for bg, darker for border/text
+const SECTION_PALETTES_LIGHT=[
+  {bg:'#fff9e6',border:'#d4a500',header:'#ffedb3',text:'#7a5800',chord:'#1a1a1a'},
+  {bg:'#e8f4ff',border:'#2d7ab8',header:'#bee3f8',text:'#1a4a7a',chord:'#1a1a1a'},
+  {bg:'#edfff0',border:'#2a9a4a',header:'#c3f0cc',text:'#1a5a2a',chord:'#1a1a1a'},
+  {bg:'#ffeef8',border:'#b83aaa',header:'#f5c6f0',text:'#6a1a5a',chord:'#1a1a1a'},
+  {bg:'#fff0e8',border:'#c05820',header:'#ffd6b8',text:'#7a2800',chord:'#1a1a1a'},
+  {bg:'#f0edff',border:'#5a3ab8',header:'#d4ccf8',text:'#2a1a7a',chord:'#1a1a1a'},
+  {bg:'#e8fffe',border:'#1a9a8a',header:'#b8f0ec',text:'#0a5a50',chord:'#1a1a1a'},
+  {bg:'#fff4f4',border:'#b82a2a',header:'#ffd0d0',text:'#7a1a1a',chord:'#1a1a1a'},
+];
+
+// Dark palette: rich saturated bg, bright border/text
+const SECTION_PALETTES_DARK=[
+  {bg:'#2a2000',border:'#f0c040',header:'#3a2e00',text:'#ffd060',chord:'#ffffff'},
+  {bg:'#001a30',border:'#4ab0f0',header:'#002040',text:'#7dd3fc',chord:'#ffffff'},
+  {bg:'#001a08',border:'#3aaa5a',header:'#002010',text:'#86efac',chord:'#ffffff'},
+  {bg:'#280020',border:'#d060c8',header:'#350028',text:'#f0a8ec',chord:'#ffffff'},
+  {bg:'#280e00',border:'#e07838',header:'#341200',text:'#fbb060',chord:'#ffffff'},
+  {bg:'#180030',border:'#8060e8',header:'#200038',text:'#c4b5fd',chord:'#ffffff'},
+  {bg:'#001a18',border:'#28c8b0',header:'#002020',text:'#5eead4',chord:'#ffffff'},
+  {bg:'#280000',border:'#e04040',header:'#340000',text:'#fca5a5',chord:'#ffffff'},
+];
+
+function getSectionColorMap(){
+  // Map unique section labels → palette index (same label = same color)
+  const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;
+  const labelToIdx={};
+  let colorIdx=0;
+  chartData.sections.forEach(s=>{
+    const lbl=s.label||'';
+    if(!(lbl in labelToIdx)){ labelToIdx[lbl]=colorIdx%palettes.length; colorIdx++; }
+  });
+  return labelToIdx;
+}
+
+function buildSectionColorCSS(contrastLevel){
+  const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;
+  const labelToIdx=getSectionColorMap();
+  const baseBodyBg=printTheme==='dark'?'#111':'white';
+  const baseBodyColor=printTheme==='dark'?'#eee':'black';
+
+  // contrast multiplier: borders get thicker at higher levels
+  const bw=[1,1.5,2,2.5,3][contrastLevel-1];
+  const fs=[1.0,1.05,1.15,1.25,1.35][contrastLevel-1];
+
+  let css=`body{background:${baseBodyBg};color:${baseBodyColor};}
+#chart-title,#chart-meta input{color:${printTheme==='dark'?'#ffd060':'#1a1a1a'};border-bottom-color:${printTheme==='dark'?'#555':'#aaa'};}
+`;
+
+  // Per-section rules using data-si attribute
+  chartData.sections.forEach((s,si)=>{
+    const lbl=s.label||'';
+    const idx=labelToIdx[lbl];
+    const p=palettes[idx];
+    css+=`
+.section[data-si="${si}"]{background:${p.bg};border:${bw}px solid ${p.border};border-radius:6px;}
+.section[data-si="${si}"] .section-header{background:${p.header};}
+.section[data-si="${si}"] .section-label{color:${p.text};font-size:${0.95*fs}rem;}
+.section[data-si="${si}"] .section-annot-input{color:${p.text};opacity:0.8;}
+.section[data-si="${si}"] .section-annot-display{background:${p.header};color:${p.text};}
+.section[data-si="${si}"] .measure{background:${printTheme==='dark'?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.7)'};border:${Math.max(1,bw-0.5)}px solid ${p.border}88;}
+.section[data-si="${si}"] .chord-symbol{color:${p.chord}!important;font-size:${fs}rem;font-weight:${contrastLevel>=3?900:700};}
+.section[data-si="${si}"] .chord-duration{color:${p.text}88!important;}
+.section[data-si="${si}"] .theory-row-value{color:${printTheme==='dark'?p.text:'#333'}!important;}
+.section[data-si="${si}"] .theory-row-label{color:${p.text}99!important;}
+.section[data-si="${si}"] .measure-number{color:${p.text}66;}
+`;
+  });
+  return css;
+}
+
+function updateSectionColorPreview(){
+  const preview=document.getElementById('section-color-preview');
+  if(!preview)return;
+  preview.innerHTML='';
+  const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;
+  const labelToIdx=getSectionColorMap();
+  // Show one dot per unique label
+  Object.entries(labelToIdx).forEach(([lbl,idx])=>{
+    const p=palettes[idx];
+    const dot=document.createElement('div');
+    dot.style.cssText=`width:18px;height:18px;border-radius:50%;background:${p.bg};border:2px solid ${p.border};display:flex;align-items:center;justify-content:center;`;
+    dot.title=lbl||'(sans nom)';
+    preview.appendChild(dot);
+    const span=document.createElement('span');
+    span.style.cssText=`font-size:0.68rem;color:${p.border};margin-right:4px;`;
+    span.textContent=lbl||'?';
+    preview.appendChild(span);
+  });
+}
+
+function setPrintTheme(theme){
+  printTheme=theme;
+  document.getElementById('theme-light-btn').classList.toggle('on',theme==='light');
+  document.getElementById('theme-dark-btn').classList.toggle('on',theme==='dark');
+  updateSectionColorPreview();
+}
+
+function openPrintPanel(){
+  document.getElementById('print-contrast-bar').style.display='flex';
+  updateContrastPreview();
+  updateSectionColorPreview();
+}
+function closePrintPanel(){ document.getElementById('print-contrast-bar').style.display='none'; removePrintStyle(); }
+function updateContrastPreview(){ document.getElementById('contrast-preview').textContent=CONTRAST_LABELS[parseInt(document.getElementById('contrast-slider').value)-1]; }
+function injectPrintStyle(v){
+  removePrintStyle();
+  const el=document.createElement('style');el.id='dps';el.media='print';
+  el.textContent=buildSectionColorCSS(v);
+  document.head.appendChild(el);
+}
+function removePrintStyle(){ const el=document.getElementById('dps');if(el)el.remove(); }
+function doPrint(){ injectPrintStyle(parseInt(document.getElementById('contrast-slider').value)); setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80); }
+
+// ========================
 // CHART ACTIONS
 // ========================
 function newChart(){
-  chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4}],repeatStart:false,repeatEnd:false,annotation:null}))}]};
+  chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))}]};
   document.getElementById('dropzone').style.display='none'; document.getElementById('chart-editor').style.display='block'; render();
 }
-function addSection(){ chartData.sections.push({label:'Section',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4}],repeatStart:false,repeatEnd:false,annotation:null}))}); render(); }
+function addSection(){ chartData.sections.push({label:'Section',annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))}); render(); }
 function duplicateSection(si){ const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render(); }
 function deleteSection(si){ if(chartData.sections.length<=1)return alert('Impossible de supprimer la dernière section.');chartData.sections.splice(si,1);render(); }
-function addMeasure(si){ const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b}],repeatStart:false,repeatEnd:false,annotation:null});render(); }
+function addMeasure(si){ const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false});render(); }
 function deleteMeasure(si,mi){ chartData.sections[si].measures.splice(mi,1);render(); }
+function duplicateMeasure(si,mi){ const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi])); chartData.sections[si].measures.splice(mi+1,0,c); render(); }
 
-function exportMusicXML(){
-  // Sync meta
-  chartData.title=document.getElementById('chart-title').value;
-  chartData.key=document.getElementById('meta-key').value;
-  chartData.tempo=parseInt(document.getElementById('meta-tempo').value)||120;
-  chartData.timeSig=document.getElementById('meta-time').value;
-
-  const [beatsStr,beatTypeStr]=chartData.timeSig.split('/');
-  const beats=parseInt(beatsStr)||4, beatType=parseInt(beatTypeStr)||4;
-  const DIVISIONS=2; // quarter note divisions
-
-  // Key to fifths
-  const keyToFifths={'C':0,'G':1,'D':2,'A':3,'E':4,'B':5,'F#':6,'Db':-5,'Gb':-6,'Cb':-7,'F':-1,'Bb':-2,'Eb':-3,'Ab':-4};
-  const fifths=keyToFifths[chartData.key]??0;
-  const mode=chartData.key.includes('m')?'minor':'major';
-
-  // Chord symbol → MusicXML kind
-  const qualityToKind={
-    '':       {kind:'major',       text:''},
-    'maj7':   {kind:'major-seventh',  text:'maj7'},
-    'maj9':   {kind:'major-ninth',    text:'maj9'},
-    'maj13':  {kind:'major-13th',     text:'maj13'},
-    '6':      {kind:'major-sixth',    text:'6'},
-    '6/9':    {kind:'major-sixth',    text:'6/9'},
-    'm':      {kind:'minor',          text:'m'},
-    'm6':     {kind:'minor-sixth',    text:'m6'},
-    'm7':     {kind:'minor-seventh',  text:'m7'},
-    'm9':     {kind:'minor-ninth',    text:'m9'},
-    'm11':    {kind:'minor-11th',     text:'m11'},
-    'm13':    {kind:'minor-13th',     text:'m13'},
-    'mM7':    {kind:'major-minor',    text:'mM7'},
-    '7':      {kind:'dominant',       text:'7'},
-    '9':      {kind:'dominant-ninth', text:'9'},
-    '11':     {kind:'dominant-11th',  text:'11'},
-    '13':     {kind:'dominant-13th',  text:'13'},
-    'dim':    {kind:'diminished',     text:'dim'},
-    'dim7':   {kind:'diminished-seventh',text:'dim7'},
-    'm7b5':   {kind:'half-diminished',text:'ø7'},
-    'aug':    {kind:'augmented',      text:'aug'},
-    'sus2':   {kind:'suspended-second',text:'sus2'},
-    'sus4':   {kind:'suspended-fourth',text:'sus4'},
-    '7sus4':  {kind:'suspended-fourth',text:'7sus4'},
-  };
-
-  function parseChordForXML(sym){
-    if(!sym||sym==='%'||sym==='–')return null;
-    const slashParts=sym.split('/');
-    const main=slashParts[0], bassNote=slashParts[1]||null;
-    const rm=main.match(/^([A-G][#b]?)(.*)/); if(!rm)return null;
-    const root=rm[1], quality=rm[2].replace(/[()]/g,'');
-    // Parse root alter
-    let rootStep=root[0], rootAlter=0;
-    if(root[1]==='#')rootAlter=1;
-    if(root[1]==='b')rootAlter=-1;
-    // Bass
-    let bassStep=null, bassAlter=0;
-    if(bassNote){bassStep=bassNote[0];if(bassNote[1]==='#')bassAlter=1;if(bassNote[1]==='b')bassAlter=-1;}
-    const kd=qualityToKind[quality]||{kind:'major',text:quality};
-    return {rootStep,rootAlter,quality,kind:kd.kind,kindText:kd.text,bassStep,bassAlter};
-  }
-
-  function chordToXML(chord, offset){
-    const p=parseChordForXML(chord.symbol); if(!p)return '';
-    const alterXML=v=>v!==0?`<root-alter>${v}</root-alter>`:'';
-    const bassXML=p.bassStep?`<bass><bass-step>${p.bassStep}</bass-step>${p.bassAlter!==0?`<bass-alter>${p.bassAlter}</bass-alter>`:''}</bass>`:'';
-    const offsetXML=offset>0?`<offset>${offset*DIVISIONS}</offset>`:'';
-    return `
-      <harmony>
-        ${offsetXML}
-        <root>
-          <root-step>${p.rootStep}</root-step>
-          ${alterXML(p.rootAlter)}
-        </root>
-        <kind text="${p.kindText}">${p.kind}</kind>
-        ${bassXML}
-      </harmony>`;
-  }
-
-  let measureNumber=1;
-  let measuresXML='';
-  let isFirst=true;
-
-  chartData.sections.forEach((section,si)=>{
-    section.measures.forEach((measure,mi)=>{
-      const chords=measure.chords||[];
-      let harmoniesXML='';
-      let offsetBeats=0;
-      chords.forEach(chord=>{
-        harmoniesXML+=chordToXML(chord,offsetBeats);
-        offsetBeats+=chord.beats||beats;
-      });
-
-      // Barlines
-      let barlineStart='', barlineEnd='';
-      if(measure.repeatStart) barlineStart=`
-      <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>`;
-      if(measure.repeatEnd) barlineEnd=`
-      <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>`;
-
-      // Rehearsal mark at first measure of each section
-      let directionXML='';
-      if(mi===0&&section.label){
-        directionXML=`
-      <direction placement="above">
-        <direction-type><rehearsal enclosure="box">${section.label}</rehearsal></direction-type>
-      </direction>`;
-        // Section annotation as words
-        if(section.annotation){
-          directionXML+=`
-      <direction placement="above">
-        <direction-type><words>${section.annotation.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</words></direction-type>
-      </direction>`;
-        }
-      }
-
-      // Attributes (first measure only)
-      let attributesXML='';
-      if(isFirst){
-        attributesXML=`
-      <attributes>
-        <divisions>${DIVISIONS}</divisions>
-        <key><fifths>${fifths}</fifths><mode>${mode}</mode></key>
-        <time><beats>${beats}</beats><beat-type>${beatType}</beat-type></time>
-        <clef><sign>G</sign><line>2</line></clef>
-      </attributes>
-      <direction placement="above">
-        <direction-type><metronome parentheses="no"><beat-unit>quarter</beat-unit><per-minute>${chartData.tempo}</per-minute></metronome></direction-type>
-        <sound tempo="${chartData.tempo}"/>
-      </direction>`;
-        isFirst=false;
-      }
-
-      // Whole rest (MusicXML requires at least one note/rest per measure)
-      const restDuration=beats*DIVISIONS;
-      const restXML=`
-      <note>
-        <rest measure="yes"/>
-        <duration>${restDuration}</duration>
-        <type>whole</type>
-      </note>`;
-
-      measuresXML+=`
-    <measure number="${measureNumber++}">${barlineStart}${attributesXML}${directionXML}${harmoniesXML}${restXML}${barlineEnd}
-    </measure>`;
-    });
-  });
-
-  const title=chartData.title||'Jazz Chart';
-  const xml=`<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN"
-  "http://www.musicxml.org/dtds/partwise.dtd">
-<score-partwise version="3.1">
-  <work><work-title>${title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</work-title></work>
-  <identification>
-    <encoding>
-      <software>Jazz Chart Editor</software>
-      <encoding-date>${new Date().toISOString().split('T')[0]}</encoding-date>
-    </encoding>
-  </identification>
-  <part-list>
-    <score-part id="P1"><part-name>${title.replace(/&/g,'&amp;')}</part-name></score-part>
-  </part-list>
-  <part id="P1">${measuresXML}
-  </part>
-</score-partwise>`;
-
-  const blob=new Blob([xml],{type:'application/vnd.recordare.musicxml+xml'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=(title||'chart').replace(/\s+/g,'_')+'.musicxml';
-  a.click();
-}
-
+// ========================
+// EXPORT / IMPORT
+// ========================
 function exportJSON(){
   chartData.title=document.getElementById('chart-title').value; chartData.key=document.getElementById('meta-key').value;
   chartData.tempo=document.getElementById('meta-tempo').value; chartData.timeSig=document.getElementById('meta-time').value; chartData.style=document.getElementById('meta-style').value;
@@ -1156,17 +964,56 @@ dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{chartData=parseMusicXML(ev.target.result);document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch{alert('Erreur MusicXML.');}};r.readAsText(file);});
 
 ['chart-title','meta-key','meta-tempo','meta-time','meta-style'].forEach(id=>{
-  document.getElementById(id).addEventListener('change',e=>{
-    const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};
-    chartData[m[id]]=e.target.value;
-  });
+  document.getElementById(id).addEventListener('change',e=>{const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};chartData[m[id]]=e.target.value;});
 });
+
+// ========================
+// EXPORT MUSICXML
+// ========================
+function exportMusicXML(){
+  chartData.title=document.getElementById('chart-title').value; chartData.key=document.getElementById('meta-key').value;
+  chartData.tempo=parseInt(document.getElementById('meta-tempo').value)||120; chartData.timeSig=document.getElementById('meta-time').value;
+  const [beatsStr,beatTypeStr]=chartData.timeSig.split('/');
+  const beats=parseInt(beatsStr)||4,beatType=parseInt(beatTypeStr)||4,DIVISIONS=2;
+  const keyToFifths={'C':0,'G':1,'D':2,'A':3,'E':4,'B':5,'F#':6,'Db':-5,'Gb':-6,'Cb':-7,'F':-1,'Bb':-2,'Eb':-3,'Ab':-4};
+  const fifths=keyToFifths[chartData.key]??0;
+  const qualityToKind={'':{ kind:'major',text:''},'maj7':{kind:'major-seventh',text:'maj7'},'maj9':{kind:'major-ninth',text:'maj9'},'maj13':{kind:'major-13th',text:'maj13'},'6':{kind:'major-sixth',text:'6'},'6/9':{kind:'major-sixth',text:'6/9'},'m':{kind:'minor',text:'m'},'m6':{kind:'minor-sixth',text:'m6'},'m7':{kind:'minor-seventh',text:'m7'},'m9':{kind:'minor-ninth',text:'m9'},'m11':{kind:'minor-11th',text:'m11'},'m13':{kind:'minor-13th',text:'m13'},'mM7':{kind:'major-minor',text:'mM7'},'7':{kind:'dominant',text:'7'},'9':{kind:'dominant-ninth',text:'9'},'11':{kind:'dominant-11th',text:'11'},'13':{kind:'dominant-13th',text:'13'},'dim':{kind:'diminished',text:'dim'},'dim7':{kind:'diminished-seventh',text:'dim7'},'m7b5':{kind:'half-diminished',text:'ø7'},'aug':{kind:'augmented',text:'aug'},'sus2':{kind:'suspended-second',text:'sus2'},'sus4':{kind:'suspended-fourth',text:'sus4'},'7sus4':{kind:'suspended-fourth',text:'7sus4'}};
+  function parseChordForXML(sym){if(!sym||sym==='%'||sym==='–')return null;const sp=sym.split('/');const main=sp[0],bassNote=sp[1]||null;const rm=main.match(/^([A-G][#b]?)(.*)/);if(!rm)return null;const root=rm[1],quality=rm[2].replace(/[()]/g,'');let rootStep=root[0],rootAlter=0;if(root[1]==='#')rootAlter=1;if(root[1]==='b')rootAlter=-1;let bassStep=null,bassAlter=0;if(bassNote){bassStep=bassNote[0];if(bassNote[1]==='#')bassAlter=1;if(bassNote[1]==='b')bassAlter=-1;}const kd=qualityToKind[quality]||{kind:'major',text:quality};return{rootStep,rootAlter,kind:kd.kind,kindText:kd.text,bassStep,bassAlter};}
+  function chordToXML(chord,offset){const p=parseChordForXML(chord.symbol);if(!p)return '';const alterXML=v=>v!==0?`<root-alter>${v}</root-alter>`:'';const bassXML=p.bassStep?`<bass><bass-step>${p.bassStep}</bass-step>${p.bassAlter!==0?`<bass-alter>${p.bassAlter}</bass-alter>`:''}</bass>`:'';const offsetXML=offset>0?`<offset>${offset*DIVISIONS}</offset>`:'';return `\n      <harmony>${offsetXML}<root><root-step>${p.rootStep}</root-step>${alterXML(p.rootAlter)}</root><kind text="${p.kindText}">${p.kind}</kind>${bassXML}</harmony>`;}
+  let measureNumber=1,measuresXML='',isFirst=true;
+  chartData.sections.forEach((section,si)=>{
+    section.measures.forEach((measure,mi)=>{
+      const chords=measure.chords||[];
+      let harmoniesXML='',offsetBeats=0;
+      chords.forEach(chord=>{harmoniesXML+=chordToXML(chord,offsetBeats);offsetBeats+=chord.beats||beats;});
+      let barlineStart='',barlineEnd='';
+      if(measure.repeatStart)barlineStart=`\n      <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>`;
+      if(measure.repeatEnd)barlineEnd=`\n      <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>`;
+      let directionXML='';
+      if(mi===0&&section.label){directionXML=`\n      <direction placement="above"><direction-type><rehearsal enclosure="box">${section.label}</rehearsal></direction-type></direction>`;if(section.annotation)directionXML+=`\n      <direction placement="above"><direction-type><words>${escHtml(section.annotation)}</words></direction-type></direction>`;}
+      let attributesXML='';
+      if(isFirst){attributesXML=`\n      <attributes><divisions>${DIVISIONS}</divisions><key><fifths>${fifths}</fifths><mode>major</mode></key><time><beats>${beats}</beats><beat-type>${beatType}</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>\n      <direction placement="above"><direction-type><metronome parentheses="no"><beat-unit>quarter</beat-unit><per-minute>${chartData.tempo}</per-minute></metronome></direction-type><sound tempo="${chartData.tempo}"/></direction>`;isFirst=false;}
+      const restDuration=beats*DIVISIONS;
+      const restXML=`\n      <note><rest measure="yes"/><duration>${restDuration}</duration><type>whole</type></note>`;
+      measuresXML+=`\n    <measure number="${measureNumber++}">${barlineStart}${attributesXML}${directionXML}${harmoniesXML}${restXML}${barlineEnd}\n    </measure>`;
+    });
+  });
+  const title=chartData.title||'Jazz Chart';
+  const xml=`<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 3.1 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">\n<score-partwise version="3.1">\n  <work><work-title>${escHtml(title)}</work-title></work>\n  <identification><encoding><software>Jazz Chart Editor</software><encoding-date>${new Date().toISOString().split('T')[0]}</encoding-date></encoding></identification>\n  <part-list><score-part id="P1"><part-name>${escHtml(title)}</part-name></score-part></part-list>\n  <part id="P1">${measuresXML}\n  </part>\n</score-partwise>`;
+  const blob=new Blob([xml],{type:'application/vnd.recordare.musicxml+xml'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(title||'chart').replace(/\s+/g,'_')+'.musicxml';a.click();
+}
+
+// ========================
+// EVENTS & INIT
+// ========================
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();}});
+document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();}});
+
 buildModal();
 buildLabelModal();
-document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
 </script>
 </body>
 </html>
