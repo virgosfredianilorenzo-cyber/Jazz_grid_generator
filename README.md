@@ -228,10 +228,10 @@ Licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file fo
 
 ## 🙏 Acknowledgements
 
-- Built with vanilla HTML, CSS and JavaScript — no frameworks, no bundlers
+- Built with vanilla HTML, CSS and JavaScript — no frameworks, no bundlers - Thanks CLAUDE
 - MusicXML format by the [W3C Music Notation Community Group](https://www.w3.org/2021/06/musicxml40/)
 - Chord symbol conventions inspired by jazz lead sheet standards (iReal Pro, Hal Leonard)
 
 ---
 
-*Made with 🎷 for jazz musicians, by a jazz musician.*
+*Made with 🎷 for musicians, by a non musican bass player.*
