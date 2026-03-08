@@ -234,4 +234,4 @@ Licensed under the **Apache License 2.0** — see the [LICENSE](LICENSE) file fo
 
 ---
 
-*Made with 🎷 for musicians, by a non musican bass player.*
+*Made with 🎷 for musicians, by a non musician bass player.*
