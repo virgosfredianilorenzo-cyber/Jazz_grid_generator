@@ -1,4 +1,4 @@
-# 🎷 Jazz Chart Editor v3 (Merci Claude.IA)
+# 🎷 Jazz Chart Editor v3
 
 > A web-based jazz chord chart editor with music theory annotations, MusicXML import/export, transposition, multilingual UI, and print-ready output.
 
