@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jazz Chart Editor v2 — User Manual</title>
+<style>
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #f0a500;
+  --gold-light: #ffc107;
+  --dark-bg: #1a1a2e;
+  --dark-mid: #16213e;
+  --dark-panel: #0f3460;
+  --accent-blue: #7dd3fc;
+  --accent-purple: #c4b5fd;
+  --accent-green: #86efac;
+  --text-main: #eee;
+  --text-muted: #aaa;
+  --text-dark: #1a1a2e;
+  --radius: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: 'Georgia', serif;
+  background: var(--dark-bg);
+  color: var(--text-main);
+  min-height: 100vh;
+  line-height: 1.7;
+}
+
+/* ===================== LANGUAGE NAV ===================== */
+#lang-nav {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: var(--dark-panel);
+  border-bottom: 3px solid var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  flex-wrap: wrap;
+}
+
+#lang-nav .app-title {
+  font-size: 1rem;
+  color: var(--gold);
+  font-weight: bold;
+  margin-right: 20px;
+  padding: 12px 0;
+  white-space: nowrap;
+}
+
+.lang-tab {
+  padding: 14px 22px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -3px;
+  transition: all 0.2s;
+  user-select: none;
+  white-space: nowrap;
+}
+.lang-tab:hover { color: var(--gold-light); }
+.lang-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: bold; }
+
+.pdf-btn {
+  margin-left: auto;
+  background: var(--gold);
+  color: var(--text-dark);
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.pdf-btn:hover { background: var(--gold-light); }
+
+/* ===================== SECTIONS LANGUE ===================== */
+.lang-section { display: none; }
+.lang-section.active { display: block; }
+
+/* ===================== COVER ===================== */
+.cover {
+  background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 60%, #16213e 100%);
+  padding: 60px 40px 50px;
+  text-align: center;
+  border-bottom: 3px solid var(--gold);
+}
+.cover .emoji { font-size: 3.5rem; margin-bottom: 16px; display: block; }
+.cover h1 { font-size: 2.2rem; color: var(--gold); margin-bottom: 8px; }
+.cover .subtitle { font-size: 1rem; color: var(--accent-blue); margin-bottom: 6px; }
+.cover .version { font-size: 0.8rem; color: var(--text-muted); }
+.cover .lang-badge {
+  display: inline-block;
+  margin-top: 16px;
+  background: var(--dark-panel);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 4px 16px;
+  font-size: 0.82rem;
+  color: var(--gold);
+}
+
+/* ===================== TOC ===================== */
+.toc {
+  background: var(--dark-mid);
+  border: 1px solid #2d4a7a;
+  border-radius: var(--radius);
+  margin: 32px 40px 0;
+  padding: 24px 28px;
+}
+.toc h2 { font-size: 1rem; color: var(--gold); margin-bottom: 14px; border-bottom: 1px solid #2d4a7a; padding-bottom: 8px; }
+.toc ol { padding-left: 20px; }
+.toc li { margin: 5px 0; }
+.toc a { color: var(--accent-blue); text-decoration: none; font-size: 0.9rem; }
+.toc a:hover { color: var(--gold); text-decoration: underline; }
+
+/* ===================== CONTENT ===================== */
+.content { padding: 32px 40px 60px; max-width: 960px; margin: 0 auto; }
+
+/* ===================== SECTIONS ===================== */
+.doc-section {
+  margin-bottom: 40px;
+  background: var(--dark-mid);
+  border-radius: var(--radius);
+  border: 1px solid #2d4a7a;
+  overflow: hidden;
+}
+
+.doc-section-header {
+  background: var(--dark-panel);
+  padding: 14px 22px;
+  border-bottom: 1px solid #2d4a7a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.doc-section-header .num {
+  background: var(--gold);
+  color: var(--text-dark);
+  font-weight: bold;
+  font-size: 0.8rem;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.doc-section-header h2 {
+  font-size: 1.1rem;
+  color: var(--gold);
+  font-weight: bold;
+}
+.doc-section-header .icon { font-size: 1.3rem; }
+
+.doc-section-body { padding: 22px 26px; }
+
+h3 {
+  font-size: 0.95rem;
+  color: var(--accent-blue);
+  margin: 20px 0 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed #2d4a7a;
+}
+h3:first-child { margin-top: 0; }
+
+p { margin-bottom: 10px; font-size: 0.93rem; color: var(--text-muted); }
+p strong { color: var(--text-main); }
+
+/* ===================== FEATURE GRID ===================== */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+.feature-card {
+  background: #1e3a5f;
+  border: 1px solid #2d5a8a;
+  border-radius: 6px;
+  padding: 12px 14px;
+}
+.feature-card .fc-icon { font-size: 1.4rem; margin-bottom: 6px; display: block; }
+.feature-card .fc-title { font-size: 0.85rem; font-weight: bold; color: var(--text-main); margin-bottom: 4px; }
+.feature-card .fc-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+/* ===================== STEPS ===================== */
+.steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; margin: 12px 0; }
+.step {
+  counter-increment: step;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: #1a2a3a;
+  border-radius: 6px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--gold);
+}
+.step::before {
+  content: counter(step);
+  background: var(--gold);
+  color: var(--text-dark);
+  font-weight: bold;
+  font-size: 0.78rem;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.step-body { font-size: 0.88rem; color: var(--text-muted); }
+.step-body strong { color: var(--text-main); }
+
+/* ===================== TABLE ===================== */
+.doc-table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 0.85rem; }
+.doc-table th {
+  background: var(--dark-panel);
+  color: var(--gold);
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--gold);
+  font-weight: bold;
+}
+.doc-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #2d4a7a;
+  color: var(--text-muted);
+  vertical-align: top;
+}
+.doc-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.doc-table td strong { color: var(--text-main); }
+.doc-table td code {
+  background: #0f3460;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.82rem;
+  color: var(--accent-green);
+  font-family: 'Courier New', monospace;
+}
+
+/* ===================== TIPS ===================== */
+.tip {
+  background: rgba(196,181,253,0.08);
+  border: 1px solid var(--accent-purple);
+  border-left: 4px solid var(--accent-purple);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 0.87rem;
+  color: var(--accent-purple);
+}
+.tip strong { color: #fff; }
+
+.note {
+  background: rgba(240,165,0,0.08);
+  border: 1px solid var(--gold);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 0.87rem;
+  color: var(--gold);
+}
+.note strong { color: #fff; }
+
+/* ===================== BADGE ===================== */
+.badge {
+  display: inline-block;
+  background: var(--dark-panel);
+  border: 1px solid #3d6aaa;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  color: var(--accent-blue);
+  font-family: 'Courier New', monospace;
+  vertical-align: middle;
+}
+.badge-gold {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.badge-green {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+.badge-purple {
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+/* ===================== PRINT ===================== */
+@media print {
+  #lang-nav { display: none !important; }
+  .lang-section { display: none !important; }
+  .lang-section.print-active { display: block !important; }
+  body { background: white; color: #111; font-size: 11pt; }
+  .cover { background: #f5f5f5; border-bottom: 2px solid #000; padding: 40px; }
+  .cover h1 { color: #1a1a1a; font-size: 22pt; }
+  .cover .subtitle { color: #333; }
+  .cover .version { color: #555; }
+  .cover .lang-badge { border-color: #555; color: #333; }
+  .toc { background: #f9f9f9; border-color: #ccc; margin: 20px 0 0; }
+  .toc h2 { color: #1a1a1a; }
+  .toc a { color: #1a4a7a; }
+  .content { padding: 20px 0; }
+  .doc-section { background: white; border: 1.5px solid #bbb; page-break-inside: avoid; margin-bottom: 22px; }
+  .doc-section-header { background: #e8e8e8; border-bottom-color: #bbb; }
+  .doc-section-header h2 { color: #1a1a1a; }
+  .doc-section-header .num { background: #333; color: white; }
+  h3 { color: #1a4a7a; border-bottom-color: #bbb; }
+  p, .step-body { color: #222; }
+  .feature-card { background: #f0f0f0; border-color: #ccc; }
+  .feature-card .fc-title { color: #111; }
+  .feature-card .fc-desc { color: #333; }
+  .step { background: #f5f5f5; border-left-color: #333; }
+  .step::before { background: #333; color: white; }
+  .doc-table th { background: #ddd; color: #111; border-bottom-color: #333; }
+  .doc-table td { color: #222; border-bottom-color: #ddd; }
+  .doc-table td code { background: #eee; color: #333; }
+  .tip { background: #f0eeff; border-color: #7a60cc; color: #4a2a9a; }
+  .note { background: #fff8e0; border-color: #c08000; color: #7a5000; }
+  .badge { background: #eee; border-color: #999; color: #1a4a7a; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVIGATION LANGUES ===== -->
+<nav id="lang-nav">
+  <span class="app-title">🎷 Jazz Chart Editor v2</span>
+  <div class="lang-tab active" onclick="switchLang('fr', this)">🇫🇷 Français</div>
+  <div class="lang-tab" onclick="switchLang('es', this)">🇪🇸 Español</div>
+  <div class="lang-tab" onclick="switchLang('it', this)">🇮🇹 Italiano</div>
+  <div class="lang-tab" onclick="switchLang('en', this)">🇬🇧 English</div>
+  <button class="pdf-btn" onclick="printManual()">🖨️ PDF / Imprimer</button>
+</nav>
+
+<!-- ========================================================================================
+     FRANÇAIS
+     ======================================================================================== -->
+<div id="lang-fr" class="lang-section active">
+
+  <div class="cover">
+    <span class="emoji">🎷</span>
+    <h1>Jazz Chart Editor v2</h1>
+    <div class="subtitle">Éditeur de grilles d'accords pour musiciens de jazz</div>
+    <div class="version">Version 2.0 — Manuel utilisateur</div>
+    <div class="lang-badge">🇫🇷 Français</div>
+  </div>
+
+  <div class="toc">
+    <h2>📋 Sommaire</h2>
+    <ol>
+      <li><a href="#fr-intro">Introduction &amp; vue d'ensemble</a></li>
+      <li><a href="#fr-start">Démarrage rapide</a></li>
+      <li><a href="#fr-toolbar">Barre d'outils</a></li>
+      <li><a href="#fr-chart">Édition d'une grille</a></li>
+      <li><a href="#fr-chords">Gestion des accords</a></li>
+      <li><a href="#fr-theory">Annotations théoriques</a></li>
+      <li><a href="#fr-transpose">Transposition</a></li>
+      <li><a href="#fr-sections">Sections</a></li>
+      <li><a href="#fr-io">Import / Export</a></li>
+      <li><a href="#fr-print">Impression</a></li>
+      <li><a href="#fr-shortcuts">Raccourcis</a></li>
+    </ol>
+  </div>
+
+  <div class="content">
+
+    <div class="doc-section" id="fr-intro">
+      <div class="doc-section-header"><span class="num">1</span><span class="icon">🎵</span><h2>Introduction &amp; vue d'ensemble</h2></div>
+      <div class="doc-section-body">
+        <p>Jazz Chart Editor v2 est un outil web dédié à la création et à l'édition de <strong>grilles d'accords jazz</strong>. Il permet d'importer des fichiers MusicXML, d'annoter chaque accord avec des données théoriques (modes, arpèges, tensions), de transposer l'ensemble de la grille et d'imprimer une partition claire pour le pupitre.</p>
+        <div class="feature-grid">
+          <div class="feature-card"><span class="fc-icon">📂</span><div class="fc-title">Import MusicXML</div><div class="fc-desc">Chargez n'importe quel fichier MusicXML depuis votre logiciel de notation.</div></div>
+          <div class="feature-card"><span class="fc-icon">✏️</span><div class="fc-title">Édition intuitive</div><div class="fc-desc">Cliquez sur un accord pour l'éditer, ajouter ou supprimer des mesures.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎹</span><div class="fc-title">Théorie musicale</div><div class="fc-desc">Modes, arpèges, renversements et tensions disponibles par accord.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎵</span><div class="fc-title">Transposition</div><div class="fc-desc">Transposez par demi-ton ou directement vers une tonalité cible.</div></div>
+          <div class="feature-card"><span class="fc-icon">🖨️</span><div class="fc-title">Impression optimisée</div><div class="fc-desc">Thème clair/sombre, contraste ajustable, couleurs par section.</div></div>
+          <div class="feature-card"><span class="fc-icon">🌐</span><div class="fc-title">4 langues</div><div class="fc-desc">Interface disponible en français, espagnol, italien et anglais.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-start">
+      <div class="doc-section-header"><span class="num">2</span><span class="icon">🚀</span><h2>Démarrage rapide</h2></div>
+      <div class="doc-section-body">
+        <h3>Option A — Créer une nouvelle grille</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Cliquez sur <strong>✨ Nouveau</strong> dans la barre d'outils. Une grille vierge de 8 mesures en Do majeur est créée.</div></div>
+          <div class="step"><div class="step-body">Modifiez le <strong>titre</strong>, la <strong>tonalité</strong>, le <strong>tempo</strong> et le <strong>style</strong> dans l'en-tête du document.</div></div>
+          <div class="step"><div class="step-body">Cliquez sur un accord pour l'éditer, ou sur le bouton <strong>+</strong> d'une mesure pour en ajouter un nouveau.</div></div>
+        </div>
+        <h3>Option B — Importer un fichier MusicXML</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Cliquez sur <strong>📂 Ouvrir MusicXML</strong> ou <strong>glissez-déposez</strong> un fichier <code>.musicxml</code> / <code>.xml</code> dans la zone centrale.</div></div>
+          <div class="step"><div class="step-body">La grille est analysée et affichée automatiquement avec les accords, sections et répétitions détectés.</div></div>
+          <div class="step"><div class="step-body">Editez librement la grille importée : ajoutez des annotations, transposez, imprimez.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Astuce :</strong> Vous pouvez exporter votre travail en JSON pour le recharger ultérieurement, même sur un autre appareil.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-toolbar">
+      <div class="doc-section-header"><span class="num">3</span><span class="icon">🔧</span><h2>Barre d'outils</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Bouton</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>📂 Ouvrir MusicXML</strong></td><td>Ouvre le sélecteur de fichier pour importer un fichier MusicXML ou XML.</td></tr>
+            <tr><td><strong>✨ Nouveau</strong></td><td>Crée une nouvelle grille vierge de 8 mesures.</td></tr>
+            <tr><td><strong>🎵 Transposer</strong></td><td>Groupe de contrôles de transposition (voir section 7).</td></tr>
+            <tr><td><strong>Colonnes</strong></td><td>Nombre de mesures par ligne (1, 2, 3 ou 4).</td></tr>
+            <tr><td><strong>🖨️ Imprimer</strong></td><td>Ouvre le panneau d'impression avancé.</td></tr>
+            <tr><td><strong>💾 Export JSON</strong></td><td>Sauvegarde la grille complète (accords + annotations) en JSON.</td></tr>
+            <tr><td><strong>📥 Import JSON</strong></td><td>Charge une grille préalablement sauvegardée au format JSON.</td></tr>
+            <tr><td><strong>🎼 Export MusicXML</strong></td><td>Exporte la grille au format MusicXML standard.</td></tr>
+            <tr><td><strong>🌐 Langue</strong></td><td>Sélecteur de langue (coin supérieur droit, fixe).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-chart">
+      <div class="doc-section-header"><span class="num">4</span><span class="icon">📄</span><h2>Édition d'une grille</h2></div>
+      <div class="doc-section-body">
+        <h3>En-tête du document</h3>
+        <p>Le champ <strong>titre</strong> est directement éditable en cliquant dessus. Les champs <strong>tonalité</strong>, <strong>tempo</strong>, <strong>mesure</strong> et <strong>style</strong> se trouvent en dessous et sont librement modifiables.</p>
+        <h3>Mesures</h3>
+        <p>Chaque mesure affiche son numéro en haut à gauche. Les mesures avec <strong>barres de reprise</strong> sont signalées par une double barre en or sur le bord gauche <span class="badge-gold badge">||:</span> ou droit <span class="badge-gold badge">:||</span>.</p>
+        <p>Au survol d'une mesure apparaissent deux boutons discrets :</p>
+        <table class="doc-table">
+          <thead><tr><th>Action</th><th>Déclencheur</th></tr></thead>
+          <tbody>
+            <tr><td>Supprimer la mesure</td><td>Bouton <strong>✕</strong> en haut à droite</td></tr>
+            <tr><td>Dupliquer la mesure</td><td>Bouton <strong>⧉</strong> en haut à droite</td></tr>
+            <tr><td>Ajouter un accord</td><td>Bouton <strong>+</strong> à droite des accords</td></tr>
+            <tr><td>Éditer rapidement</td><td>Clic droit sur la mesure</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-chords">
+      <div class="doc-section-header"><span class="num">5</span><span class="icon">🎸</span><h2>Gestion des accords</h2></div>
+      <div class="doc-section-body">
+        <h3>Fenêtre d'édition d'accord</h3>
+        <p>Un clic sur un accord ouvre la fenêtre d'édition. Vous pouvez :</p>
+        <div class="steps">
+          <div class="step"><div class="step-body">Choisir la <strong>fondamentale</strong> parmi les 17 notes disponibles (avec enharmoniques).</div></div>
+          <div class="step"><div class="step-body">Choisir la <strong>qualité</strong> : majeur, mineur, dominant, diminué, augmenté, sus, etc. (24 qualités).</div></div>
+          <div class="step"><div class="step-body">Ajouter des <strong>tensions/options</strong> : b5, #5, b9, #9, #11, b13, add9, add11, omit3.</div></div>
+          <div class="step"><div class="step-body">Saisir une <strong>basse en slash</strong> (ex. <code>G</code> pour C/G), ou un <strong>accord libre</strong> en texte brut (ex. <code>Cmaj7#11</code>).</div></div>
+          <div class="step"><div class="step-body">Définir la <strong>durée en temps</strong> (nombre de temps que l'accord occupe dans la mesure).</div></div>
+        </div>
+        <h3>Symboles affichés</h3>
+        <table class="doc-table">
+          <thead><tr><th>Saisie</th><th>Affiché</th></tr></thead>
+          <tbody>
+            <tr><td><code>maj7</code></td><td>Δ7</td></tr>
+            <tr><td><code>maj9</code></td><td>Δ9</td></tr>
+            <tr><td><code>m7b5</code></td><td>ø7</td></tr>
+            <tr><td><code>dim7</code></td><td>°7</td></tr>
+            <tr><td><code>dim</code></td><td>°</td></tr>
+            <tr><td><code>%</code></td><td>– (répétition)</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Accord libre :</strong> Le champ "Accord libre" permet de saisir n'importe quelle notation, contournant les listes de fondamentale/qualité. Pratique pour les accords complexes ou non-standards.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-theory">
+      <div class="doc-section-header"><span class="num">6</span><span class="icon">🎼</span><h2>Annotations théoriques</h2></div>
+      <div class="doc-section-body">
+        <p>Chaque accord peut recevoir une annotation théorique riche. Cliquez sur l'icône <strong>✏️</strong> qui apparaît au survol d'un accord pour ouvrir le panneau d'annotation.</p>
+        <h3>Sections disponibles</h3>
+        <table class="doc-table">
+          <thead><tr><th>Section</th><th>Contenu</th><th>Affichage dans la grille</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-purple badge">🎼 Mode</span></td><td>Modes compatibles avec la qualité de l'accord (ex : Mixolydien pour un accord dominant 7). Sélectionnez le mode souhaité.</td><td>Nom du mode en violet italique</td></tr>
+            <tr><td><span class="badge badge">🎹 Arpège</span></td><td>Arpège 4 sons de l'accord avec ses renversements (position fondamentale, 1er, 2e, 3e renversement).</td><td>Notes de l'arpège en bleu clair</td></tr>
+            <tr><td><span class="badge-green badge">⚡ Tensions</span></td><td>Tensions disponibles (vertes) et à éviter (rouges barrées) selon la qualité de l'accord.</td><td>Notes des tensions en vert</td></tr>
+            <tr><td><span class="badge-purple badge">📝 Note libre</span></td><td>Texte libre (doigtés, indications de jeu…) avec choix de couleur et style (gras/italique).</td><td>Texte coloré sous l'accord</td></tr>
+          </tbody>
+        </table>
+        <p>Chaque section possède un bouton <span class="badge">Afficher dans la mesure</span> — activez-le pour que l'information apparaisse dans la grille imprimée.</p>
+        <h3>Annotations de section</h3>
+        <p>Un champ de texte libre est disponible sous le label de chaque section (ex : "Thème principal", "Solos 4x"). Il est affiché visuellement dans la grille.</p>
+        <div class="note"><strong>🎸 Pour les bassistes :</strong> L'affichage des renversements d'arpège est particulièrement utile pour visualiser les positions sur une basse 4 ou 5 cordes.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-transpose">
+      <div class="doc-section-header"><span class="num">7</span><span class="icon">🎵</span><h2>Transposition</h2></div>
+      <div class="doc-section-body">
+        <p>Le groupe de transposition se trouve dans la barre d'outils principale.</p>
+        <h3>Par demi-ton</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Utilisez les boutons <strong>−</strong> et <strong>+</strong> pour descendre ou monter d'un demi-ton. Le compteur affiche l'écart cumulé (ex : <span class="badge-gold badge">+3</span>).</div></div>
+        </div>
+        <h3>Vers une tonalité cible</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Sélectionnez directement la tonalité de destination dans le menu déroulant (<code>Db</code>, <code>F#</code>, etc.).</div></div>
+        </div>
+        <h3>Réinitialiser</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Cliquez sur le bouton <strong>↺</strong> pour revenir à la tonalité d'origine. Toutes les modifications de transposition sont annulées.</div></div>
+        </div>
+        <div class="tip"><strong>💡</strong> La transposition respecte les enharmoniques selon la tonalité de destination (ex : F# → Si♭ s'écrit B♭, pas A#).</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-sections">
+      <div class="doc-section-header"><span class="num">8</span><span class="icon">🗂️</span><h2>Sections</h2></div>
+      <div class="doc-section-body">
+        <p>Une grille est organisée en <strong>sections</strong> (A, B, Intro, Chorus, etc.). Chaque section contient un ensemble de mesures.</p>
+        <h3>Actions disponibles</h3>
+        <table class="doc-table">
+          <thead><tr><th>Action</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Renommer</strong></td><td>Cliquez sur le label de la section (ex. <span class="badge-gold badge">A ✎</span>) pour ouvrir le sélecteur de lettre. Choisissez parmi A–I, Intro, Verse, Chorus, Bridge, Outro, Coda, Tag, Vamp, Head, avec suffixes optionnels (', '', 1, 2).</td></tr>
+            <tr><td><strong>+ Mesure</strong></td><td>Ajoute une mesure vide en fin de section.</td></tr>
+            <tr><td><strong>⧉ Dupliquer</strong></td><td>Duplique la section entière juste après elle-même.</td></tr>
+            <tr><td><strong>✕ Supprimer</strong></td><td>Supprime la section (impossible si c'est la seule).</td></tr>
+            <tr><td><strong>+ Ajouter une section</strong></td><td>Bouton en bas de page : ajoute une nouvelle section de 4 mesures.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-io">
+      <div class="doc-section-header"><span class="num">9</span><span class="icon">💾</span><h2>Import / Export</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Format</th><th>Import</th><th>Export</th><th>Données conservées</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MusicXML</strong></td><td>✅ Oui</td><td>✅ Oui</td><td>Accords, tonalité, tempo, sections, répétitions</td></tr>
+            <tr><td><strong>JSON</strong></td><td>✅ Oui</td><td>✅ Oui</td><td>Toutes les données : accords, annotations théoriques, notes libres, couleurs</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Sauvegarde recommandée :</strong> Exportez en JSON pour conserver l'intégralité des annotations. L'export MusicXML est idéal pour partager avec d'autres logiciels de notation (MuseScore, Sibelius, Finale…).</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-print">
+      <div class="doc-section-header"><span class="num">10</span><span class="icon">🖨️</span><h2>Impression</h2></div>
+      <div class="doc-section-body">
+        <p>Cliquez sur <strong>🖨️ Imprimer</strong> pour ouvrir le panneau d'impression situé en bas de l'écran.</p>
+        <h3>Options disponibles</h3>
+        <table class="doc-table">
+          <thead><tr><th>Option</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Thème</strong></td><td>☀️ Clair (fond blanc) ou 🌙 Sombre (fond noir).</td></tr>
+            <tr><td><strong>Contraste</strong></td><td>Curseur de 1 (léger) à 5 (maximum) : ajuste l'épaisseur des bordures et la taille des accords.</td></tr>
+            <tr><td><strong>Couleurs sections</strong></td><td>Prévisualisation des couleurs attribuées à chaque section (code couleur automatique, différent par label).</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>Note :</strong> À l'impression, la barre d'outils, les boutons d'édition et les contrôles disparaissent. Seule la grille musicale est imprimée.</div>
+        <div class="tip"><strong>💡 PDF :</strong> Pour générer un PDF, utilisez l'option "Enregistrer en PDF" de la boîte de dialogue d'impression de votre navigateur.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="fr-shortcuts">
+      <div class="doc-section-header"><span class="num">11</span><span class="icon">⌨️</span><h2>Raccourcis clavier</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Touche</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge">Échap</span></td><td>Fermer n'importe quelle fenêtre modale ouverte</td></tr>
+            <tr><td><span class="badge">Clic droit</span> sur mesure</td><td>Ouvrir rapidement la fenêtre d'ajout d'accord</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /lang-fr -->
+
+
+<!-- ========================================================================================
+     ESPAÑOL
+     ======================================================================================== -->
+<div id="lang-es" class="lang-section">
+
+  <div class="cover">
+    <span class="emoji">🎷</span>
+    <h1>Jazz Chart Editor v2</h1>
+    <div class="subtitle">Editor de grillas de acordes para músicos de jazz</div>
+    <div class="version">Versión 2.0 — Manual de usuario</div>
+    <div class="lang-badge">🇪🇸 Español</div>
+  </div>
+
+  <div class="toc">
+    <h2>📋 Índice</h2>
+    <ol>
+      <li><a href="#es-intro">Introducción y vista general</a></li>
+      <li><a href="#es-start">Inicio rápido</a></li>
+      <li><a href="#es-toolbar">Barra de herramientas</a></li>
+      <li><a href="#es-chart">Edición de una grilla</a></li>
+      <li><a href="#es-chords">Gestión de acordes</a></li>
+      <li><a href="#es-theory">Anotaciones teóricas</a></li>
+      <li><a href="#es-transpose">Transposición</a></li>
+      <li><a href="#es-sections">Secciones</a></li>
+      <li><a href="#es-io">Importar / Exportar</a></li>
+      <li><a href="#es-print">Impresión</a></li>
+      <li><a href="#es-shortcuts">Atajos de teclado</a></li>
+    </ol>
+  </div>
+
+  <div class="content">
+
+    <div class="doc-section" id="es-intro">
+      <div class="doc-section-header"><span class="num">1</span><span class="icon">🎵</span><h2>Introducción y vista general</h2></div>
+      <div class="doc-section-body">
+        <p>Jazz Chart Editor v2 es una herramienta web dedicada a la creación y edición de <strong>grillas de acordes de jazz</strong>. Permite importar archivos MusicXML, anotar cada acorde con datos teóricos (modos, arpegios, tensiones), transponer la grilla completa e imprimir una partitura clara para el atril.</p>
+        <div class="feature-grid">
+          <div class="feature-card"><span class="fc-icon">📂</span><div class="fc-title">Importar MusicXML</div><div class="fc-desc">Carga cualquier archivo MusicXML desde tu software de notación.</div></div>
+          <div class="feature-card"><span class="fc-icon">✏️</span><div class="fc-title">Edición intuitiva</div><div class="fc-desc">Haz clic en un acorde para editarlo, agregar o eliminar compases.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎹</span><div class="fc-title">Teoría musical</div><div class="fc-desc">Modos, arpegios, inversiones y tensiones disponibles por acorde.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎵</span><div class="fc-title">Transposición</div><div class="fc-desc">Transpón por semitono o directamente a una tonalidad destino.</div></div>
+          <div class="feature-card"><span class="fc-icon">🖨️</span><div class="fc-title">Impresión optimizada</div><div class="fc-desc">Tema claro/oscuro, contraste ajustable, colores por sección.</div></div>
+          <div class="feature-card"><span class="fc-icon">🌐</span><div class="fc-title">4 idiomas</div><div class="fc-desc">Interfaz disponible en francés, español, italiano e inglés.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-start">
+      <div class="doc-section-header"><span class="num">2</span><span class="icon">🚀</span><h2>Inicio rápido</h2></div>
+      <div class="doc-section-body">
+        <h3>Opción A — Crear una nueva grilla</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Haz clic en <strong>✨ Nuevo</strong> en la barra de herramientas. Se crea una grilla vacía de 8 compases en Do mayor.</div></div>
+          <div class="step"><div class="step-body">Modifica el <strong>título</strong>, la <strong>tonalidad</strong>, el <strong>tempo</strong> y el <strong>estilo</strong> en el encabezado del documento.</div></div>
+          <div class="step"><div class="step-body">Haz clic en un acorde para editarlo, o en el botón <strong>+</strong> de un compás para agregar uno nuevo.</div></div>
+        </div>
+        <h3>Opción B — Importar un archivo MusicXML</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Haz clic en <strong>📂 Abrir MusicXML</strong> o <strong>arrastra y suelta</strong> un archivo <code>.musicxml</code> / <code>.xml</code> en la zona central.</div></div>
+          <div class="step"><div class="step-body">La grilla se analiza y muestra automáticamente con los acordes, secciones y repeticiones detectados.</div></div>
+          <div class="step"><div class="step-body">Edita libremente la grilla importada: agrega anotaciones, transpón, imprime.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Consejo:</strong> Puedes exportar tu trabajo en JSON para recargarlo más tarde, incluso en otro dispositivo.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-toolbar">
+      <div class="doc-section-header"><span class="num">3</span><span class="icon">🔧</span><h2>Barra de herramientas</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Botón</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td><strong>📂 Abrir MusicXML</strong></td><td>Abre el selector de archivos para importar un archivo MusicXML o XML.</td></tr>
+            <tr><td><strong>✨ Nuevo</strong></td><td>Crea una nueva grilla vacía de 8 compases.</td></tr>
+            <tr><td><strong>🎵 Transponer</strong></td><td>Grupo de controles de transposición (ver sección 7).</td></tr>
+            <tr><td><strong>Columnas</strong></td><td>Número de compases por línea (1, 2, 3 o 4).</td></tr>
+            <tr><td><strong>🖨️ Imprimir</strong></td><td>Abre el panel de impresión avanzado.</td></tr>
+            <tr><td><strong>💾 Exportar JSON</strong></td><td>Guarda la grilla completa (acordes + anotaciones) en JSON.</td></tr>
+            <tr><td><strong>📥 Importar JSON</strong></td><td>Carga una grilla previamente guardada en formato JSON.</td></tr>
+            <tr><td><strong>🎼 Exportar MusicXML</strong></td><td>Exporta la grilla en formato MusicXML estándar.</td></tr>
+            <tr><td><strong>🌐 Idioma</strong></td><td>Selector de idioma (esquina superior derecha, fijo).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-chords">
+      <div class="doc-section-header"><span class="num">5</span><span class="icon">🎸</span><h2>Gestión de acordes</h2></div>
+      <div class="doc-section-body">
+        <h3>Ventana de edición de acorde</h3>
+        <p>Un clic en un acorde abre la ventana de edición. Puedes:</p>
+        <div class="steps">
+          <div class="step"><div class="step-body">Elegir la <strong>fundamental</strong> entre las 17 notas disponibles (con enarmónicas).</div></div>
+          <div class="step"><div class="step-body">Elegir la <strong>calidad</strong>: mayor, menor, dominante, disminuido, aumentado, sus, etc. (24 calidades).</div></div>
+          <div class="step"><div class="step-body">Agregar <strong>tensiones/opciones</strong>: b5, #5, b9, #9, #11, b13, add9, add11, omit3.</div></div>
+          <div class="step"><div class="step-body">Ingresar un <strong>bajo en slash</strong> (ej. <code>G</code> para C/G), o un <strong>acorde libre</strong> en texto (ej. <code>Cmaj7#11</code>).</div></div>
+          <div class="step"><div class="step-body">Definir la <strong>duración en tiempos</strong>.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Acorde libre:</strong> El campo "Acorde libre" permite ingresar cualquier notación, sin usar las listas de fundamental/calidad.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-theory">
+      <div class="doc-section-header"><span class="num">6</span><span class="icon">🎼</span><h2>Anotaciones teóricas</h2></div>
+      <div class="doc-section-body">
+        <p>Cada acorde puede recibir una anotación teórica rica. Haz clic en el ícono <strong>✏️</strong> que aparece al pasar el cursor sobre un acorde.</p>
+        <table class="doc-table">
+          <thead><tr><th>Sección</th><th>Contenido</th><th>Visualización</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-purple badge">🎼 Modo</span></td><td>Modos compatibles con la calidad del acorde.</td><td>Nombre del modo en violeta itálica</td></tr>
+            <tr><td><span class="badge badge">🎹 Arpegio</span></td><td>Arpegio de 4 notas con inversiones.</td><td>Notas del arpegio en azul claro</td></tr>
+            <tr><td><span class="badge-green badge">⚡ Tensiones</span></td><td>Tensiones disponibles y a evitar.</td><td>Notas de tensión en verde</td></tr>
+            <tr><td><span class="badge-purple badge">📝 Nota libre</span></td><td>Texto libre con color y estilo.</td><td>Texto coloreado bajo el acorde</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-transpose">
+      <div class="doc-section-header"><span class="num">7</span><span class="icon">🎵</span><h2>Transposición</h2></div>
+      <div class="doc-section-body">
+        <div class="steps">
+          <div class="step"><div class="step-body">Usa los botones <strong>−</strong> y <strong>+</strong> para bajar o subir un semitono. El contador muestra el desplazamiento acumulado.</div></div>
+          <div class="step"><div class="step-body">O selecciona directamente la tonalidad destino en el menú desplegable.</div></div>
+          <div class="step"><div class="step-body">Haz clic en <strong>↺</strong> para volver a la tonalidad original.</div></div>
+        </div>
+        <div class="tip"><strong>💡</strong> La transposición respeta las enarmónicas según la tonalidad destino.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-sections">
+      <div class="doc-section-header"><span class="num">8</span><span class="icon">🗂️</span><h2>Secciones</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Acción</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Renombrar</strong></td><td>Clic en el label para elegir letra (A–I, Intro, Verse, Chorus…) y sufijo opcional.</td></tr>
+            <tr><td><strong>+ Compás</strong></td><td>Agrega un compás vacío al final de la sección.</td></tr>
+            <tr><td><strong>⧉ Duplicar</strong></td><td>Duplica la sección completa justo después.</td></tr>
+            <tr><td><strong>✕ Eliminar</strong></td><td>Elimina la sección (imposible si es la única).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-io">
+      <div class="doc-section-header"><span class="num">9</span><span class="icon">💾</span><h2>Importar / Exportar</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Formato</th><th>Importar</th><th>Exportar</th><th>Datos conservados</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MusicXML</strong></td><td>✅</td><td>✅</td><td>Acordes, tonalidad, tempo, secciones, repeticiones</td></tr>
+            <tr><td><strong>JSON</strong></td><td>✅</td><td>✅</td><td>Todos los datos: acordes, anotaciones, notas libres, colores</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Recomendación:</strong> Exporta en JSON para conservar todas las anotaciones. El MusicXML es ideal para compartir con otros programas de notación.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-print">
+      <div class="doc-section-header"><span class="num">10</span><span class="icon">🖨️</span><h2>Impresión</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Opción</th><th>Descripción</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tema</strong></td><td>☀️ Claro (fondo blanco) o 🌙 Oscuro (fondo negro).</td></tr>
+            <tr><td><strong>Contraste</strong></td><td>Deslizador de 1 (suave) a 5 (máximo).</td></tr>
+            <tr><td><strong>Colores secciones</strong></td><td>Vista previa de los colores asignados a cada sección.</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 PDF:</strong> Usa la opción "Guardar como PDF" del diálogo de impresión de tu navegador.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="es-shortcuts">
+      <div class="doc-section-header"><span class="num">11</span><span class="icon">⌨️</span><h2>Atajos de teclado</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Tecla</th><th>Acción</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge">Esc</span></td><td>Cerrar cualquier ventana modal abierta</td></tr>
+            <tr><td><span class="badge">Clic derecho</span> en compás</td><td>Abrir rápidamente la ventana de agregar acorde</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /lang-es -->
+
+
+<!-- ========================================================================================
+     ITALIANO
+     ======================================================================================== -->
+<div id="lang-it" class="lang-section">
+
+  <div class="cover">
+    <span class="emoji">🎷</span>
+    <h1>Jazz Chart Editor v2</h1>
+    <div class="subtitle">Editor di griglie di accordi per musicisti jazz</div>
+    <div class="version">Versione 2.0 — Manuale utente</div>
+    <div class="lang-badge">🇮🇹 Italiano</div>
+  </div>
+
+  <div class="toc">
+    <h2>📋 Indice</h2>
+    <ol>
+      <li><a href="#it-intro">Introduzione e panoramica</a></li>
+      <li><a href="#it-start">Avvio rapido</a></li>
+      <li><a href="#it-toolbar">Barra degli strumenti</a></li>
+      <li><a href="#it-chart">Modifica di una griglia</a></li>
+      <li><a href="#it-chords">Gestione degli accordi</a></li>
+      <li><a href="#it-theory">Annotazioni teoriche</a></li>
+      <li><a href="#it-transpose">Trasposizione</a></li>
+      <li><a href="#it-sections">Sezioni</a></li>
+      <li><a href="#it-io">Importa / Esporta</a></li>
+      <li><a href="#it-print">Stampa</a></li>
+      <li><a href="#it-shortcuts">Scorciatoie tastiera</a></li>
+    </ol>
+  </div>
+
+  <div class="content">
+
+    <div class="doc-section" id="it-intro">
+      <div class="doc-section-header"><span class="num">1</span><span class="icon">🎵</span><h2>Introduzione e panoramica</h2></div>
+      <div class="doc-section-body">
+        <p>Jazz Chart Editor v2 è uno strumento web dedicato alla creazione e modifica di <strong>griglie di accordi jazz</strong>. Permette di importare file MusicXML, annotare ogni accordo con dati teorici (modi, arpeggi, tensioni), trasporre l'intera griglia e stampare una partitura chiara per il leggio.</p>
+        <div class="feature-grid">
+          <div class="feature-card"><span class="fc-icon">📂</span><div class="fc-title">Importa MusicXML</div><div class="fc-desc">Carica qualsiasi file MusicXML dal tuo software di notazione.</div></div>
+          <div class="feature-card"><span class="fc-icon">✏️</span><div class="fc-title">Modifica intuitiva</div><div class="fc-desc">Clicca su un accordo per modificarlo, aggiungere o rimuovere misure.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎹</span><div class="fc-title">Teoria musicale</div><div class="fc-desc">Modi, arpeggi, rivolti e tensioni disponibili per ogni accordo.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎵</span><div class="fc-title">Trasposizione</div><div class="fc-desc">Trasponi per semitono o direttamente verso una tonalità obiettivo.</div></div>
+          <div class="feature-card"><span class="fc-icon">🖨️</span><div class="fc-title">Stampa ottimizzata</div><div class="fc-desc">Tema chiaro/scuro, contrasto regolabile, colori per sezione.</div></div>
+          <div class="feature-card"><span class="fc-icon">🌐</span><div class="fc-title">4 lingue</div><div class="fc-desc">Interfaccia disponibile in francese, spagnolo, italiano e inglese.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-start">
+      <div class="doc-section-header"><span class="num">2</span><span class="icon">🚀</span><h2>Avvio rapido</h2></div>
+      <div class="doc-section-body">
+        <h3>Opzione A — Creare una nuova griglia</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Clicca su <strong>✨ Nuovo</strong> nella barra degli strumenti. Viene creata una griglia vuota di 8 misure in Do maggiore.</div></div>
+          <div class="step"><div class="step-body">Modifica il <strong>titolo</strong>, la <strong>tonalità</strong>, il <strong>tempo</strong> e lo <strong>stile</strong> nell'intestazione del documento.</div></div>
+          <div class="step"><div class="step-body">Clicca su un accordo per modificarlo, oppure sul pulsante <strong>+</strong> di una misura per aggiungerne uno nuovo.</div></div>
+        </div>
+        <h3>Opzione B — Importare un file MusicXML</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Clicca su <strong>📂 Apri MusicXML</strong> oppure <strong>trascina e rilascia</strong> un file <code>.musicxml</code> / <code>.xml</code> nella zona centrale.</div></div>
+          <div class="step"><div class="step-body">La griglia viene analizzata e visualizzata automaticamente con gli accordi, le sezioni e le ripetizioni rilevati.</div></div>
+          <div class="step"><div class="step-body">Modifica liberamente la griglia importata: aggiungi annotazioni, trasponi, stampa.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Suggerimento:</strong> Puoi esportare il tuo lavoro in JSON per ricaricarlo in seguito, anche su un altro dispositivo.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-toolbar">
+      <div class="doc-section-header"><span class="num">3</span><span class="icon">🔧</span><h2>Barra degli strumenti</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Pulsante</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><strong>📂 Apri MusicXML</strong></td><td>Apre il selettore di file per importare un file MusicXML o XML.</td></tr>
+            <tr><td><strong>✨ Nuovo</strong></td><td>Crea una nuova griglia vuota di 8 misure.</td></tr>
+            <tr><td><strong>🎵 Trasponi</strong></td><td>Gruppo di controlli di trasposizione (vedi sezione 7).</td></tr>
+            <tr><td><strong>Colonne</strong></td><td>Numero di misure per riga (1, 2, 3 o 4).</td></tr>
+            <tr><td><strong>🖨️ Stampa</strong></td><td>Apre il pannello di stampa avanzato.</td></tr>
+            <tr><td><strong>💾 Esporta JSON</strong></td><td>Salva la griglia completa (accordi + annotazioni) in JSON.</td></tr>
+            <tr><td><strong>📥 Importa JSON</strong></td><td>Carica una griglia precedentemente salvata in formato JSON.</td></tr>
+            <tr><td><strong>🎼 Esporta MusicXML</strong></td><td>Esporta la griglia in formato MusicXML standard.</td></tr>
+            <tr><td><strong>🌐 Lingua</strong></td><td>Selettore di lingua (angolo in alto a destra, fisso).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-chords">
+      <div class="doc-section-header"><span class="num">5</span><span class="icon">🎸</span><h2>Gestione degli accordi</h2></div>
+      <div class="doc-section-body">
+        <h3>Finestra di modifica accordo</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Scegliere la <strong>fondamentale</strong> tra le 17 note disponibili (con enarmonie).</div></div>
+          <div class="step"><div class="step-body">Scegliere la <strong>qualità</strong>: maggiore, minore, dominante, diminuito, aumentato, sus, ecc. (24 qualità).</div></div>
+          <div class="step"><div class="step-body">Aggiungere <strong>tensioni/opzioni</strong>: b5, #5, b9, #9, #11, b13, add9, add11, omit3.</div></div>
+          <div class="step"><div class="step-body">Inserire un <strong>basso in slash</strong> (es. <code>G</code> per C/G), o un <strong>accordo libero</strong> in testo (es. <code>Cmaj7#11</code>).</div></div>
+          <div class="step"><div class="step-body">Definire la <strong>durata in tempi</strong>.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Accordo libero:</strong> Il campo "Accordo libero" permette di inserire qualsiasi notazione, aggirando le liste di fondamentale/qualità.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-theory">
+      <div class="doc-section-header"><span class="num">6</span><span class="icon">🎼</span><h2>Annotazioni teoriche</h2></div>
+      <div class="doc-section-body">
+        <p>Ogni accordo può ricevere un'annotazione teorica ricca. Clicca sull'icona <strong>✏️</strong> che appare al passaggio del cursore su un accordo.</p>
+        <table class="doc-table">
+          <thead><tr><th>Sezione</th><th>Contenuto</th><th>Visualizzazione</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-purple badge">🎼 Modo</span></td><td>Modi compatibili con la qualità dell'accordo.</td><td>Nome del modo in viola corsivo</td></tr>
+            <tr><td><span class="badge badge">🎹 Arpeggio</span></td><td>Arpeggio di 4 suoni con rivolti.</td><td>Note dell'arpeggio in azzurro</td></tr>
+            <tr><td><span class="badge-green badge">⚡ Tensioni</span></td><td>Tensioni disponibili e da evitare.</td><td>Note di tensione in verde</td></tr>
+            <tr><td><span class="badge-purple badge">📝 Nota libera</span></td><td>Testo libero con colore e stile.</td><td>Testo colorato sotto l'accordo</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>🎸 Per bassisti:</strong> La visualizzazione dei rivolti dell'arpeggio è particolarmente utile per visualizzare le posizioni su un basso a 4 o 5 corde.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-transpose">
+      <div class="doc-section-header"><span class="num">7</span><span class="icon">🎵</span><h2>Trasposizione</h2></div>
+      <div class="doc-section-body">
+        <div class="steps">
+          <div class="step"><div class="step-body">Usa i pulsanti <strong>−</strong> e <strong>+</strong> per scendere o salire di un semitono.</div></div>
+          <div class="step"><div class="step-body">Oppure seleziona direttamente la tonalità di destinazione nel menu a discesa.</div></div>
+          <div class="step"><div class="step-body">Clicca su <strong>↺</strong> per tornare alla tonalità originale.</div></div>
+        </div>
+        <div class="tip"><strong>💡</strong> La trasposizione rispetta le enarmonie secondo la tonalità di destinazione.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-sections">
+      <div class="doc-section-header"><span class="num">8</span><span class="icon">🗂️</span><h2>Sezioni</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Azione</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Rinominare</strong></td><td>Clic sull'etichetta per scegliere lettera (A–I, Intro, Verse, Chorus…) e suffisso opzionale.</td></tr>
+            <tr><td><strong>+ Misura</strong></td><td>Aggiunge una misura vuota alla fine della sezione.</td></tr>
+            <tr><td><strong>⧉ Duplica</strong></td><td>Duplica l'intera sezione subito dopo.</td></tr>
+            <tr><td><strong>✕ Elimina</strong></td><td>Elimina la sezione (impossibile se è l'unica).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-io">
+      <div class="doc-section-header"><span class="num">9</span><span class="icon">💾</span><h2>Importa / Esporta</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Formato</th><th>Importa</th><th>Esporta</th><th>Dati conservati</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MusicXML</strong></td><td>✅</td><td>✅</td><td>Accordi, tonalità, tempo, sezioni, ripetizioni</td></tr>
+            <tr><td><strong>JSON</strong></td><td>✅</td><td>✅</td><td>Tutti i dati: accordi, annotazioni, note libere, colori</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Raccomandazione:</strong> Esporta in JSON per conservare tutte le annotazioni. Il MusicXML è ideale per condividere con altri programmi di notazione.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-print">
+      <div class="doc-section-header"><span class="num">10</span><span class="icon">🖨️</span><h2>Stampa</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Opzione</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tema</strong></td><td>☀️ Chiaro (sfondo bianco) o 🌙 Scuro (sfondo nero).</td></tr>
+            <tr><td><strong>Contrasto</strong></td><td>Cursore da 1 (leggero) a 5 (massimo).</td></tr>
+            <tr><td><strong>Colori sezioni</strong></td><td>Anteprima dei colori assegnati a ciascuna sezione.</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 PDF:</strong> Usa l'opzione "Salva come PDF" nella finestra di stampa del browser.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="it-shortcuts">
+      <div class="doc-section-header"><span class="num">11</span><span class="icon">⌨️</span><h2>Scorciatoie tastiera</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Tasto</th><th>Azione</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge">Esc</span></td><td>Chiude qualsiasi finestra modale aperta</td></tr>
+            <tr><td><span class="badge">Clic destro</span> su misura</td><td>Apre rapidamente la finestra di aggiunta accordo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /lang-it -->
+
+
+<!-- ========================================================================================
+     ENGLISH
+     ======================================================================================== -->
+<div id="lang-en" class="lang-section">
+
+  <div class="cover">
+    <span class="emoji">🎷</span>
+    <h1>Jazz Chart Editor v2</h1>
+    <div class="subtitle">Chord chart editor for jazz musicians</div>
+    <div class="version">Version 2.0 — User Manual</div>
+    <div class="lang-badge">🇬🇧 English</div>
+  </div>
+
+  <div class="toc">
+    <h2>📋 Table of Contents</h2>
+    <ol>
+      <li><a href="#en-intro">Introduction &amp; overview</a></li>
+      <li><a href="#en-start">Quick start</a></li>
+      <li><a href="#en-toolbar">Toolbar</a></li>
+      <li><a href="#en-chart">Editing a chart</a></li>
+      <li><a href="#en-chords">Managing chords</a></li>
+      <li><a href="#en-theory">Theory annotations</a></li>
+      <li><a href="#en-transpose">Transposition</a></li>
+      <li><a href="#en-sections">Sections</a></li>
+      <li><a href="#en-io">Import / Export</a></li>
+      <li><a href="#en-print">Printing</a></li>
+      <li><a href="#en-shortcuts">Keyboard shortcuts</a></li>
+    </ol>
+  </div>
+
+  <div class="content">
+
+    <div class="doc-section" id="en-intro">
+      <div class="doc-section-header"><span class="num">1</span><span class="icon">🎵</span><h2>Introduction &amp; overview</h2></div>
+      <div class="doc-section-body">
+        <p>Jazz Chart Editor v2 is a web tool dedicated to creating and editing <strong>jazz chord charts</strong>. It lets you import MusicXML files, annotate each chord with theoretical data (modes, arpeggios, tensions), transpose the entire chart, and print a clean lead sheet for the music stand.</p>
+        <div class="feature-grid">
+          <div class="feature-card"><span class="fc-icon">📂</span><div class="fc-title">MusicXML Import</div><div class="fc-desc">Load any MusicXML file from your notation software.</div></div>
+          <div class="feature-card"><span class="fc-icon">✏️</span><div class="fc-title">Intuitive editing</div><div class="fc-desc">Click a chord to edit it; add or delete measures on the fly.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎹</span><div class="fc-title">Music theory</div><div class="fc-desc">Modes, arpeggios, inversions, and tensions per chord.</div></div>
+          <div class="feature-card"><span class="fc-icon">🎵</span><div class="fc-title">Transposition</div><div class="fc-desc">Transpose by semitone or directly to a target key.</div></div>
+          <div class="feature-card"><span class="fc-icon">🖨️</span><div class="fc-title">Print-ready</div><div class="fc-desc">Light/dark theme, adjustable contrast, per-section colors.</div></div>
+          <div class="feature-card"><span class="fc-icon">🌐</span><div class="fc-title">4 languages</div><div class="fc-desc">UI available in French, Spanish, Italian, and English.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-start">
+      <div class="doc-section-header"><span class="num">2</span><span class="icon">🚀</span><h2>Quick start</h2></div>
+      <div class="doc-section-body">
+        <h3>Option A — Create a new chart</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Click <strong>✨ New</strong> in the toolbar. A blank 8-measure chart in C major is created.</div></div>
+          <div class="step"><div class="step-body">Edit the <strong>title</strong>, <strong>key</strong>, <strong>tempo</strong> and <strong>style</strong> in the document header.</div></div>
+          <div class="step"><div class="step-body">Click any chord to edit it, or click the <strong>+</strong> button in a measure to add a new chord.</div></div>
+        </div>
+        <h3>Option B — Import a MusicXML file</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Click <strong>📂 Open MusicXML</strong> or <strong>drag and drop</strong> a <code>.musicxml</code> / <code>.xml</code> file onto the central drop zone.</div></div>
+          <div class="step"><div class="step-body">The chart is parsed and displayed automatically with detected chords, sections, and repeat barlines.</div></div>
+          <div class="step"><div class="step-body">Freely edit the imported chart: add annotations, transpose, print.</div></div>
+        </div>
+        <div class="tip"><strong>💡 Tip:</strong> Export your work as JSON to reload it later, even on a different device.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-toolbar">
+      <div class="doc-section-header"><span class="num">3</span><span class="icon">🔧</span><h2>Toolbar</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Button</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>📂 Open MusicXML</strong></td><td>Opens the file picker to import a MusicXML or XML file.</td></tr>
+            <tr><td><strong>✨ New</strong></td><td>Creates a new blank 8-measure chart.</td></tr>
+            <tr><td><strong>🎵 Transpose</strong></td><td>Group of transposition controls (see section 7).</td></tr>
+            <tr><td><strong>Columns</strong></td><td>Number of measures per row (1, 2, 3, or 4).</td></tr>
+            <tr><td><strong>🖨️ Print</strong></td><td>Opens the advanced print panel.</td></tr>
+            <tr><td><strong>💾 Export JSON</strong></td><td>Saves the full chart (chords + annotations) as JSON.</td></tr>
+            <tr><td><strong>📥 Import JSON</strong></td><td>Loads a previously saved JSON chart.</td></tr>
+            <tr><td><strong>🎼 Export MusicXML</strong></td><td>Exports the chart as standard MusicXML.</td></tr>
+            <tr><td><strong>🌐 Language</strong></td><td>Language selector (fixed, top-right corner).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-chart">
+      <div class="doc-section-header"><span class="num">4</span><span class="icon">📄</span><h2>Editing a chart</h2></div>
+      <div class="doc-section-body">
+        <h3>Document header</h3>
+        <p>The <strong>title</strong> field is directly editable by clicking it. The <strong>key</strong>, <strong>tempo</strong>, <strong>time signature</strong> and <strong>style</strong> fields are below and can be freely edited.</p>
+        <h3>Measures</h3>
+        <p>Each measure shows its number in the top-left corner. <strong>Repeat barlines</strong> are shown as a gold double bar on the left <span class="badge-gold badge">||:</span> or right <span class="badge-gold badge">:||</span> edge.</p>
+        <table class="doc-table">
+          <thead><tr><th>Action</th><th>Trigger</th></tr></thead>
+          <tbody>
+            <tr><td>Delete measure</td><td><strong>✕</strong> button (top-right, on hover)</td></tr>
+            <tr><td>Duplicate measure</td><td><strong>⧉</strong> button (top-right, on hover)</td></tr>
+            <tr><td>Add chord</td><td><strong>+</strong> button to the right of chords</td></tr>
+            <tr><td>Quick-add chord</td><td>Right-click on measure</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-chords">
+      <div class="doc-section-header"><span class="num">5</span><span class="icon">🎸</span><h2>Managing chords</h2></div>
+      <div class="doc-section-body">
+        <h3>Chord edit dialog</h3>
+        <div class="steps">
+          <div class="step"><div class="step-body">Choose the <strong>root</strong> from 17 available notes (including enharmonics).</div></div>
+          <div class="step"><div class="step-body">Choose the <strong>quality</strong>: major, minor, dominant, diminished, augmented, sus, etc. (24 qualities).</div></div>
+          <div class="step"><div class="step-body">Add <strong>tensions/options</strong>: b5, #5, b9, #9, #11, b13, add9, add11, omit3.</div></div>
+          <div class="step"><div class="step-body">Enter a <strong>slash bass</strong> note (e.g. <code>G</code> for C/G), or a <strong>free chord</strong> as plain text (e.g. <code>Cmaj7#11</code>).</div></div>
+          <div class="step"><div class="step-body">Set the <strong>duration in beats</strong>.</div></div>
+        </div>
+        <h3>Displayed symbols</h3>
+        <table class="doc-table">
+          <thead><tr><th>Input</th><th>Displayed</th></tr></thead>
+          <tbody>
+            <tr><td><code>maj7</code></td><td>Δ7</td></tr>
+            <tr><td><code>m7b5</code></td><td>ø7</td></tr>
+            <tr><td><code>dim7</code></td><td>°7</td></tr>
+            <tr><td><code>dim</code></td><td>°</td></tr>
+            <tr><td><code>%</code></td><td>– (repeat)</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Free chord:</strong> The "Free chord" field accepts any notation string, bypassing the root/quality selectors. Useful for complex or non-standard chords.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-theory">
+      <div class="doc-section-header"><span class="num">6</span><span class="icon">🎼</span><h2>Theory annotations</h2></div>
+      <div class="doc-section-body">
+        <p>Each chord can receive rich theoretical annotations. Click the <strong>✏️</strong> icon that appears on hover to open the annotation panel.</p>
+        <table class="doc-table">
+          <thead><tr><th>Panel</th><th>Content</th><th>Display in chart</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge-purple badge">🎼 Mode</span></td><td>Compatible modes for the chord quality (e.g. Mixolydian for dominant 7).</td><td>Mode name in italic purple</td></tr>
+            <tr><td><span class="badge badge">🎹 Arpeggio</span></td><td>4-note arpeggio with inversions (root position, 1st, 2nd, 3rd).</td><td>Arpeggio notes in light blue</td></tr>
+            <tr><td><span class="badge-green badge">⚡ Tensions</span></td><td>Available tensions (green) and notes to avoid (red, crossed out).</td><td>Tension notes in green</td></tr>
+            <tr><td><span class="badge-purple badge">📝 Free note</span></td><td>Free text (fingerings, performance notes…) with color and bold/italic style.</td><td>Colored text below the chord</td></tr>
+          </tbody>
+        </table>
+        <p>Each panel has a <span class="badge">Show in measure</span> toggle — enable it to include the data in the printed chart.</p>
+        <div class="note"><strong>🎸 For bassists:</strong> The arpeggio inversion display is especially useful for mapping positions on a 4- or 5-string bass.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-transpose">
+      <div class="doc-section-header"><span class="num">7</span><span class="icon">🎵</span><h2>Transposition</h2></div>
+      <div class="doc-section-body">
+        <div class="steps">
+          <div class="step"><div class="step-body">Use the <strong>−</strong> and <strong>+</strong> buttons to move down or up by one semitone. The counter shows the cumulative offset (e.g. <span class="badge-gold badge">+3</span>).</div></div>
+          <div class="step"><div class="step-body">Or select the target key directly from the dropdown (e.g. <code>Bb</code>, <code>F#</code>).</div></div>
+          <div class="step"><div class="step-body">Click <strong>↺</strong> to reset to the original key.</div></div>
+        </div>
+        <div class="tip"><strong>💡</strong> Transposition respects enharmonic spelling based on the destination key (e.g. F# → Bb is written as B♭, not A#).</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-sections">
+      <div class="doc-section-header"><span class="num">8</span><span class="icon">🗂️</span><h2>Sections</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Action</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Rename</strong></td><td>Click the section label to choose a letter (A–I, Intro, Verse, Chorus, Bridge, Outro, Coda, Tag, Vamp, Head) and optional suffix (', '', 1, 2).</td></tr>
+            <tr><td><strong>+ Measure</strong></td><td>Appends a blank measure at the end of the section.</td></tr>
+            <tr><td><strong>⧉ Duplicate</strong></td><td>Duplicates the entire section immediately after itself.</td></tr>
+            <tr><td><strong>✕ Delete</strong></td><td>Deletes the section (not possible if it is the only one).</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-io">
+      <div class="doc-section-header"><span class="num">9</span><span class="icon">💾</span><h2>Import / Export</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Format</th><th>Import</th><th>Export</th><th>Data preserved</th></tr></thead>
+          <tbody>
+            <tr><td><strong>MusicXML</strong></td><td>✅</td><td>✅</td><td>Chords, key, tempo, sections, repeat barlines</td></tr>
+            <tr><td><strong>JSON</strong></td><td>✅</td><td>✅</td><td>All data: chords, theory annotations, free notes, colors</td></tr>
+          </tbody>
+        </table>
+        <div class="tip"><strong>💡 Recommendation:</strong> Export as JSON to preserve all annotations. MusicXML export is best for sharing with other notation software (MuseScore, Sibelius, Finale…).</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-print">
+      <div class="doc-section-header"><span class="num">10</span><span class="icon">🖨️</span><h2>Printing</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Option</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Theme</strong></td><td>☀️ Light (white background) or 🌙 Dark (black background).</td></tr>
+            <tr><td><strong>Contrast</strong></td><td>Slider from 1 (light) to 5 (maximum): adjusts border thickness and chord symbol size.</td></tr>
+            <tr><td><strong>Section colors</strong></td><td>Preview of the colors automatically assigned to each section label.</td></tr>
+          </tbody>
+        </table>
+        <div class="note"><strong>Note:</strong> The toolbar, edit buttons, and controls are hidden when printing. Only the musical chart is output.</div>
+        <div class="tip"><strong>💡 PDF:</strong> Use your browser's "Save as PDF" option in the print dialog to generate a PDF file.</div>
+      </div>
+    </div>
+
+    <div class="doc-section" id="en-shortcuts">
+      <div class="doc-section-header"><span class="num">11</span><span class="icon">⌨️</span><h2>Keyboard shortcuts</h2></div>
+      <div class="doc-section-body">
+        <table class="doc-table">
+          <thead><tr><th>Key</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td><span class="badge">Esc</span></td><td>Close any open modal dialog</td></tr>
+            <tr><td><span class="badge">Right-click</span> on measure</td><td>Quickly open the add-chord dialog</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /lang-en -->
+
+<script>
+function switchLang(lang, tab) {
+  document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('lang-' + lang).classList.add('active');
+  tab.classList.add('active');
+}
+
+function printManual() {
+  // Mark the active section for print
+  document.querySelectorAll('.lang-section').forEach(s => s.classList.remove('print-active'));
+  const active = document.querySelector('.lang-section.active');
+  if (active) active.classList.add('print-active');
+  window.print();
+}
+</script>
+</body>
+</html>
