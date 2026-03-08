@@ -40,7 +40,7 @@
 ### Option 1 — Use directly in browser
 
 ```bash
-git clone https://github.com/your-username/jazz-chart-editor.git
+git clone https://github.com/virgosfredianilorenzo-cyber/jazz-chart-editor.git
 cd jazz-chart-editor
 open index.html   # macOS
 # or double-click index.html on Windows/Linux
@@ -199,7 +199,7 @@ To add a new language:
 Contributions are welcome. Please open an issue first to discuss what you'd like to change.
 
 ```bash
-git clone https://github.com/your-username/jazz-chart-editor.git
+git clone https://github.com/virgosfredianilorenzo-cyber/jazz-chart-editor.git
 git checkout -b feature/my-improvement
 # edit index.html — no build step needed
 git commit -m "feat: describe your change"
