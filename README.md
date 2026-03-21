@@ -33,7 +33,24 @@
 
 ## 📸 Captures d'écran
 
-> *(À compléter — `docs/capture-sombre.png`, `docs/capture-pdf.png`, etc.)*
+<div align="center">
+  <img src="docs/capt1.png" alt="Interface de l'éditeur" width="80%">
+  <br><em>Interface principale — barre d'outils et zone de dépôt MusicXML</em>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="docs/capt2.png" alt="Grille avec diagramme de mode" width="80%">
+  <br><em>Grille avec annotation de mode Dorien et diagramme de manche basse</em>
+</div>
+
+<br>
+
+<div align="center">
+  <img src="docs/capt3.png" alt="Sortie PDF" width="45%">
+  <br><em>Sortie PDF — thème clair avec couleurs de sections automatiques</em>
+</div>
 
 ---
 
@@ -174,10 +191,10 @@ Jazz_grid_generator/
 ├── README.md           # Ce fichier
 ├── LICENSE             # Licence Apache 2.0
 │
-└── docs/               # Optionnel — captures d'écran, manuel PDF
-    ├── capture-sombre.png
-    ├── capture-pdf.png
-    └── manuel-fr.pdf
+└── docs/               # Captures d'écran
+    ├── capt1.png       # Interface principale
+    ├── capt2.png       # Grille avec diagramme de mode
+    └── capt3.png       # Sortie PDF
 ```
 
 Le code JavaScript est organisé en modules logiques délimités par des commentaires :
