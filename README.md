@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # 𝄢 Jazz Grid Generator
-=======
-# 🎷 Jazz Grid Generator
->>>>>>> 48b5b4d15a7bf18678ba9b5ceb6470e048640993
 
 > Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
 
@@ -11,7 +7,7 @@
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
 ![Dépendances](https://img.shields.io/badge/d%C3%A9pendances-JSZip-fca5a5?style=flat-square)
 
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
+[![Soutenir sur Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
 
 ---
 
@@ -48,8 +44,8 @@
 Ouvrir `index.html` dans n'importe quel navigateur moderne. Aucun serveur requis.
 
 ```bash
-git clone https://github.com/your-username/jazz-chart-editor.git
-cd jazz-chart-editor
+git clone https://github.com/virgosfredianilorenzo-cyber/Jazz_grid_generator.git
+cd Jazz_grid_generator
 open index.html   # macOS
 # ou double-cliquer sur index.html sous Windows/Linux
 ```
@@ -59,7 +55,7 @@ open index.html   # macOS
 1. Forker ce dépôt
 2. Aller dans **Settings → Pages**
 3. Définir la source sur la branche `main`, dossier racine `/`
-4. L'éditeur sera accessible à `https://your-username.github.io/jazz-chart-editor/`
+4. L'éditeur sera accessible à `https://virgosfredianilorenzo-cyber.github.io/Jazz_grid_generator/`
 
 ### Option 3 — Hébergement statique
 
@@ -171,7 +167,7 @@ Les enharmoniques sont choisis automatiquement selon la tonalité de destination
 ## 🗂️ Structure du projet
 
 ```
-jazz-chart-editor/
+Jazz_grid_generator/
 │
 ├── index.html          # Application complète (HTML + CSS + JS, fichier unique)
 │
@@ -245,7 +241,7 @@ Les contributions sont les bienvenues ! Merci d'ouvrir une issue avant de propos
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/your-username/jazz-chart-editor.git
+git clone https://github.com/virgosfredianilorenzo-cyber/Jazz_grid_generator.git
 
 # Créer une branche de feature
 git checkout -b feature/mon-amelioration
