@@ -1,254 +1,272 @@
-# 🎷 Jazz Chart Editor
+# 🎷 Jazz Chart Editor v4
 
-> A web-based jazz chord chart editor with music theory annotations, MusicXML import/export, transposition, and print-ready output.
+> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
 
-![Version](https://img.shields.io/badge/version-2.0-f0a500?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-86efac?style=flat-square)
-![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
-![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
-![No dependencies](https://img.shields.io/badge/dependencies-none-fca5a5?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.3-f0a500?style=flat-square)
+![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
+![HTML](https://img.shields.io/badge/fait%20avec-HTML%2FJS-c4b5fd?style=flat-square)
+![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
+![Dépendances](https://img.shields.io/badge/d%C3%A9pendances-JSZip-fca5a5?style=flat-square)
 
 ---
 
-## ✨ Features
+## ✨ Fonctionnalités
 
-- 📂 **MusicXML import** — drag & drop ou sélecteur de fichier, parse accords, sections, barres de reprise, tonalité, tempo — formats `.musicxml`, `.xml` et `.mxl` (compressé)
-- ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse slash, saisie libre, durée par accord
-- 🎼 **Annotations théoriques** par accord :
+- 📂 **Import MusicXML** — glisser-déposer ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo — formats `.musicxml`, `.xml` et `.mxl` (compressé)
+- ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse slash, saisie libre, durée par accord en temps
+- 🎼 **Annotations de théorie musicale** par accord :
   - Modes compatibles avec diagramme de manche SVG dynamique (16 modes, basse 4 cordes EADG)
   - Arpèges 4 sons avec tous les renversements
-  - Tensions disponibles & notes à éviter
+  - Tensions disponibles et notes à éviter
   - Notes libres avec couleur, gras/italique
-- 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion des enharmoniques
-- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), déplacement par drag & drop ou boutons ▲▼, duplication, annotation
-- 📐 **Déplacement des mesures** — drag & drop inter-sections ou boutons ◀▶, duplication
-- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, diagrammes SVG inclus
+- 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, gestion automatique des enharmoniques
+- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), déplacement par glisser-déposer ou boutons ▲▼, duplication, annotation libre
+- 📐 **Déplacement des mesures** — glisser-déposer y compris entre sections, boutons ◀▶ au survol, duplication
+- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, diagrammes SVG inclus dans le PDF
 - 💾 **Sauvegarde JSON** — fidélité totale incluant toutes les annotations
 - 🎼 **Export MusicXML / MXL** — compatible MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- 📱 **Zéro dépendance** — fichier HTML unique, fonctionne hors ligne (JSZip inclus pour le format MXL)
+- 📱 **Fichier unique** — HTML + CSS + JS sans build, fonctionne hors ligne (JSZip 3.10.1 intégré)
 
 ---
 
-## 📸 Screenshots
+## 📸 Captures d'écran
 
-> *(Add screenshots here — `docs/screenshot-dark.png`, `docs/screenshot-print.png`, etc.)*
+> *(À compléter — `docs/capture-sombre.png`, `docs/capture-pdf.png`, etc.)*
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Démarrage rapide
 
-### Option 1 — Use directly in browser
+### Option 1 — Directement dans le navigateur
 
-Just open `index.html` in any modern browser. No server required.
+Ouvrir `index.html` dans n'importe quel navigateur moderne. Aucun serveur requis.
 
 ```bash
 git clone https://github.com/your-username/jazz-chart-editor.git
 cd jazz-chart-editor
 open index.html   # macOS
-# or double-click index.html on Windows/Linux
+# ou double-cliquer sur index.html sous Windows/Linux
 ```
 
 ### Option 2 — GitHub Pages
 
-1. Fork this repository
-2. Go to **Settings → Pages**
-3. Set source to `main` branch, root `/`
-4. Your editor will be live at `https://your-username.github.io/jazz-chart-editor/`
+1. Forker ce dépôt
+2. Aller dans **Settings → Pages**
+3. Définir la source sur la branche `main`, dossier racine `/`
+4. L'éditeur sera accessible à `https://your-username.github.io/jazz-chart-editor/`
 
-### Option 3 — Any static host
+### Option 3 — Hébergement statique
 
-Upload `index.html` to any static hosting service (Netlify, Vercel, Cloudflare Pages…). No configuration needed.
+Déposer `index.html` sur n'importe quel hébergeur statique (Netlify, Vercel, Cloudflare Pages…). Aucune configuration nécessaire.
 
 ---
 
-## 🎵 Usage
+## 🎵 Guide d'utilisation
 
-### Creating a chart from scratch
+### Créer une grille
 
-1. Click **✨ New** — a blank 8-measure chart in C major opens
-2. Edit the **title**, **key**, **tempo**, **time signature** and **style** in the header
-3. Click any chord to edit it, or click **+** inside a measure to add one
-4. Click the **✏️** icon on a chord to add theory annotations (mode, arpeggio, tensions, notes)
+1. Cliquer sur **✨ Nouveau** — une grille vierge de 8 mesures en Do majeur s'ouvre
+2. Renseigner le **titre**, la **tonalité**, le **tempo**, la **mesure** et le **style** dans l'en-tête
+3. Cliquer sur un accord pour l'éditer, ou sur **+** dans une mesure pour en ajouter un
+4. Cliquer sur l'icône **✏️** d'un accord pour ajouter des annotations théoriques (mode, arpège, tensions, note libre)
 
-### Importing a MusicXML file
+### Importer un fichier MusicXML
 
-Drag & drop a `.musicxml` or `.xml` file onto the drop zone, or click **📂 Open MusicXML**.
+Glisser-déposer un fichier `.musicxml`, `.xml` ou `.mxl` sur la zone de dépôt, ou cliquer sur **📂 Ouvrir MusicXML**.
 
-Supported data on import:
-- Chord symbols and durations
-- Key signature, tempo, time signature
-- Rehearsal marks → sections
-- Repeat barlines
+Données importées :
+- Symboles d'accords et durées
+- Tonalité, tempo, chiffrage de mesure
+- Marques de répétition → sections
+- Barres de reprise
 
-### Saving and loading
+### Déplacer les sections et les mesures
+
+Chaque section et chaque mesure dispose d'une poignée **⠿** en haut à gauche. Il suffit de la saisir et de glisser l'élément à sa nouvelle position — un liseré orange indique l'emplacement d'insertion. Les mesures peuvent être déplacées **d'une section à l'autre**.
+
+Pour un déplacement précis d'un cran, utiliser les boutons **▲ ▼** (sections) ou **◀ ▶** (mesures) qui apparaissent au survol.
+
+### Sauvegarde et export
 
 | Action | Format | Notes |
 |--------|--------|-------|
-| **💾 Export JSON** | `.json` | Full fidelity — all chords, annotations, colors |
-| **📥 Import JSON** | `.json` | Reload a previously saved session |
-| **🎼 Export MusicXML** | `.musicxml` | Share with MuseScore, Sibelius, Finale, etc. |
+| **💾 Export JSON** | `.json` | Fidélité totale — accords, annotations, couleurs |
+| **📥 Import JSON** | `.json` | Recharger une session précédemment sauvegardée |
+| **🎼 Export MusicXML** | `.musicxml` | Partager avec MuseScore, Sibelius, Finale, etc. |
+| **🎼 Export MXL** | `.mxl` | Format compressé, idéal pour l'échange de fichiers |
 
-> **Tip:** Always use JSON for saving your work. MusicXML export does not include theory annotations.
+> **Conseil :** Toujours utiliser le JSON pour sauvegarder son travail. L'export MusicXML ne conserve pas les annotations de théorie musicale.
 
 ### Transposition
 
-| Control | Description |
-|---------|-------------|
-| **− / +** buttons | Transpose ±1 semitone at a time |
-| Key dropdown | Transpose directly to a target key |
-| **↺** reset | Restore the original key |
+| Contrôle | Description |
+|----------|-------------|
+| Boutons **− / +** | Transposer ±1 demi-ton |
+| Liste déroulante | Transposer directement vers une tonalité cible |
+| Bouton **↺** | Restaurer la tonalité d'origine |
 
-Enharmonic spellings are automatically chosen based on the destination key (e.g. F# → B♭ is written as B♭, not A#).
+Les enharmoniques sont choisis automatiquement selon la tonalité de destination (ex. F# → B♭ s'écrit B♭, pas A#).
 
-### Printing / PDF
+### Impression / PDF
 
-1. Click **🖨️ Print** to open the print panel
-2. Choose **theme** (light ☀️ / dark 🌙)
-3. Adjust **contrast** (1–5) — controls border weight and chord symbol size
-4. Preview **section colors** — each section label gets a distinct color automatically
-5. Click **Print** → use your browser's **Save as PDF** to generate a PDF file
-
----
-
-## 🎼 Music Theory Engine
-
-### Supported chord qualities (24)
-
-| Symbol | Quality |
-|--------|---------|
-| *(blank)* | Major triad |
-| `maj7` / `Δ7` | Major seventh |
-| `7` | Dominant seventh |
-| `m` | Minor triad |
-| `m7` | Minor seventh |
-| `mM7` | Minor-major seventh |
-| `dim` / `°` | Diminished triad |
-| `dim7` / `°7` | Diminished seventh |
-| `m7b5` / `ø7` | Half-diminished |
-| `aug` | Augmented triad |
-| `sus2`, `sus4`, `7sus4` | Suspended |
-| `6`, `6/9` | Sixth chords |
-| `9`, `11`, `13` | Extended dominant |
-| `maj9`, `maj13` | Extended major |
-| `m9`, `m11`, `m13` | Extended minor |
-
-### Mode suggestions per chord quality (examples)
-
-| Quality | Suggested modes |
-|---------|----------------|
-| `maj7` | Ionian, Lydian |
-| `7` | Mixolydian, Lydian b7, Altered, Mixo b9b13 |
-| `m7` | Dorian, Aeolian, Phrygian |
-| `m7b5` | Locrian, Locrian #2 |
-| `dim7` | Diminished (half-whole) |
-| `mM7` | Melodic minor |
+1. Cliquer sur **🖨️ Imprimer** pour ouvrir le panneau d'impression
+2. Choisir le **thème** (clair ☀️ / sombre 🌙)
+3. Régler le **contraste** (1–5) — contrôle l'épaisseur des bordures et la taille des symboles d'accords
+4. Vérifier les **couleurs de sections** — chaque label de section reçoit une couleur distincte automatiquement
+5. Cliquer sur **Imprimer** → utiliser **Enregistrer en PDF** dans la boîte de dialogue du navigateur
 
 ---
 
-## 🗂️ Project Structure
+## 🎼 Moteur de théorie musicale
+
+### Qualités d'accords prises en charge (24)
+
+| Symbole | Qualité |
+|---------|---------|
+| *(vide)* | Accord majeur |
+| `maj7` / `Δ7` | Majeur septième |
+| `7` | Dominante septième |
+| `m` | Accord mineur |
+| `m7` | Mineur septième |
+| `mM7` | Mineur majeur septième |
+| `dim` / `°` | Accord diminué |
+| `dim7` / `°7` | Septième diminuée |
+| `m7b5` / `ø7` | Semi-diminué |
+| `aug` | Accord augmenté |
+| `sus2`, `sus4`, `7sus4` | Accords suspendus |
+| `6`, `6/9` | Accords de sixte |
+| `9`, `11`, `13` | Dominantes étendues |
+| `maj9`, `maj13` | Majeurs étendus |
+| `m9`, `m11`, `m13` | Mineurs étendus |
+
+### Modes proposés par qualité d'accord (exemples)
+
+| Qualité | Modes compatibles |
+|---------|------------------|
+| `maj7` | Ionien, Lydien |
+| `7` | Mixolydien, Lydien b7, Altéré, Mixolydien b9b13 |
+| `m7` | Dorien, Éolien, Phrygien |
+| `m7b5` | Locrien, Locrien #2 |
+| `dim7` | Diminué demi-ton |
+| `mM7` | Mélodie mineure |
+
+### Diagrammes de manche (basse 4 cordes EADG)
+
+16 diagrammes SVG intégrés, transposés dynamiquement selon la fondamentale de l'accord. Code couleur des points :
+
+| Couleur | Signification |
+|---------|---------------|
+| 🔴 Rouge | Fondamentale |
+| 🟠 Ambre | Notes de l'arpège |
+| 🔵 Bleu | Autres degrés de la gamme |
+
+---
+
+## 🗂️ Structure du projet
 
 ```
 jazz-chart-editor/
 │
-├── index.html          # Single-file application (HTML + CSS + JS)
+├── index.html          # Application complète (HTML + CSS + JS, fichier unique)
 │
-├── README.md           # This file
-├── LICENSE             # MIT License
+├── README.md           # Ce fichier
+├── LICENSE             # Licence Apache 2.0
 │
-└── docs/               # Optional — screenshots, user manual PDF
-    ├── screenshot-dark.png
-    ├── screenshot-print.png
-    └── manual-fr.pdf
+└── docs/               # Optionnel — captures d'écran, manuel PDF
+    ├── capture-sombre.png
+    ├── capture-pdf.png
+    └── manuel-fr.pdf
 ```
 
-> The entire application lives in `index.html`. The JavaScript is organized into logical modules via inline comments:
-> - `i18n.js` — translation dictionary & language switching
-> - `theory.js` — music engine (scales, arpeggios, tensions, transposition)
-> - `parser.js` — MusicXML parser
-> - `state.js` — application state
-> - `transpose.js` — transposition logic
-> - `render.js` — DOM rendering
-> - `modals.js` — chord & annotation dialogs
-> - `actions.js` — chart mutations (add/delete/duplicate)
-> - `io.js` — import/export (JSON, MusicXML)
-> - `print.js` — print theming & color system
-> - `app.js` — initialization & global events
+Le code JavaScript est organisé en modules logiques délimités par des commentaires :
+
+- `i18n` — dictionnaire de traduction et changement de langue
+- `theory` — moteur musical (gammes, arpèges, tensions, transposition)
+- `parser` — parseur MusicXML / MXL
+- `state` — état de l'application
+- `transpose` — logique de transposition
+- `render` — rendu DOM
+- `modals` — dialogues d'édition d'accords et d'annotations
+- `actions` — mutations de la grille (ajout, suppression, duplication, déplacement)
+- `io` — import/export (JSON, MusicXML, MXL)
+- `print` — thème et système de couleurs pour l'impression
+- `app` — initialisation et événements globaux
 
 ---
 
-## 🌐 Internationalization
+## 🌐 Internationalisation
 
-The UI is fully translated into **4 languages**. Language is switched instantly without page reload.
+L'interface est entièrement traduite en **4 langues**. Le changement de langue est instantané, sans rechargement de la page.
 
-To add a new language, add an entry to the `LANGS` object in `index.html` and add an `<option>` to the `#lang-select` dropdown.
-
----
-
-## 🛠️ Customization
-
-### Changing the default chart
-
-Edit the `newChart()` function in the `actions.js` section to change the default key, number of measures, or initial chord.
-
-### Adding chord qualities
-
-Add an entry to:
-- `QUALITIES` array (chord modal buttons)
-- `ARP_DEF` object (arpeggio definition)
-- `MODES_DEF` object (compatible modes)
-- `TENS_DEF` object (available tensions)
-
-### Adding section labels
-
-Edit the `LETTERS` array in the `modals.js` section.
+Pour ajouter une nouvelle langue, ajouter une entrée dans l'objet `LANGS` dans `index.html` et une `<option>` dans la liste déroulante `#lang-select`.
 
 ---
 
-## 🎸 Designed for Bass Players
+## 🛠️ Personnalisation
 
-The theory annotation panel is optimized for **bass guitar players**:
+### Modifier la grille par défaut
 
-- **Arpeggio inversions** show the exact note order for each voicing — useful for mapping positions on a 4- or 5-string bass
-- **Tension notes** are displayed as actual pitch names (e.g. *b9 → D♭* on a C7) rather than intervals only
-- **Mode display** in the chart gives instant scale reference at the music stand
-- The **column layout** (1–4 measures per row) can be adapted for landscape printing on a tablet or music stand
+Éditer la fonction `newChart()` pour changer la tonalité, le nombre de mesures ou l'accord initial.
+
+### Ajouter une qualité d'accord
+
+Ajouter une entrée dans :
+- Le tableau `QUALITIES` (boutons de la modale)
+- L'objet `ARP_DEF` (définition de l'arpège)
+- L'objet `MODES_DEF` (modes compatibles)
+- L'objet `TENS_DEF` (tensions disponibles)
+
+### Ajouter un label de section
+
+Éditer le tableau `LETTERS`.
 
 ---
 
-## 🤝 Contributing
+## 🎸 Conçu pour les bassistes
 
-Contributions are welcome! Please open an issue first to discuss what you'd like to change.
+Le panneau d'annotations est optimisé pour la **basse guitare** :
+
+- Les **renversements d'arpèges** indiquent l'ordre exact des notes pour chaque position — utile pour mapper les positions sur une basse 4 ou 5 cordes
+- Les **tensions** sont affichées en noms de notes réels (ex. *b9 → Ré♭* sur un C7) plutôt qu'en intervalles seuls
+- Les **diagrammes de manche** donnent une référence visuelle immédiate au pupitre
+- La **mise en page en colonnes** (1–4 mesures par ligne) s'adapte à l'impression paysage sur tablette ou pupitre
+
+---
+
+## 🤝 Contribuer
+
+Les contributions sont les bienvenues ! Merci d'ouvrir une issue avant de proposer des changements importants.
 
 ```bash
-# Clone the repo
+# Cloner le dépôt
 git clone https://github.com/your-username/jazz-chart-editor.git
 
-# Create a feature branch
-git checkout -b feature/my-improvement
+# Créer une branche de feature
+git checkout -b feature/mon-amelioration
 
-# Make your changes in index.html
-# Test in a browser (no build step needed)
+# Modifier index.html
+# Tester dans un navigateur (pas de build nécessaire)
 
-# Commit and push
-git commit -m "feat: describe your change"
-git push origin feature/my-improvement
+# Committer et pousser
+git commit -m "feat: décrire la modification"
+git push origin feature/mon-amelioration
 
-# Open a Pull Request
+# Ouvrir une Pull Request
 ```
 
-### Commit convention
+### Convention de commits
 
-This project uses a simplified [Conventional Commits](https://www.conventionalcommits.org/) style:
+Ce projet utilise une version simplifiée de [Conventional Commits](https://www.conventionalcommits.org/) :
 
-| Prefix | Use for |
-|--------|---------|
-| `feat:` | New feature |
-| `fix:` | Bug fix |
-| `style:` | CSS / UI changes |
-| `refactor:` | Code restructure, no behavior change |
-| `docs:` | Documentation only |
-| `i18n:` | Translation updates |
+| Préfixe | Usage |
+|---------|-------|
+| `feat:` | Nouvelle fonctionnalité |
+| `fix:` | Correction de bug |
+| `style:` | Modifications CSS / UI |
+| `refactor:` | Restructuration sans changement de comportement |
+| `docs:` | Documentation uniquement |
+| `i18n:` | Mises à jour des traductions |
 
 ---
 
@@ -261,46 +279,52 @@ This project uses a simplified [Conventional Commits](https://www.conventionalco
 - ✨ **Déplacement des sections** — poignée ⠿ drag & drop avec indicateur visuel orange, boutons ▲ ▼ pour monter/descendre d'un cran
 
 ### v4.1
-- 🐛 **Fix impression PDF** — la grille ne commence plus en page 2 : suppression du `min-height:100vh` à l'impression, `page-break-inside:avoid` déplacé au niveau `.measure` (plus `.section`), header compacté, `#chart-editor` forcé visible
+- 🐛 **Fix impression PDF** — la grille ne commence plus en page 2 : suppression du `min-height:100vh` à l'impression, `page-break-inside:avoid` déplacé au niveau `.measure`, header compacté, `#chart-editor` forcé visible
 
 ### v4.0
-- ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) affichés dans les cases d'accord quand le mode est activé : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
-- ✨ **Transposition des diagrammes** — les notes dans les dots SVG sont recalculées dynamiquement selon la fondamentale de l'accord (rouge = fondamentale, amber = notes d'arpège, bleu = degrés de gamme)
-- ✨ **Export MXL** — export au format `.mxl` (MusicXML compressé) via JSZip 3.10.1
-- ✨ **Import MXL** — import de fichiers `.mxl` compressés en plus du `.musicxml`
+- ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
+- ✨ **Transposition des diagrammes** — notes recalculées dynamiquement (rouge = fondamentale, ambre = arpège, bleu = gamme)
+- ✨ **Export / Import MXL** — format MusicXML compressé via JSZip 3.10.1
 - ✨ **Système de labels compact** — `A:` arpège, `T:` tensions, liste des modes alternatifs sous chaque accord
-- 🐛 Fix CSS print : textes SVG noirs/gras, notes dans les dots blanches, lignes fretboard sombres
+- 🐛 Fix CSS impression : textes SVG noirs/gras, notes dans les points blanches, lignes de manche sombres
+
+### v3.0
+- ✨ Sélecteur de langue intégré (FR / ES / IT / EN)
+- ✨ Export/Import JSON
+- ✨ Export MusicXML
+- ✨ Transposition par demi-ton et par tonalité cible
+- ✨ Annotations de section (texte libre)
+- ✨ Panneau d'impression avancé (thème, contraste, couleurs par section)
 
 ---
 
-## 📋 Roadmap
+## 📋 Feuille de route
 
-- [x] Drag-and-drop section reordering
-- [x] Drag-and-drop measure reordering (inter-sections)
-- [x] Bass fretboard diagrams (SVG, 4-string, 16 modes)
-- [x] MXL compressed import/export
+- [x] Déplacement des sections par glisser-déposer
+- [x] Déplacement des mesures par glisser-déposer (inter-sections)
+- [x] Diagrammes de manche SVG (basse 4 cordes, 16 modes)
+- [x] Import/Export MXL compressé
 - [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
-- [ ] Undo / Redo history
-- [ ] iReal Pro `.irealbook` import
-- [ ] MIDI playback of chord root notes
-- [ ] Mobile touch gesture support
-- [ ] Dark/light theme toggle for the editor itself
-- [ ] Custom section color picker
+- [ ] Historique Annuler / Rétablir
+- [ ] Import iReal Pro `.irealbook`
+- [ ] Lecture MIDI des notes de fondamentale
+- [ ] Support des gestes tactiles (mobile)
+- [ ] Sélecteur de couleur personnalisé par section
 
 ---
 
-## 📄 License
+## 📄 Licence
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgements
-
-- Built with vanilla HTML, CSS and JavaScript — no frameworks, no bundlers
-- MusicXML format by [MakeMusic / W3C Music Notation Community Group](https://www.w3.org/2021/06/musicxml40/)
-- Chord symbol rendering inspired by jazz lead sheet conventions (iReal Pro, Hal Leonard)
+Ce projet est distribué sous licence **Apache 2.0** — voir le fichier [LICENSE](LICENSE) pour les détails.
 
 ---
 
-*Made with 🎷 for jazz musicians, by a jazz musician.*
+## 🙏 Remerciements
+
+- Développé en HTML, CSS et JavaScript vanilla — sans framework ni bundler
+- Format MusicXML par [MakeMusic / W3C Music Notation Community Group](https://www.w3.org/2021/06/musicxml40/)
+- Rendu des symboles d'accords inspiré des conventions des lead sheets jazz (iReal Pro, Hal Leonard)
+
+---
+
+*Made with 🎷 for musicians, by a bass player.*
