@@ -1,4 +1,4 @@
-# 🎷 Jazz Chart Editor
+# 🎷 Jazz Grid Generator
 
 > Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
 
