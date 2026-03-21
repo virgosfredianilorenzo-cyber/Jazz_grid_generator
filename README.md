@@ -1,37 +1,32 @@
-# 🎷 Jazz Chart Editor v4
+# 🎷 Jazz Chart Editor v2
 
-> A web-based jazz chord chart editor with music theory annotations, bass fretboard diagrams, MusicXML/MXL import/export, transposition, and print-ready output.
+> A web-based jazz chord chart editor with music theory annotations, MusicXML import/export, transposition, and print-ready output.
 
-![Version](https://img.shields.io/badge/version-4.0-f0a500?style=flat-square)
-![License](https://img.shields.io/badge/license-Apache--2.0-86efac?style=flat-square)
+![Version](https://img.shields.io/badge/version-2.0-f0a500?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
-![JSZip](https://img.shields.io/badge/uses-JSZip%203.10-fca5a5?style=flat-square)
+![No dependencies](https://img.shields.io/badge/dependencies-none-fca5a5?style=flat-square)
 
 ---
 
 ## ✨ Features
 
-- 📂 **MusicXML & MXL import** — drag & drop or file picker, supports `.musicxml`, `.xml` and compressed `.mxl` files; parses chords, sections, repeat barlines, key, tempo
-- 🗜️ **MXL export** — export compressed MusicXML (`.mxl`) conformant with the MXL spec (META-INF/container.xml, mimetype uncompressed)
-- ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord beat duration
-- 🎸 **Bass fretboard diagrams** — when a mode is activated on a chord, the corresponding EADG neck diagram is displayed inline under the measure:
-  - **16 modes** covered with dedicated diagrams: Ionien, Dorien, Phrygien, Lydien, Éolien, Locrien, Lydien b7, Mixolydien, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
-  - **3-color system** — root in red, arpeggio notes in amber, other scale degrees in blue
-  - Notes calculated dynamically from the chord root — auto-transposed with the chart
-- 🎼 **Music theory annotations** per chord:
-  - Compatible modes with selector (instantly updates fretboard diagram)
-  - 4-note arpeggios with all inversions, labels A: and T:
-  - Available tensions & avoid notes displayed as actual pitch names
-  - **Alternative modes list** — all compatible modes shown below A: and T: rows
-  - Free text notes with color, bold/italic styling
-- 🎵 **Transposition** — by semitone (±) or direct key selection, with enharmonic awareness
-- 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), duplicate, reorder, annotate
-- 🖨️ **Advanced print/PDF** — light/dark theme, adjustable contrast (5 levels), automatic per-section color coding; edit UI (pencil icons, input fields, measure numbers) hidden in print; SVG diagrams rendered in black & white with white note names on colored dots
-- 💾 **JSON save/load** — full fidelity including all annotations and diagrams
-- 🎼 **MusicXML 3.1 export** — conformant output with `harmony placement="above"`, correct `<attributes>` order, `standalone="no"`, compatible with MuseScore, Sibelius, Finale, iReal Pro
-- 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
-- 📱 **Single HTML file** — works offline in any modern browser, one CDN dependency (JSZip for MXL)
+- 📂 **MusicXML import** — drag & drop ou sélecteur de fichier, parse accords, sections, barres de reprise, tonalité, tempo — formats `.musicxml`, `.xml` et `.mxl` (compressé)
+- ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse slash, saisie libre, durée par accord
+- 🎼 **Annotations théoriques** par accord :
+  - Modes compatibles avec diagramme de manche SVG dynamique (16 modes, basse 4 cordes EADG)
+  - Arpèges 4 sons avec tous les renversements
+  - Tensions disponibles & notes à éviter
+  - Notes libres avec couleur, gras/italique
+- 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion des enharmoniques
+- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), déplacement par drag & drop ou boutons ▲▼, duplication, annotation
+- 📐 **Déplacement des mesures** — drag & drop inter-sections ou boutons ◀▶, duplication
+- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, diagrammes SVG inclus
+- 💾 **Sauvegarde JSON** — fidélité totale incluant toutes les annotations
+- 🎼 **Export MusicXML / MXL** — compatible MuseScore, Sibelius, Finale, iReal Pro
+- 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
+- 📱 **Zéro dépendance** — fichier HTML unique, fonctionne hors ligne (JSZip inclus pour le format MXL)
 
 ---
 
@@ -65,8 +60,6 @@ open index.html   # macOS
 
 Upload `index.html` to any static hosting service (Netlify, Vercel, Cloudflare Pages…). No configuration needed.
 
-> **Note:** JSZip is loaded from the Cloudflare CDN (`cdnjs.cloudflare.com`) for MXL support. The app works fully offline for all other features; only MXL import/export requires network access on first load (or cache).
-
 ---
 
 ## 🎵 Usage
@@ -80,20 +73,23 @@ Upload `index.html` to any static hosting service (Netlify, Vercel, Cloudflare P
 
 ### Importing a MusicXML file
 
-Drag & drop a `.musicxml`, `.mxl` or `.xml` file onto the drop zone, or click **📂 Open MusicXML**.
+Drag & drop a `.musicxml` or `.xml` file onto the drop zone, or click **📂 Open MusicXML**.
 
-Supported data on import: chord symbols and durations, key signature, tempo, time signature, rehearsal marks → sections, repeat barlines.
+Supported data on import:
+- Chord symbols and durations
+- Key signature, tempo, time signature
+- Rehearsal marks → sections
+- Repeat barlines
 
 ### Saving and loading
 
 | Action | Format | Notes |
 |--------|--------|-------|
-| **💾 Export JSON** | `.json` | Full fidelity — all chords, annotations, fretboard states |
+| **💾 Export JSON** | `.json` | Full fidelity — all chords, annotations, colors |
 | **📥 Import JSON** | `.json` | Reload a previously saved session |
-| **🎼 Export MusicXML** | `.musicxml` | MusicXML 3.1, compatible with MuseScore, Sibelius, Finale |
-| **🗜️ Export MXL** | `.mxl` | Compressed MusicXML, spec-compliant ZIP archive |
+| **🎼 Export MusicXML** | `.musicxml` | Share with MuseScore, Sibelius, Finale, etc. |
 
-> **Tip:** Always use JSON to save your work. MusicXML/MXL export does not include theory annotations or fretboard diagram state.
+> **Tip:** Always use JSON for saving your work. MusicXML export does not include theory annotations.
 
 ### Transposition
 
@@ -103,17 +99,7 @@ Supported data on import: chord symbols and durations, key signature, tempo, tim
 | Key dropdown | Transpose directly to a target key |
 | **↺** reset | Restore the original key |
 
-Enharmonic spellings are automatically chosen based on the destination key (e.g. F# → B♭ is written as B♭, not A#). Fretboard diagram notes update automatically on transposition.
-
-### Bass fretboard diagrams
-
-1. Click the **✏️** icon on a chord to open the annotation panel
-2. In the **🎼 Mode** block, activate **"Afficher dans la mesure"**
-3. Select a mode from the grid — the diagram updates instantly
-4. The diagram appears directly below the chord name in the measure, full-width
-5. Colors: 🔴 root · 🟡 arpeggio notes · 🔵 other scale degrees
-
-When multiple chords in a measure have a mode activated, each chord shows its own diagram stacked below.
+Enharmonic spellings are automatically chosen based on the destination key (e.g. F# → B♭ is written as B♭, not A#).
 
 ### Printing / PDF
 
@@ -121,9 +107,7 @@ When multiple chords in a measure have a mode activated, each chord shows its ow
 2. Choose **theme** (light ☀️ / dark 🌙)
 3. Adjust **contrast** (1–5) — controls border weight and chord symbol size
 4. Preview **section colors** — each section label gets a distinct color automatically
-5. Click **Print** → use your browser's **Save as PDF**
-
-In print mode: all edit controls are hidden (pencil icons, input fields, measure numbers, beat duration indicators). Mode names appear in black bold. SVG diagram notes are white on colored dots for maximum legibility.
+5. Click **Print** → use your browser's **Save as PDF** to generate a PDF file
 
 ---
 
@@ -149,39 +133,16 @@ In print mode: all edit controls are hidden (pencil icons, input fields, measure
 | `maj9`, `maj13` | Extended major |
 | `m9`, `m11`, `m13` | Extended minor |
 
-### Fretboard diagrams — 16 modes
-
-| Mode | Intervals | Typical use |
-|------|-----------|-------------|
-| Ionien | 1 2 3 4 5 6 7 | maj7, maj9 |
-| Dorien | 1 2 b3 4 5 6 b7 | m7, m9, m11 |
-| Phrygien | 1 b2 b3 4 5 b6 b7 | m7, m |
-| Lydien | 1 2 3 #4 5 6 7 | maj7, maj9 |
-| Lydien b7 | 1 2 3 #4 5 6 b7 | 7, 13 |
-| Mixolydien | 1 2 3 4 5 6 b7 | 7, 9, 13 |
-| Mixolydien b9b13 | 1 b2 3 4 5 b6 b7 | 7 |
-| Éolien | 1 2 b3 4 5 b6 b7 | m, m7 |
-| Locrien | 1 b2 b3 4 b5 b6 b7 | m7b5 |
-| Locrien #2 | 1 2 b3 4 b5 b6 b7 | m7b5 |
-| Altéré | 1 b2 #2 3 b5 b6 b7 | 7 |
-| Mélodie mineure | 1 2 b3 4 5 6 7 | mM7, m6 |
-| Lydien augmenté | 1 2 3 #4 #5 6 7 | aug |
-| Dim. ton-demi | 1 2 b3 4 b5 b6 6 7 | dim |
-| Dim. demi-ton | 1 b2 b3 3 b5 5 6 b7 | dim7 |
-| Tons entiers | 1 2 3 #4 #5 b7 | aug |
-
-### Mode suggestions per chord quality
+### Mode suggestions per chord quality (examples)
 
 | Quality | Suggested modes |
 |---------|----------------|
-| `maj7` | Ionien, Lydien |
-| `7` | Mixolydien, Lydien b7, Mixolydien b9b13, Altéré |
-| `m7` | Dorien, Éolien, Phrygien |
-| `m7b5` | Locrien, Locrien #2 |
-| `dim7` | Dim. demi-ton |
-| `dim` | Dim. ton-demi |
-| `mM7` | Mélodie mineure |
-| `aug` | Lydien augmenté, Tons entiers |
+| `maj7` | Ionian, Lydian |
+| `7` | Mixolydian, Lydian b7, Altered, Mixo b9b13 |
+| `m7` | Dorian, Aeolian, Phrygian |
+| `m7b5` | Locrian, Locrian #2 |
+| `dim7` | Diminished (half-whole) |
+| `mM7` | Melodic minor |
 
 ---
 
@@ -193,7 +154,7 @@ jazz-chart-editor/
 ├── index.html          # Single-file application (HTML + CSS + JS)
 │
 ├── README.md           # This file
-├── LICENSE             # Apache 2.0 License
+├── LICENSE             # MIT License
 │
 └── docs/               # Optional — screenshots, user manual PDF
     ├── screenshot-dark.png
@@ -201,70 +162,84 @@ jazz-chart-editor/
     └── manual-fr.pdf
 ```
 
-The JavaScript is organized into logical sections via inline comments:
-
-- `i18n` — translation dictionary & language switching (FR/ES/IT/EN)
-- `MODE_SVGS` — 16 inline SVG bass fretboard diagrams
-- `theory` — music engine (scales, arpeggios, tensions, transposition)
-- `parser` — MusicXML parser
-- `state` — application state
-- `transpose` — transposition logic with enharmonic awareness
-- `render` — DOM rendering (sections, measures, chord slots, diagrams)
-- `modals` — chord & annotation dialogs
-- `actions` — chart mutations (add/delete/duplicate)
-- `io` — import/export (JSON, MusicXML 3.1, MXL)
-- `print` — print theming, color system, dynamic CSS injection
+> The entire application lives in `index.html`. The JavaScript is organized into logical modules via inline comments:
+> - `i18n.js` — translation dictionary & language switching
+> - `theory.js` — music engine (scales, arpeggios, tensions, transposition)
+> - `parser.js` — MusicXML parser
+> - `state.js` — application state
+> - `transpose.js` — transposition logic
+> - `render.js` — DOM rendering
+> - `modals.js` — chord & annotation dialogs
+> - `actions.js` — chart mutations (add/delete/duplicate)
+> - `io.js` — import/export (JSON, MusicXML)
+> - `print.js` — print theming & color system
+> - `app.js` — initialization & global events
 
 ---
 
 ## 🌐 Internationalization
 
-The UI is fully translated into **4 languages**. Language switches instantly without page reload.
+The UI is fully translated into **4 languages**. Language is switched instantly without page reload.
 
-To add a new language, add an entry to the `LANGS` object and add an `<option>` to the `#lang-select` dropdown.
+To add a new language, add an entry to the `LANGS` object in `index.html` and add an `<option>` to the `#lang-select` dropdown.
 
 ---
 
 ## 🛠️ Customization
 
+### Changing the default chart
+
+Edit the `newChart()` function in the `actions.js` section to change the default key, number of measures, or initial chord.
+
 ### Adding chord qualities
 
-Add an entry to: `QUALITIES` array, `ARP_DEF` object, `MODES_DEF` object, `TENS_DEF` object.
-
-### Adding a fretboard diagram
-
-Add an SVG entry to `MODE_SVGS` and a mapping entry to `MODE_NAME_TO_SVG`. The coordinate system uses root on A-string fret 2 (x=175, y=150); each fret step = 90px horizontally, strings at y = 70 (G), 110 (D), 150 (A), 190 (E).
+Add an entry to:
+- `QUALITIES` array (chord modal buttons)
+- `ARP_DEF` object (arpeggio definition)
+- `MODES_DEF` object (compatible modes)
+- `TENS_DEF` object (available tensions)
 
 ### Adding section labels
 
-Edit the `LETTERS` array in the `modals` section.
+Edit the `LETTERS` array in the `modals.js` section.
 
 ---
 
 ## 🎸 Designed for Bass Players
 
-- **Fretboard diagrams** show the exact position of every scale degree on the EADG neck, with arpeggio notes highlighted in amber — map fingerings directly from the chart
-- **Alternative modes list** under A: and T: gives instant recall of all available scales for the chord quality
-- **Arpeggio inversions** show the exact note order for each voicing on a 4-string bass
-- **Tension notes** displayed as actual pitch names (e.g. b9 → D♭ on C7)
-- **Column layout** (1–4 measures per row) adapts for landscape printing on a tablet or music stand
+The theory annotation panel is optimized for **bass guitar players**:
+
+- **Arpeggio inversions** show the exact note order for each voicing — useful for mapping positions on a 4- or 5-string bass
+- **Tension notes** are displayed as actual pitch names (e.g. *b9 → D♭* on a C7) rather than intervals only
+- **Mode display** in the chart gives instant scale reference at the music stand
+- The **column layout** (1–4 measures per row) can be adapted for landscape printing on a tablet or music stand
 
 ---
 
 ## 🤝 Contributing
 
-Contributions welcome! Please open an issue first.
+Contributions are welcome! Please open an issue first to discuss what you'd like to change.
 
 ```bash
+# Clone the repo
 git clone https://github.com/your-username/jazz-chart-editor.git
+
+# Create a feature branch
 git checkout -b feature/my-improvement
-# Edit index.html — no build step needed
+
+# Make your changes in index.html
+# Test in a browser (no build step needed)
+
+# Commit and push
 git commit -m "feat: describe your change"
 git push origin feature/my-improvement
+
 # Open a Pull Request
 ```
 
 ### Commit convention
+
+This project uses a simplified [Conventional Commits](https://www.conventionalcommits.org/) style:
 
 | Prefix | Use for |
 |--------|---------|
@@ -277,33 +252,55 @@ git push origin feature/my-improvement
 
 ---
 
+## 📝 Changelog
+
+### v4.3
+- ✨ **Déplacement des mesures** — poignée ⠿ drag & drop sur chaque mesure (y compris entre sections), boutons ◀ ▶ au survol pour déplacer d'un cran dans la même section
+
+### v4.2
+- ✨ **Déplacement des sections** — poignée ⠿ drag & drop avec indicateur visuel orange, boutons ▲ ▼ pour monter/descendre d'un cran
+
+### v4.1
+- 🐛 **Fix impression PDF** — la grille ne commence plus en page 2 : suppression du `min-height:100vh` à l'impression, `page-break-inside:avoid` déplacé au niveau `.measure` (plus `.section`), header compacté, `#chart-editor` forcé visible
+
+### v4.0
+- ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) affichés dans les cases d'accord quand le mode est activé : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
+- ✨ **Transposition des diagrammes** — les notes dans les dots SVG sont recalculées dynamiquement selon la fondamentale de l'accord (rouge = fondamentale, amber = notes d'arpège, bleu = degrés de gamme)
+- ✨ **Export MXL** — export au format `.mxl` (MusicXML compressé) via JSZip 3.10.1
+- ✨ **Import MXL** — import de fichiers `.mxl` compressés en plus du `.musicxml`
+- ✨ **Système de labels compact** — `A:` arpège, `T:` tensions, liste des modes alternatifs sous chaque accord
+- 🐛 Fix CSS print : textes SVG noirs/gras, notes dans les dots blanches, lignes fretboard sombres
+
+---
+
 ## 📋 Roadmap
 
-- [ ] Drag-and-drop measure reordering
+- [x] Drag-and-drop section reordering
+- [x] Drag-and-drop measure reordering (inter-sections)
+- [x] Bass fretboard diagrams (SVG, 4-string, 16 modes)
+- [x] MXL compressed import/export
+- [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
 - [ ] Undo / Redo history
 - [ ] iReal Pro `.irealbook` import
 - [ ] MIDI playback of chord root notes
 - [ ] Mobile touch gesture support
 - [ ] Dark/light theme toggle for the editor itself
 - [ ] Custom section color picker
-- [ ] 5-string bass fretboard option (low B string)
-- [ ] Export fretboard diagrams as standalone SVG/PDF
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **Apache 2.0 License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 🙏 Acknowledgements
 
 - Built with vanilla HTML, CSS and JavaScript — no frameworks, no bundlers
-- [JSZip](https://stuk.github.io/jszip/) for MXL compressed file support
 - MusicXML format by [MakeMusic / W3C Music Notation Community Group](https://www.w3.org/2021/06/musicxml40/)
 - Chord symbol rendering inspired by jazz lead sheet conventions (iReal Pro, Hal Leonard)
 
 ---
 
-*Made with 🎷 for musicians, by a bass player.*
+*Made with 🎷 for jazz musicians, by a jazz musician.*
