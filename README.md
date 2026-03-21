@@ -1,12 +1,13 @@
-# 🎷 Jazz Chart Editor v4
+# 𝄢 Jazz Grid Generator
 
 > Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
 
-![Version](https://img.shields.io/badge/version-4.3-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/fait%20avec-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
 ![Dépendances](https://img.shields.io/badge/d%C3%A9pendances-JSZip-fca5a5?style=flat-square)
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
 
 ---
 
@@ -272,23 +273,23 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ## 📝 Changelog
 
-### v4.3
+### 4.3
 - ✨ **Déplacement des mesures** — poignée ⠿ drag & drop sur chaque mesure (y compris entre sections), boutons ◀ ▶ au survol pour déplacer d'un cran dans la même section
 
-### v4.2
+### 4.2
 - ✨ **Déplacement des sections** — poignée ⠿ drag & drop avec indicateur visuel orange, boutons ▲ ▼ pour monter/descendre d'un cran
 
-### v4.1
+### 4.1
 - 🐛 **Fix impression PDF** — la grille ne commence plus en page 2 : suppression du `min-height:100vh` à l'impression, `page-break-inside:avoid` déplacé au niveau `.measure`, header compacté, `#chart-editor` forcé visible
 
-### v4.0
+### 4.0
 - ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
 - ✨ **Transposition des diagrammes** — notes recalculées dynamiquement (rouge = fondamentale, ambre = arpège, bleu = gamme)
 - ✨ **Export / Import MXL** — format MusicXML compressé via JSZip 3.10.1
 - ✨ **Système de labels compact** — `A:` arpège, `T:` tensions, liste des modes alternatifs sous chaque accord
 - 🐛 Fix CSS impression : textes SVG noirs/gras, notes dans les points blanches, lignes de manche sombres
 
-### v3.0
+### 3.0
 - ✨ Sélecteur de langue intégré (FR / ES / IT / EN)
 - ✨ Export/Import JSON
 - ✨ Export MusicXML
@@ -313,6 +314,16 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ---
 
+## ☕ Soutenir le projet
+
+Cet outil est **gratuit et open source**. Si tu le trouves utile pour tes sessions, tes cours ou tes répètes, tu peux soutenir son développement sur Ko-fi :
+
+[![Soutenir sur Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lorenzovirgosfrediani)
+
+Chaque contribution, même modeste, aide à financer le temps passé à développer de nouvelles fonctionnalités (basse 5 cordes, undo/redo, import iReal Pro…).
+
+---
+
 ## 📄 Licence
 
 Ce projet est distribué sous licence **Apache 2.0** — voir le fichier [LICENSE](LICENSE) pour les détails.
@@ -327,4 +338,4 @@ Ce projet est distribué sous licence **Apache 2.0** — voir le fichier [LICENS
 
 ---
 
-*Made with 🎷 for musicians, by a bass player.*
+*𝄢 Made with love for musicians, by a bass player.*

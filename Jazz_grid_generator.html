@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jazz Chart Editor v3</title>
+<title>Jazz Grid Generator</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
@@ -21,6 +21,10 @@ label { font-size:0.85rem; color:#aaa; }
 #lang-selector { display:flex; align-items:center; gap:6px; background:#0f3460; border:1px solid #f0a500; border-radius:6px; padding:4px 10px; }
 #lang-selector label { color:#f0a500; font-size:0.78rem; font-weight:bold; }
 #lang-select { width:70px; font-size:0.82rem; padding:3px 6px; }
+
+#kofi-btn { display:inline-flex; align-items:center; gap:5px; background:#ff5e5b; color:#fff; border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:bold; text-decoration:none; white-space:nowrap; transition:background 0.2s, transform 0.15s; }
+#kofi-btn:hover { background:#ff3a37; transform:translateY(-1px); }
+@media print { #kofi-btn { display:none !important; } }
 
 #transpose-group { display:flex; align-items:center; gap:6px; background:#0f3460; border:1px solid #f0a500; border-radius:6px; padding:4px 10px; }
 #transpose-group label { color:#f0a500; font-size:0.8rem; font-weight:bold; }
@@ -217,7 +221,7 @@ label { font-size:0.85rem; color:#aaa; }
 <body>
 
 <div id="toolbar">
-  <h1>🎷 Jazz Chart v3</h1>
+  <h1>𝄢 Jazz Grid Generator</h1>
   <input type="file" id="file-input" accept=".musicxml,.xml,.mxl">
   <button class="btn" id="btn-open" onclick="document.getElementById('file-input').click()"></button>
   <button class="btn secondary" id="btn-new" onclick="newChart()"></button>
@@ -256,6 +260,7 @@ label { font-size:0.85rem; color:#aaa; }
       <option value="en">🇬🇧 EN</option>
     </select>
   </div>
+  <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener" id="kofi-btn" title="Soutenir ce projet">☕ Ko-fi</a>
 </div>
 
 <div id="dropzone" onclick="document.getElementById('file-input').click()">
