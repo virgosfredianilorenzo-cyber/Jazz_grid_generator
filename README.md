@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # 𝄢 Jazz Grid Generator
+=======
+# 🎷 Jazz Grid Generator
+>>>>>>> 48b5b4d15a7bf18678ba9b5ceb6470e048640993
 
 > Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
 
