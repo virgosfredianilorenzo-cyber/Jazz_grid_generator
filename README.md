@@ -1,4 +1,4 @@
-# 🎷 Jazz Chart Editor v2
+# 🎷 Jazz Chart Editor
 
 > A web-based jazz chord chart editor with music theory annotations, MusicXML import/export, transposition, and print-ready output.
 
