@@ -8,7 +8,11 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
 #toolbar { background:#16213e; padding:12px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; border-bottom:2px solid #f0a500; position:sticky; top:0; z-index:100; }
-#toolbar h1 { font-size:1.2rem; color:#f0a500; margin-right:10px; }
+#toolbar h1 { font-size:1.2rem; color:#f0a500; margin-right:10px; display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+#toolbar-title { line-height:1.2; align-self:flex-start; }
+#toolbar-ts { font-size:0.68rem; color:#aaa; font-family:'Courier New',monospace; font-weight:normal; letter-spacing:1px; }
+#print-ts { display:none; }
+@media print { #print-ts { display:block; font-size:0.68rem; color:#888; font-family:'Courier New',monospace; letter-spacing:1px; text-align:center; margin-top:3px; } }
 .btn { background:#f0a500; color:#1a1a2e; border:none; padding:7px 14px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:0.85rem; transition:background 0.2s; }
 .btn:hover { background:#ffc107; }
 .btn.secondary { background:#2d4a7a; color:#eee; }
@@ -24,7 +28,9 @@ label { font-size:0.85rem; color:#aaa; }
 
 #kofi-btn { display:inline-flex; align-items:center; gap:5px; background:#ff5e5b; color:#fff; border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:bold; text-decoration:none; white-space:nowrap; transition:background 0.2s, transform 0.15s; }
 #kofi-btn:hover { background:#ff3a37; transform:translateY(-1px); }
-@media print { #kofi-btn { display:none !important; } }
+#kofi-wrap { display:inline-flex; align-items:center; gap:8px; }
+#kofi-wrap span { font-size:0.75rem; color:#aaa; white-space:nowrap; }
+@media print { #kofi-wrap { position:fixed; bottom:8px; right:12px; z-index:9999; } #kofi-wrap span { display:none; } #kofi-btn { background:#ff5e5b !important; color:#fff !important; padding:4px 10px; font-size:0.72rem; } }
 
 #transpose-group { display:flex; align-items:center; gap:6px; background:#0f3460; border:1px solid #f0a500; border-radius:6px; padding:4px 10px; }
 #transpose-group label { color:#f0a500; font-size:0.8rem; font-weight:bold; }
@@ -221,7 +227,7 @@ label { font-size:0.85rem; color:#aaa; }
 <body>
 
 <div id="toolbar">
-  <h1>𝄢 Jazz Grid Generator</h1>
+  <h1><span id="toolbar-title">𝄢 Jazz Grid Generator</span><span id="toolbar-ts"></span></h1>
   <input type="file" id="file-input" accept=".musicxml,.xml,.mxl">
   <button class="btn" id="btn-open" onclick="document.getElementById('file-input').click()"></button>
   <button class="btn secondary" id="btn-new" onclick="newChart()"></button>
@@ -260,7 +266,9 @@ label { font-size:0.85rem; color:#aaa; }
       <option value="en">🇬🇧 EN</option>
     </select>
   </div>
-  <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener" id="kofi-btn" title="Soutenir ce projet">☕ Ko-fi</a>
+  <div id="kofi-wrap">
+    <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener" id="kofi-btn" title="Soutenir ce projet sur Ko-fi">☕ Ko-fi</a>
+  </div>
 </div>
 
 <div id="dropzone" onclick="document.getElementById('file-input').click()">
@@ -272,6 +280,7 @@ label { font-size:0.85rem; color:#aaa; }
 <div id="chart-editor">
   <div id="chart-header">
     <input id="chart-title" type="text" value="Mon Thème Jazz">
+    <div id="print-ts"></div>
     <div id="chart-meta">
       <span id="meta-key-label"></span><input type="text" id="meta-key" value="C" style="width:60px">
       <span id="meta-tempo-label"></span><input type="number" id="meta-tempo" value="120" style="width:70px"><span id="meta-bpm-label"></span>
@@ -964,6 +973,9 @@ buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
 applyTranslations();
+function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
+updateTimestamp();
+setInterval(updateTimestamp,1000);
 
 </script>
 </body>
