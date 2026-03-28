@@ -165,6 +165,20 @@ label { font-size:0.85rem; color:#aaa; }
 /* ——— Symboles spéciaux de mesure ——— */
 .chord-slot.sym-repeat   { background:rgba(240,165,0,0.07); }
 .chord-slot.sym-repeat2  { background:rgba(240,165,0,0.07); }
+/* ——— Accord alternatif (small chord) ——— */
+.alt-chord-wrap { position:relative; }
+.alt-chord-display { position:absolute; top:-14px; right:0;
+  font-size:0.58rem; font-weight:bold; font-style:italic;
+  color:#f0c060; background:#1a1a2e; border:1px solid #f0c06055;
+  border-radius:3px; padding:0 3px; white-space:nowrap;
+  cursor:pointer; z-index:2; line-height:1.5; }
+.alt-chord-display:hover { border-color:#f0c060; background:#2a2000; }
+.alt-chord-btn { position:absolute; top:-12px; left:1px;
+  font-size:0.52rem; color:#6a5a2a; background:none; border:none;
+  cursor:pointer; opacity:0; transition:opacity 0.15s; padding:0 2px;
+  line-height:1; z-index:2; }
+.chord-slot:hover .alt-chord-btn { opacity:0.8; }
+.alt-chord-btn:hover { opacity:1 !important; color:#f0c060; }
 .chord-slot.sym-nc       { background:rgba(200,60,60,0.08); }
 .chord-slot.sym-slash    { background:rgba(100,180,255,0.07); }
 .sym-display { font-size:1.6rem; font-weight:900; text-align:center; line-height:1; padding:8px 0 4px; user-select:none; }
@@ -283,6 +297,9 @@ label { font-size:0.85rem; color:#aaa; }
   body { background:white; min-height:0 !important; }
   #toolbar,#print-contrast-bar,.section-actions,.add-measure-btn,.add-section-btn,.chord-annot-icon,.chord-edit-hint,.chord-del-btn,.add-chord-btn { display:none !important; }
   .barline-btn,.nav-add-btn,.bl-popup { display:none !important; }
+  .alt-chord-btn { display:none !important; }
+  .alt-chord-display { color:#444 !important; background:white !important;
+    border-color:#aaa !important; top:-13px; }
   .nav-symbol { color:#000 !important; background:white !important; border-color:#000 !important; }
   .volta-bracket { border-color:#000 !important; color:#000 !important; }
   #chart-editor { display:block !important; padding:8px 12px 0; }
@@ -804,8 +821,33 @@ function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,
         }
       }
     });
-    // ── Accords ──
-    m.querySelectorAll('harmony').forEach(h=>{const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');if(!re)return;let root=re.textContent.trim();if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};if(km[kind]!==undefined)kind=km[kind];let bass='';if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});});
+    // ── Accords (avec détection des accords alternatifs) ──
+    const harmonyEls=[...m.querySelectorAll('harmony')];
+    // Grouper par offset : si deux harmonies ont le même offset ou si la 2e a footnote=alt → altChord
+    const harmByOffset=new Map();
+    harmonyEls.forEach(h=>{
+      const off=parseInt(h.querySelector('offset')?.textContent||'0');
+      const isAlt=h.querySelector('footnote')?.textContent==='alt';
+      const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');
+      if(!re)return;
+      let root=re.textContent.trim();
+      if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}
+      let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';
+      const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};
+      if(km[kind]!==undefined)kind=km[kind];
+      let bass='';
+      if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}
+      const sym=root+kind+(bass?'/'+bass:'');
+      if(isAlt){
+        // Attacher comme altChord au dernier accord de cet offset
+        const existing=harmByOffset.get(off);
+        if(existing)existing.altChord=sym;
+      } else {
+        const entry={symbol:sym,beats:0,annot:null,altChord:null};
+        harmByOffset.set(off,entry);
+        md.chords.push(entry);
+      }
+    });
     if(md.chords.length>0){const t2=bpm;md.chords.forEach(c=>{c.beats=Math.round(t2/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t2-s;}
     else md.chords.push({symbol:'%',beats:bpm,annot:null});
     pm.push(md);
@@ -986,7 +1028,24 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
     slot.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
     return slot;
   }
-  const hdr=document.createElement('div');hdr.className='chord-header';hdr.innerHTML=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;hdr.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};slot.appendChild(hdr);
+  const hdr=document.createElement('div');hdr.className='chord-header alt-chord-wrap';
+  // ── Accord alternatif existant ──
+  if(chord.altChord){
+    const alt=document.createElement('div');alt.className='alt-chord-display';
+    alt.textContent=fmtChord(chord.altChord);alt.title='Cliquer pour modifier l\'accord alternatif';
+    alt.onclick=e=>{e.stopPropagation();openAltChordPopup(e,si,mi,ci,chord);};
+    hdr.appendChild(alt);
+  }
+  // ── Bouton ajout accord alternatif (hover) ──
+  const altBtn=document.createElement('button');altBtn.className='alt-chord-btn';
+  altBtn.textContent='♯±';altBtn.title='Ajouter un accord alternatif';
+  altBtn.onclick=e=>{e.stopPropagation();openAltChordPopup(e,si,mi,ci,chord);};
+  hdr.appendChild(altBtn);
+  hdr.innerHTML+=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;
+  hdr.querySelector('.chord-symbol').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
+  hdr.querySelector('.chord-duration').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
+  hdr.querySelector('.chord-edit-hint').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
+  slot.appendChild(hdr);
   if(parsed&&annot.showMode){
     const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
     const idx=Math.min(annot.modeIdx||0,modes.length-1);
@@ -1094,7 +1153,66 @@ function closeAnnotModal(){document.getElementById('annot-overlay').classList.re
 function applyAnnotation(){const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
 function clearAnnotation(){const{si,mi,ci}=annotTarget;chartData.sections[si].measures[mi].chords[ci].annot=null;closeAnnotModal();render();}
 
-/* ── Popup barline ── */
+/* ── Popup accord alternatif ── */
+function openAltChordPopup(e,si,mi,ci,chord){
+  e.stopPropagation();closeActivePopup();
+  const pop=document.createElement('div');pop.className='bl-popup';
+  activePopup=pop;
+  // Titre
+  const title=document.createElement('div');
+  title.style.cssText='font-size:0.7rem;color:#f0c060;font-weight:bold;padding:2px 8px 4px;border-bottom:1px solid #2d4a7a;margin-bottom:4px;';
+  title.textContent='♯± Accord alternatif';
+  pop.appendChild(title);
+  // Input saisie
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;padding:4px 4px 2px;align-items:center;';
+  const inp=document.createElement('input');
+  inp.type='text';inp.placeholder='ex: Db7, Bbm7…';
+  inp.value=chord.altChord||'';
+  inp.style.cssText='flex:1;background:#1e3a5f;border:1px solid #f0c060;color:#eee;padding:4px 7px;border-radius:4px;font-size:0.82rem;width:110px;';
+  const applyBtn=document.createElement('button');
+  applyBtn.textContent='✓';
+  applyBtn.style.cssText='background:#f0c060;color:#1a1a2e;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-weight:bold;';
+  applyBtn.onclick=e2=>{
+    e2.stopPropagation();
+    const val=inp.value.trim();
+    chartData.sections[si].measures[mi].chords[ci].altChord=val||null;
+    closeActivePopup();render();
+  };
+  inp.addEventListener('keydown',e2=>{if(e2.key==='Enter')applyBtn.click();if(e2.key==='Escape')closeActivePopup();});
+  row.append(inp,applyBtn);
+  pop.appendChild(row);
+  // Bouton supprimer (si accord existant)
+  if(chord.altChord){
+    const delBtn=document.createElement('button');
+    delBtn.textContent='🗑 Supprimer';
+    delBtn.style.cssText='background:none;border:none;color:#f87171;font-size:0.75rem;cursor:pointer;padding:4px 8px;width:100%;text-align:left;';
+    delBtn.onclick=e2=>{
+      e2.stopPropagation();
+      chartData.sections[si].measures[mi].chords[ci].altChord=null;
+      closeActivePopup();render();
+    };
+    pop.appendChild(delBtn);
+  }
+  // Suggestions rapides (subs tritoniées fréquentes)
+  const parsed=parseChordSym(chord.symbol);
+  if(parsed&&parsed.quality==='7'){
+    const triSub=tr(parsed.root,6)+parsed.quality; // substitution tritoniée
+    const sugg=document.createElement('div');
+    sugg.style.cssText='font-size:0.65rem;color:#6a8aaa;padding:2px 8px;border-top:1px solid #2d4a7a;margin-top:2px;';
+    sugg.textContent='Suggestion : ';
+    const pill=document.createElement('span');
+    pill.textContent=fmtChord(triSub);
+    pill.style.cssText='color:#f0c060;cursor:pointer;text-decoration:underline;';
+    pill.onclick=e2=>{e2.stopPropagation();inp.value=triSub;};
+    sugg.appendChild(pill);
+    pop.appendChild(sugg);
+  }
+  const rect=e.target.getBoundingClientRect();
+  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${Math.max(0,rect.left-40)}px;min-width:160px;`;
+  document.body.appendChild(pop);
+  setTimeout(()=>inp.focus(),50);
+  setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
+}
 function openBarlinePopup(e,si,mi,side){
   e.stopPropagation();closeActivePopup();
   const measure=chartData.sections[si].measures[mi];
@@ -1266,10 +1384,19 @@ function buildMusicXMLString(){
   function harmonyToXML(chord,offset){
     const p=parseChordForXML(chord.symbol);
     if(!p)return'';
-    const alter=v=>v!==0?`<root-alter>${v}</root-alter>`:'';
+    const alter=v=>v!==0?`<root-alter>${v}</root-alter>`:''
     const bass=p.bs?`<bass><bass-step>${p.bs}</bass-step>${p.ba!==0?`<bass-alter>${p.ba}</bass-alter>`:''}</bass>`:'';
     const off=offset>0?`<offset>${offset*DIVISIONS}</offset>`:'';
-    return`\n      <harmony placement="above">${off}<root><root-step>${p.rs}</root-step>${alter(p.ra)}</root><kind text="${p.kt}">${p.kind}</kind>${bass}</harmony>`;
+    let xml=`\n      <harmony placement="above">${off}<root><root-step>${p.rs}</root-step>${alter(p.ra)}</root><kind text="${p.kt}">${p.kind}</kind>${bass}</harmony>`;
+    // ── Accord alternatif ──
+    if(chord.altChord){
+      const pa=parseChordForXML(chord.altChord);
+      if(pa){
+        const altBass=pa.bs?`<bass><bass-step>${pa.bs}</bass-step>${pa.ba!==0?`<bass-alter>${pa.ba}</bass-alter>`:''}</bass>`:'';
+        xml+=`\n      <harmony placement="above" print-frame="no">${off}<root><root-step>${pa.rs}</root-step>${alter(pa.ra)}</root><kind text="${pa.kt}">${pa.kind}</kind>${altBass}<footnote>alt</footnote></harmony>`;
+      }
+    }
+    return xml;
   }
   // Duration type map: beats → MusicXML type (assuming quarter=1)
   function beatType2xml(b){
