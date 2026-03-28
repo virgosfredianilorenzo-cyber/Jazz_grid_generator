@@ -20,6 +20,9 @@
   - `𝄎` — répétition de 2 mesures
   - `N.C.` — No Chord (silence harmonique)
   - `/` — beat slash (pulsation sans accord précisé)
+- 🎼 **Barres de mesure enrichies** — simple, double `‖`, finale `𝄂`, répétition début `|:` et fin `:|`, accessibles au survol sur le bord de chaque mesure
+- 🔂 **Voltas (1ère / 2ème / 3ème fois)** — bracket visuel au-dessus des mesures, accessible depuis le bouton barre gauche
+- 🧭 **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐` — accessibles au survol en haut de chaque mesure
 - 🎼 **Annotations de théorie musicale** par accord :
   - Modes compatibles avec diagramme de manche SVG dynamique (16 modes, basse 4 cordes EADG)
   - Arpèges 4 sons avec tous les renversements
@@ -95,6 +98,34 @@ Déposer `index.html` sur n'importe quel hébergeur statique (Netlify, Vercel, C
 4. Dans la modale d'accord, utiliser la section **SYMBOLES RAPIDES** (`%`, `𝄎`, `N.C.`, `/`) pour les mesures spéciales
 5. Cliquer sur l'icône **✏️** d'un accord pour ajouter des annotations théoriques (mode, arpège, tensions, note libre)
 
+### Barres de mesure et voltas
+
+Au survol d'une mesure, deux boutons apparaissent sur les bords gauche `◧` et droit `◨`. Un clic ouvre un menu permettant de choisir le type de barre :
+
+| Type | Visuel | Export MusicXML |
+|------|--------|-----------------|
+| Normal | `\|` | *(par défaut)* |
+| Double | `‖` | `light-light` |
+| Finale | `𝄂` | `light-heavy` |
+| Répétition début | `\|:` | `<repeat direction="forward"/>` |
+| Répétition fin | `:\|` | `<repeat direction="backward"/>` |
+
+Le même menu permet d'ajouter un **bracket de volta** (1ère / 2ème / 3ème fois) au-dessus de la mesure, exporté en `<ending>` MusicXML.
+
+### Symboles de navigation
+
+Au survol, un bouton `𝄌` apparaît en haut à droite de chaque mesure. Il ouvre un menu pour placer :
+
+| Symbole | Affiché | Export MusicXML |
+|---------|---------|-----------------|
+| Segno | `𝄋` | `<segno/>` |
+| Coda | `𝄌` | `<coda/>` |
+| D.C. al Coda | texte | `<words>` + `<sound/>` |
+| D.S. al Coda | texte | `<words>` + `<sound/>` |
+| D.C. al Fine | texte | `<words>` + `<sound/>` |
+| Fine | texte | `<words>Fine</words>` |
+| Fermata | `𝄐` | `<fermata/>` |
+
 ### Importer un fichier MusicXML
 
 Glisser-déposer un fichier `.musicxml`, `.xml` ou `.mxl` sur la zone de dépôt, ou cliquer sur **📂 Ouvrir MusicXML**.
@@ -103,7 +134,9 @@ Données importées :
 - Symboles d'accords et durées
 - Tonalité, tempo, chiffrage de mesure
 - Marques de répétition → sections
-- Barres de reprise
+- Barres de reprise, double barres, barres finales
+- Voltas (`<ending>`)
+- Symboles de navigation (Segno, Coda, D.C., D.S., Fine, Fermata)
 
 ### Déplacer les sections et les mesures
 
@@ -115,7 +148,7 @@ Pour un déplacement précis d'un cran, utiliser les boutons **▲ ▼** (sectio
 
 | Action | Format | Notes |
 |--------|--------|-------|
-| **💾 Export JSON** | `.json` | Fidélité totale — accords, annotations, couleurs |
+| **💾 Export JSON** | `.json` | Fidélité totale — accords, annotations, barres, navigation |
 | **📥 Import JSON** | `.json` | Recharger une session précédemment sauvegardée |
 | **🎼 Export MusicXML** | `.musicxml` | Partager avec MuseScore, Sibelius, Finale, etc. |
 | **🎼 Export MXL** | `.mxl` | Format compressé, idéal pour l'échange de fichiers |
@@ -140,7 +173,7 @@ Les enharmoniques sont choisis automatiquement selon la tonalité de destination
 4. Vérifier les **couleurs de sections** — chaque label de section reçoit une couleur distincte automatiquement
 5. Cliquer sur **Imprimer** → utiliser **Enregistrer en PDF** dans la boîte de dialogue du navigateur
 
-> Les sections ne sont jamais coupées à cheval sur deux pages (`break-inside: avoid`).
+> Les sections ne sont jamais coupées à cheval sur deux pages (`break-inside: avoid`). Les barres enrichies, voltas et symboles de navigation s'impriment en noir.
 
 ---
 
@@ -209,23 +242,23 @@ Le fichier est organisé en **blocs délimités par des séparateurs visuels** `
 
 | Ligne | Bloc | Contenu |
 |-------|------|---------|
-| L8 | `CSS — APP` | Toolbar, layout, sections, mesures, symboles |
-| L143 | `CSS — MODALS` | Overlay, modales accord / annotation / section |
-| L228 | `CSS — PRINT` | @media print : thèmes, couleurs, page-break |
-| L281 | `HTML — STRUCTURE` | Toolbar, dropzone, éditeur, modales, barre impression |
-| L469 | `JS — I18N` | Dictionnaires FR/ES/IT/EN + `setLang()` |
-| L610 | `JS — SVG DIAGRAMS` | Diagrammes de modes (manche de basse) |
-| L698 | `JS — THEORY ENGINE` | Gammes, arpèges, tensions, helpers chromatiques |
-| L718 | `JS — PARSER` | Import MusicXML → `chartData` |
-| L732 | `JS — STATE` | Variables globales partagées |
-| L747 | `JS — TRANSPOSE` | Transposition demi-ton / tonalité |
-| L760 | `JS — RENDER` | DOM rendering : sections, mesures, accords, symboles |
-| L854 | `JS — MODALS` | Modales : édition accord, annotation, label section |
-| L938 | `JS — ACTIONS` | add / delete / duplicate / move |
-| L952 | `JS — I/O` | Import/export JSON + MusicXML + MXL |
-| L968 | `JS — MUSICXML HELPERS` | Fonctions utilitaires export MusicXML |
-| L1160 | `JS — PRINT` | Thèmes impression, palettes, CSS dynamique |
-| L1180 | `JS — INIT` | Event listeners globaux, premier render |
+| L10 | `CSS — APP` | Toolbar, layout, sections, mesures, barlines, symboles |
+| L194 | `CSS — MODALS` | Overlay, modales accord / annotation / section |
+| L278 | `CSS — PRINT` | @media print : thèmes, couleurs, page-break |
+| L331 | `HTML — STRUCTURE` | Toolbar, dropzone, éditeur, modales, barre impression |
+| L513 | `JS — I18N` | Dictionnaires FR/ES/IT/EN + `setLang()` |
+| L655 | `JS — SVG DIAGRAMS` | Diagrammes de modes (manche de basse) |
+| L743 | `JS — THEORY ENGINE` | Gammes, arpèges, tensions, helpers chromatiques |
+| L763 | `JS — PARSER` | Import MusicXML → `chartData` |
+| L825 | `JS — STATE` | Variables globales + constantes barlines/navigation |
+| L851 | `JS — TRANSPOSE` | Transposition demi-ton / tonalité |
+| L864 | `JS — RENDER` | DOM rendering : sections, mesures, accords, symboles |
+| L1019 | `JS — MODALS` | Modales accord/annotation/section + popups barline/nav |
+| L1181 | `JS — ACTIONS` | add / delete / duplicate / move |
+| L1195 | `JS — I/O` | Import/export JSON + MusicXML + MXL |
+| L1211 | `JS — MUSICXML HELPERS` | Fonctions utilitaires export MusicXML |
+| L1436 | `JS — PRINT` | Thèmes impression, palettes, CSS dynamique |
+| L1456 | `JS — INIT` | Event listeners globaux, premier render |
 
 > Les numéros de ligne sont indicatifs et évoluent à chaque release.
 
@@ -263,6 +296,20 @@ Ajouter une entrée dans :
 2. Ajouter le style CSS dans `CSS — APP` (classe `.sym-xxx`)
 3. Ajouter le bouton dans `buildModal()` tableau `SYMS`
 4. S'assurer que `transposeChordSymbol()` ignore ce symbole
+
+### Ajouter un type de barre de mesure
+
+1. Ajouter la valeur dans `BARLINE_TYPES` et `BARLINE_LABELS` (section `JS — STATE`)
+2. Ajouter le mapping XML dans `BARLINE_XML`
+3. Ajouter le style CSS dans `CSS — APP` (classe `.bl-xxx-left` / `.bl-xxx-right`)
+4. Ajouter l'entrée dans les maps `blXML` / `brXML` de l'export MusicXML (section `JS — MUSICXML HELPERS`)
+
+### Ajouter un symbole de navigation
+
+1. Ajouter la valeur dans `NAV_TYPES` et `NAV_DISPLAY` (section `JS — STATE`)
+2. Ajouter l'entrée dans `openNavPopup()` (section `JS — MODALS`)
+3. Ajouter le mapping XML dans la section barlines/nav de l'export (section `JS — MUSICXML HELPERS`)
+4. Ajouter la détection dans `parseMusicXML()` (section `JS — PARSER`)
 
 ---
 
@@ -315,6 +362,12 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ## 📝 Changelog
 
+### 4.5
+- ✨ **Barres de mesure enrichies** — double `‖`, finale `𝄂`, répétition début `|:` et fin `:|` ; accessibles via boutons `◧` / `◨` au survol sur les bords de chaque mesure ; export/import MusicXML (`bar-style`, `repeat`)
+- ✨ **Voltas (1ère / 2ème / 3ème fois)** — bracket visuel au-dessus des mesures ; export/import en `<ending>` MusicXML
+- ✨ **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐` ; accessibles via bouton `𝄌` au survol ; export/import MusicXML (`<segno/>`, `<coda/>`, `<words/>`, `<fermata/>`)
+- 🔧 Rétrocompatibilité JSON : les grilles sans barlineLeft/barlineRight se chargent correctement
+
 ### 4.4
 - ✨ **Symboles de mesure iReal Pro** — `%` (répétition), `𝄎` (répétition 2 mesures), `N.C.` (No Chord), `/` (beat slash) ; sélection depuis la modale d'accord via panneau **SYMBOLES RAPIDES** ; rendu visuel distinct par type ; ignorés à la transposition
 - 🔧 **Restructuration du fichier** — CSS et JS découpés en blocs nommés délimités par des séparateurs `/* ━━━ */` ; navigation directe sans outil externe
@@ -352,10 +405,11 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 - [x] Diagrammes de manche SVG (basse 4 cordes, 16 modes)
 - [x] Import/Export MXL compressé
 - [x] Symboles de mesure iReal Pro (`%`, `𝄎`, `N.C.`, `/`)
+- [x] Barres de mesure enrichies (double, finale, répétitions)
+- [x] Voltas (1./2./3.) — export/import MusicXML `<ending>`
+- [x] Symboles de navigation (Coda, Segno, D.C., D.S., Fine, Fermata)
 - [x] Sections non coupées à l'impression PDF
 - [x] Fichier structuré en blocs commentés (navigation sans outil)
-- [ ] Barres de mesure enrichies (double barre, finale, voltas 1./2./3.)
-- [ ] Symboles de navigation (Coda, Segno, D.C. al Coda, D.S. al Fine…)
 - [ ] Accord alternatif (petit accord au-dessus)
 - [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
 - [ ] Historique Annuler / Rétablir
