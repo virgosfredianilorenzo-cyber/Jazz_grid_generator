@@ -4,7 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jazz Grid Generator</title>
-<style>
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS — APP
+   Toolbar, layout, sections, mesures, accords, symboles
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+<style id="css-app">
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
 #toolbar { background:#16213e; padding:12px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; border-bottom:2px solid #f0a500; position:sticky; top:0; z-index:100; }
@@ -131,6 +138,15 @@ label { font-size:0.85rem; color:#aaa; }
 .modal-sym-btn.selected { border-color:#f0c060; background:rgba(240,192,96,0.18); color:#f0c060; }
 .add-section-btn { min-height:44px; width:100%; margin:8px 0; font-size:1rem; }
 .cols-select { width:60px; }
+</style>
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS — MODALS
+   Overlay, modales accord / annotation / section
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+<style id="css-modals">
 .overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
 .overlay.active { display:flex; }
 .modal-box { background:#16213e; border-radius:10px; padding:22px; max-width:95vw; max-height:92vh; overflow-y:auto; }
@@ -207,6 +223,15 @@ label { font-size:0.85rem; color:#aaa; }
 @media print {
   .mode-diagram-wrap { background: #f8f8f8; border-top: 1px solid #ccc; }
 }
+</style>
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS — PRINT
+   @media print : thèmes, couleurs, page-break
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
+<style id="css-print">
 @media print {
   body { background:white; min-height:0 !important; }
   #toolbar,#print-contrast-bar,.section-actions,.add-measure-btn,.add-section-btn,.chord-annot-icon,.chord-edit-hint,.chord-del-btn,.add-chord-btn { display:none !important; }
@@ -249,8 +274,16 @@ label { font-size:0.85rem; color:#aaa; }
   .mode-diagram-wrap { background:#fff !important; }
 }
 </style>
+
 </head>
 <body>
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   HTML — STRUCTURE
+   Toolbar, dropzone, éditeur, modales, barre impression
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 
 <div id="toolbar">
   <h1><span id="toolbar-title">𝄢 Jazz Grid Generator</span><span id="toolbar-ts"></span></h1>
@@ -422,9 +455,23 @@ label { font-size:0.85rem; color:#aaa; }
   <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
 </div>
 
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — LIBRAIRIES EXTERNES
+   JSZip (lecture fichiers .mxl compressés)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <script>
-const LANGS = {
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — I18N
+   Dictionnaires FR / ES / IT / EN  +  applyTranslations()  +  setLang()
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
   fr: {
     btnOpen:'📂 Ouvrir MusicXML',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',
     dzTitle:'Déposer un fichier MusicXML',dzSub:'ou cliquer pour choisir un fichier .musicxml / .xml',
@@ -560,7 +607,12 @@ function applyTranslations(){
 
 function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();buildModal();}
 
-/* ============================================================ MODE SVG DIAGRAMS ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — SVG DIAGRAMS
+   Diagrammes de gammes sur manche de basse (modes)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 const MODE_SVGS = {
   "Ionien": `<svg width="450" height="220" viewBox="0 0 450 220" xmlns="http://www.w3.org/2000/svg"> <text x="225" y="30" font-family="Arial" font-size="28" font-weight="bold" text-anchor="middle">IONIEN</text> <text x="15" y="75" font-family="Arial" font-size="18" font-weight="bold">G</text> <text x="15" y="115" font-family="Arial" font-size="18" font-weight="bold">D</text> <text x="15" y="155" font-family="Arial" font-size="18" font-weight="bold">A</text> <text x="15" y="195" font-family="Arial" font-size="18" font-weight="bold">E</text> <line x1="40" y1="70" x2="420" y2="70" stroke="black" stroke-width="2" /> <line x1="40" y1="110" x2="420" y2="110" stroke="black" stroke-width="2" /> <line x1="40" y1="150" x2="420" y2="150" stroke="black" stroke-width="2" /> <line x1="40" y1="190" x2="420" y2="190" stroke="black" stroke-width="2" /> <line x1="40" y1="70" x2="40" y2="190" stroke="black" stroke-width="4" /> <line x1="130" y1="70" x2="130" y2="190" stroke="black" stroke-width="2" /> <line x1="220" y1="70" x2="220" y2="190" stroke="black" stroke-width="2" /> <line x1="310" y1="70" x2="310" y2="190" stroke="black" stroke-width="2" /> <line x1="400" y1="70" x2="400" y2="190" stroke="black" stroke-width="2" /> <g font-family="Arial" font-size="14" font-weight="bold" fill="white" text-anchor="middle"> <circle cx="85" cy="70" r="18" fill="#4a6fa5" /><text x="85" y="75">6</text> <circle cx="265" cy="70" r="18" fill="#4a6fa5" /><text x="265" y="75">7</text> <circle cx="355" cy="70" r="18" fill="#e63946" /><text x="355" y="75">1</text> <circle cx="85" cy="110" r="18" fill="#4a6fa5" /><text x="85" y="115">3</text> <circle cx="175" cy="110" r="18" fill="#4a6fa5" /><text x="175" y="115">4</text> <circle cx="355" cy="110" r="18" fill="#4a6fa5" /><text x="355" y="115">5</text> <circle cx="175" cy="150" r="18" fill="#e63946" /><text x="175" y="155">1</text> <circle cx="355" cy="150" r="18" fill="#4a6fa5" /><text x="355" y="155">2</text> </g> </svg>`,
   "Dorien": `<svg width="600" height="220" viewBox="0 0 600 220" id="svg20" xmlns="http://www.w3.org/2000/svg"> <text x="225" y="30" font-family="Arial" font-size="28" font-weight="bold" text-anchor="middle">DORIEN</text> <text x="15" y="75" font-family="Arial" font-size="18" font-weight="bold">G</text> <text x="15" y="115" font-family="Arial" font-size="18" font-weight="bold">D</text> <text x="15" y="155" font-family="Arial" font-size="18" font-weight="bold">A</text> <text x="15" y="195" font-family="Arial" font-size="18" font-weight="bold">E</text> <line x1="40" y1="70" x2="543.08362" y2="70" stroke="#000000" stroke-width="2.30122" id="line5" /> <line x1="40" y1="110" x2="546.21948" y2="110" stroke="#000000" stroke-width="2.30838" id="line6" /> <line x1="40" y1="150" x2="528.58014" y2="150" stroke="#000000" stroke-width="2.26781" id="line7" /> <line x1="40" y1="190" x2="530.5401" y2="190" stroke="#000000" stroke-width="2.27235" id="line8" /> <line x1="40" y1="70" x2="40" y2="190" stroke="#000000" stroke-width="4" id="line9" /> <line x1="130" y1="70" x2="130" y2="190" stroke="#000000" stroke-width="2" id="line10" /> <line x1="220" y1="70" x2="220" y2="190" stroke="#000000" stroke-width="2" id="line11" /> <line x1="310" y1="70" x2="310" y2="190" stroke="#000000" stroke-width="2" id="line12" /> <line x1="400" y1="70" x2="400" y2="190" stroke="#000000" stroke-width="2" id="line13" /> <line x1="490.90289" y1="70.261124" x2="490.90289" y2="190.26112" stroke="#000000" stroke-width="2" id="line13-3" /> <g font-family="Arial" font-size="14px" font-weight="bold" fill="#ffffff" text-anchor="middle" id="g20"> <circle cx="85" cy="70" r="18" fill="#4a6fa5" id="circle13" /> <text x="85" y="75" id="text13">6</text> <circle cx="175" cy="70" r="18" fill="#4a6fa5" id="circle14" /> <text x="175" y="75" id="text14">7</text> <circle cx="355" cy="70" r="18" fill="#e63946" id="circle15" /> <text x="355" y="75" id="text15">1</text> <circle cx="445" cy="150" r="18" fill="#4a6fa5" id="circle16" /> <text x="445" y="155" id="text16">3</text> <circle cx="175" cy="110" r="18" fill="#4a6fa5" id="circle17" /> <text x="175" y="115" id="text17">4</text> <circle cx="355" cy="110" r="18" fill="#4a6fa5" id="circle18" /> <text x="355" y="115" id="text18">5</text> <circle cx="175" cy="150" r="18" fill="#e63946" id="circle19" /> <text x="175" y="155" id="text19">1</text> <circle cx="355" cy="150" r="18" fill="#4a6fa5" id="circle20" /> <text x="355" y="155" id="text20">2</text> </g> </svg>`,
@@ -643,7 +695,12 @@ function getModesvg(modeName) {
   return key ? MODE_SVGS[key] : null;
 }
 
-/* ============================================================ THEORY ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — THEORY ENGINE
+   Gammes, arpèges, tensions, helpers chromatiques
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 const CHROMATIC=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const ENH={'C#':'Db','D#':'Eb','F#':'Gb','G#':'Ab','A#':'Bb','Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'};
 const ALL_KEYS=['C','Db','D','Eb','E','F','F#','Gb','G','Ab','A','Bb','B'];
@@ -658,7 +715,12 @@ const MODES_DEF={'':    [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]}
 const TENSION_IV={'b9':1,'9':2,'#9':3,'11':5,'#11':6,'b13':8,'13':9,'b2':1,'b7':10,'4':5,'b6':8};
 const TENS_DEF={'':    {a:['9','13'],av:['b7']},'maj7':{a:['9','#11','13'],av:[]},'maj9':{a:['9','#11','13'],av:[]},'maj13':{a:['9','#11','13'],av:[]},'6':{a:['9','#11'],av:[]},'6/9':{a:['9','#11'],av:[]},'m':{a:['9','11'],av:[]},'m6':{a:['9','11'],av:[]},'m7':{a:['9','11'],av:[]},'m9':{a:['9','11'],av:[]},'m11':{a:['9','11'],av:[]},'m13':{a:['9','11','13'],av:[]},'mM7':{a:['9','11'],av:[]},'7':{a:['b9','9','#9','#11','b13','13'],av:[]},'9':{a:['#11','b13','13'],av:[]},'11':{a:['b9','9','13'],av:[]},'13':{a:['b9','9','#9','#11'],av:[]},'dim':{a:['9','11','b13'],av:[]},'dim7':{a:['9','11','b13'],av:[]},'m7b5':{a:['9','11','b13'],av:[]},'aug':{a:['9','#11'],av:[]},'sus2':{a:['4','b7'],av:[]},'sus4':{a:['9','b7'],av:[]},'7sus4':{a:['b9','9','13'],av:[]}};
 
-/* ============================================================ PARSER ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — PARSER
+   Import MusicXML → chartData
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,'application/xml');const te=doc.querySelector('work-title,movement-title');const title=te?te.textContent.trim():'Thème';let tempo=120;const se=doc.querySelector('sound[tempo]');if(se)tempo=parseInt(se.getAttribute('tempo'));let ts='4/4';const b=doc.querySelector('beats'),bt=doc.querySelector('beat-type');if(b&&bt)ts=`${b.textContent}/${bt.textContent}`;const bpm=parseInt(ts.split('/')[0])||4;let key='C';const fi=doc.querySelector('fifths');if(fi){const f=parseInt(fi.textContent);const km={0:'C',1:'G',2:'D',3:'A',4:'E',5:'B',6:'F#','-1':'F','-2':'Bb','-3':'Eb','-4':'Ab','-5':'Db','-6':'Gb'};key=km[f]||'C';}const measures=doc.querySelectorAll('measure'),pm=[];measures.forEach((m,idx)=>{const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false};m.querySelectorAll('barline').forEach(bl=>{const loc=bl.getAttribute('location'),rep=bl.querySelector('repeat');if(rep){if(loc==='left'||rep.getAttribute('direction')==='forward')md.repeatStart=true;if(loc==='right'||rep.getAttribute('direction')==='backward')md.repeatEnd=true;}});m.querySelectorAll('harmony').forEach(h=>{const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');if(!re)return;let root=re.textContent.trim();if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};if(km[kind]!==undefined)kind=km[kind];let bass='';if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});});if(md.chords.length>0){const t2=bpm;md.chords.forEach(c=>{c.beats=Math.round(t2/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t2-s;}else md.chords.push({symbol:'%',beats:bpm,annot:null});pm.push(md);});const sections=[];let cur={label:'A',annotation:'',measures:[]};measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});if(cur.measures.length>0)sections.push(cur);return{title,key,tempo,timeSig:ts,style:'Swing',sections};}
 function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
 function fmtChord(sym){if(!sym||sym==='%')return '–';if(sym==='%%')return '𝄎';if(sym==='N.C.')return 'N.C.';if(sym==='/beat')return '/';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
@@ -667,7 +729,12 @@ function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 
 function getSymLabel(sym){if(sym==='%')return t('symRepeat');if(sym==='%%')return t('symRepeat2');if(sym==='N.C.')return t('symNC');if(sym==='/beat')return t('symSlash');return '';}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-/* ============================================================ STATE ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — STATE
+   Variables globales partagées entre tous les modules
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
 let currentSemitoneOffset=0,originalKey='C';
 let editTarget=null,annotTarget=null;
@@ -677,7 +744,12 @@ let aShow={mode:false,arp:false,tens:false,free:false};
 let aState={modeIdx:0,invIdx:0,selTens:[]};
 let labelTarget=null,selLetter='A',selSuffix='';
 
-/* ============================================================ TRANSPOSE ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — TRANSPOSE
+   Transposition par demi-ton ou tonalité cible
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function buildTransposeKeySelect(){const sel=document.getElementById('transpose-key-select');while(sel.options.length>1)sel.remove(1);ALL_KEYS.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});}
 function snapshotOriginalChords(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol===undefined)c._originalSymbol=c.symbol;})));originalKey=chartData.key;}
 function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>noteIdx(k)===(noteIdx(originalKey)+semitones+120)%12)||originalKey;chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined)c.symbol=transposeChordSymbol(c._originalSymbol,semitones,destKey);})));chartData.key=destKey;currentSemitoneOffset=((semitones%12)+12)%12;if(currentSemitoneOffset>6)currentSemitoneOffset-=12;document.getElementById('semitone-display').textContent=currentSemitoneOffset>0?'+'+currentSemitoneOffset:currentSemitoneOffset;document.getElementById('meta-key').value=destKey;document.getElementById('transpose-key-select').value=destKey;render();}
@@ -685,7 +757,12 @@ function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.
 function transposeBySemitone(delta){snapshotOriginalChords();applyTranspositionToChart((semitoneDiff(originalKey,chartData.key)+delta+12)%12);}
 function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords();applyTranspositionToChart(semitoneDiff(originalKey,destKeyStr));}
 
-/* ============================================================ RENDER ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — RENDER
+   DOM rendering : sections, mesures, accords, symboles
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function render(){document.getElementById('chart-title').value=chartData.title;document.getElementById('meta-key').value=chartData.key;document.getElementById('meta-tempo').value=chartData.tempo;document.getElementById('meta-time').value=chartData.timeSig;document.getElementById('meta-style').value=chartData.style;const cont=document.getElementById('sections-container');cont.innerHTML='';chartData.sections.forEach((s,si)=>cont.appendChild(renderSection(s,si)));}
 function moveSection(si,dir){const newIdx=si+dir;if(newIdx<0||newIdx>=chartData.sections.length)return;const tmp=chartData.sections[si];chartData.sections[si]=chartData.sections[newIdx];chartData.sections[newIdx]=tmp;render();}
 let dragSrcIdx=null;
@@ -774,7 +851,12 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
   }
   if(annot.showFree&&annot.freeText){const fa=document.createElement('div');fa.className='chord-free-annot';fa.textContent=annot.freeText;fa.style.color=annot.freeColor||'#c4b5fd';fa.style.fontWeight=annot.freeBold?'bold':'normal';fa.style.fontStyle=annot.freeItalic?'italic':'normal';slot.appendChild(fa);}const icon=document.createElement('div');icon.className='chord-annot-icon';icon.textContent='✏️';icon.onclick=e=>{e.stopPropagation();openAnnotModal(si,mi,ci,chord);};slot.appendChild(icon);return slot;}
 
-/* ============================================================ MODALS ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — MODALS
+   Modales : édition accord, annotations, label section
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 const ROOTS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
 const QUALITIES=[{label:'',value:''},{label:'maj7',value:'maj7'},{label:'maj9',value:'maj9'},{label:'maj13',value:'maj13'},{label:'6',value:'6'},{label:'6/9',value:'6/9'},{label:'m',value:'m'},{label:'m6',value:'m6'},{label:'m7',value:'m7'},{label:'m9',value:'m9'},{label:'m11',value:'m11'},{label:'m13',value:'m13'},{label:'mM7',value:'mM7'},{label:'7',value:'7'},{label:'9',value:'9'},{label:'11',value:'11'},{label:'13',value:'13'},{label:'dim',value:'dim'},{label:'dim7',value:'dim7'},{label:'ø7',value:'m7b5'},{label:'aug',value:'aug'},{label:'sus2',value:'sus2'},{label:'sus4',value:'sus4'},{label:'7sus4',value:'7sus4'}];
 const EXTS=['b5','#5','b9','#9','#11','b13','add9','add11','omit3'];
@@ -853,7 +935,12 @@ function openLabelModal(si){labelTarget=si;const cur=chartData.sections[si].labe
 function closeLabelModal(){document.getElementById('label-overlay').classList.remove('active');labelTarget=null;}
 function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarget].label=selLetter+selSuffix;closeLabelModal();render();}
 
-/* ============================================================ ACTIONS ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — ACTIONS
+   Mutations du chartData : add / delete / duplicate
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}
 function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))});render();}
 function duplicateSection(si){const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
@@ -862,7 +949,12 @@ function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0
 function deleteMeasure(si,mi){chartData.sections[si].measures.splice(mi,1);render();}
 function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
 
-/* ============================================================ I/O ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — I/O
+   Import/export JSON  +  import/export MusicXML
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function syncMetaToData(){chartData.title=document.getElementById('chart-title').value;chartData.key=document.getElementById('meta-key').value;chartData.tempo=document.getElementById('meta-tempo').value;chartData.timeSig=document.getElementById('meta-time').value;chartData.style=document.getElementById('meta-style').value;}
 function exportJSON(){syncMetaToData();const clean=JSON.parse(JSON.stringify(chartData));clean.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{delete c._originalSymbol;})));const blob=new Blob([JSON.stringify(clean,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(chartData.title||'chart')+'.json';a.click();}
 document.getElementById('import-json').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{chartData=JSON.parse(ev.target.result);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch{alert(t('alertBadJSON'));}};r.readAsText(file);});
@@ -872,7 +964,13 @@ dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-ove
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
 dz.addEventListener('drop',async e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}});
 ['chart-title','meta-key','meta-tempo','meta-time','meta-style'].forEach(id=>{document.getElementById(id).addEventListener('change',e=>{const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};chartData[m[id]]=e.target.value;if(id==='meta-key')originalKey=e.target.value;});});
-/* ============================================================ MusicXML HELPERS ============================================================ */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — MUSICXML EXPORT HELPERS
+   Fonctions utilitaires pour la génération MusicXML
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 function buildMusicXMLString(){
   syncMetaToData();
   chartData.tempo=parseInt(chartData.tempo)||120;
@@ -1059,7 +1157,12 @@ async function loadFileAsXML(file){
   });
 }
 
-/* ============================================================ PRINT ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — PRINT
+   Thèmes impression, palettes couleurs, CSS dynamique
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 let printTheme='light';
 const SECTION_PALETTES_LIGHT=[{bg:'#fff9e6',border:'#d4a500',header:'#ffedb3',text:'#7a5800',chord:'#1a1a1a'},{bg:'#e8f4ff',border:'#2d7ab8',header:'#bee3f8',text:'#1a4a7a',chord:'#1a1a1a'},{bg:'#edfff0',border:'#2a9a4a',header:'#c3f0cc',text:'#1a5a2a',chord:'#1a1a1a'},{bg:'#ffeef8',border:'#b83aaa',header:'#f5c6f0',text:'#6a1a5a',chord:'#1a1a1a'},{bg:'#fff0e8',border:'#c05820',header:'#ffd6b8',text:'#7a2800',chord:'#1a1a1a'},{bg:'#f0edff',border:'#5a3ab8',header:'#d4ccf8',text:'#2a1a7a',chord:'#1a1a1a'},{bg:'#e8fffe',border:'#1a9a8a',header:'#b8f0ec',text:'#0a5a50',chord:'#1a1a1a'},{bg:'#fff4f4',border:'#b82a2a',header:'#ffd0d0',text:'#7a1a1a',chord:'#1a1a1a'}];
 const SECTION_PALETTES_DARK=[{bg:'#2a2000',border:'#f0c040',header:'#3a2e00',text:'#ffd060',chord:'#ffffff'},{bg:'#001a30',border:'#4ab0f0',header:'#002040',text:'#7dd3fc',chord:'#ffffff'},{bg:'#001a08',border:'#3aaa5a',header:'#002010',text:'#86efac',chord:'#ffffff'},{bg:'#280020',border:'#d060c8',header:'#350028',text:'#f0a8ec',chord:'#ffffff'},{bg:'#280e00',border:'#e07838',header:'#341200',text:'#fbb060',chord:'#ffffff'},{bg:'#180030',border:'#8060e8',header:'#200038',text:'#c4b5fd',chord:'#ffffff'},{bg:'#001a18',border:'#28c8b0',header:'#002020',text:'#5eead4',chord:'#ffffff'},{bg:'#280000',border:'#e04040',header:'#340000',text:'#fca5a5',chord:'#ffffff'}];
@@ -1074,7 +1177,12 @@ function injectPrintStyle(v){removePrintStyle();const el=document.createElement(
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
 
-/* ============================================================ INIT ============================================================ */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — INIT
+   Initialisation : event listeners globaux, premier render
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
 document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
