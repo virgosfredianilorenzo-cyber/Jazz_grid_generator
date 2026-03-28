@@ -106,6 +106,29 @@ label { font-size:0.85rem; color:#aaa; }
 .add-chord-btn:hover { border-color:#f0a500; color:#f0a500; }
 .add-measure-btn,.add-section-btn { border:2px dashed #2d5a8a; background:none; color:#2d5a8a; border-radius:4px; min-height:60px; cursor:pointer; font-size:1.4rem; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
 .add-measure-btn:hover,.add-section-btn:hover { border-color:#f0a500; color:#f0a500; }
+/* ——— Symboles spéciaux de mesure ——— */
+.chord-slot.sym-repeat   { background:rgba(240,165,0,0.07); }
+.chord-slot.sym-repeat2  { background:rgba(240,165,0,0.07); }
+.chord-slot.sym-nc       { background:rgba(200,60,60,0.08); }
+.chord-slot.sym-slash    { background:rgba(100,180,255,0.07); }
+.sym-display { font-size:1.6rem; font-weight:900; text-align:center; line-height:1; padding:8px 0 4px; user-select:none; }
+.sym-repeat  .sym-display { color:#f0c060; }
+.sym-repeat2 .sym-display { color:#f0c060; font-size:1.2rem; }
+.sym-nc      .sym-display { color:#f87171; letter-spacing:1px; font-size:1rem; }
+.sym-slash   .sym-display { color:#7dd3fc; font-size:1.4rem; }
+.sym-label   { font-size:0.55rem; color:#666; text-align:center; padding-bottom:2px; }
+/* Bouton symbole rapide sur la mesure */
+.measure-sym-bar { display:flex; justify-content:flex-end; gap:3px; padding:2px 4px 0; }
+.sym-quick-btn { background:none; border:1px solid #2d4a6a; border-radius:3px; color:#4a7aaa; font-size:0.68rem; cursor:pointer; padding:1px 5px; transition:all 0.15s; line-height:1.4; }
+.sym-quick-btn:hover { border-color:#f0a500; color:#f0a500; background:rgba(240,165,0,0.1); }
+.sym-quick-btn.active-sym { border-color:#f0c060; color:#f0c060; background:rgba(240,192,96,0.12); }
+/* Panneau symboles dans la modale */
+#modal-sym-panel { background:#0f2035; border:1px solid #2d4a7a; border-radius:6px; padding:8px 10px; margin-bottom:10px; }
+#modal-sym-panel label { font-size:0.75rem; color:#f0a500; font-weight:bold; display:block; margin-bottom:6px; }
+.modal-sym-grid { display:flex; gap:6px; flex-wrap:wrap; }
+.modal-sym-btn { padding:6px 14px; background:#1e3a5f; border:1px solid #3d6aaa; border-radius:5px; color:#eee; cursor:pointer; font-size:0.85rem; font-weight:bold; transition:all 0.15s; }
+.modal-sym-btn:hover { border-color:#f0a500; background:rgba(240,165,0,0.12); color:#f0a500; }
+.modal-sym-btn.selected { border-color:#f0c060; background:rgba(240,192,96,0.18); color:#f0c060; }
 .add-section-btn { min-height:44px; width:100%; margin:8px 0; font-size:1rem; }
 .cols-select { width:60px; }
 .overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
@@ -204,11 +227,14 @@ label { font-size:0.85rem; color:#aaa; }
   #chart-title { font-size:1.4rem !important; border-bottom:1px solid #ccc !important; padding-bottom:2px !important; }
   #chart-meta { margin-top:4px !important; font-size:0.78rem !important; gap:10px !important; }
   #chart-meta input { font-size:0.78rem !important; }
-  .section { border:2px solid #000; background:white; page-break-inside:avoid; break-inside:avoid; margin-bottom:10px; }
+  .section { border:2px solid #000; background:white; page-break-inside:auto; margin-bottom:10px; }
   .section-header { background:#ddd; }
   .section-label { color:#000; }
   .measure { background:white; border:1.5px solid #333; page-break-inside:avoid; }
   .chord-symbol { color:#000!important; font-size:1.1rem; }
+  .sym-display { color:#000!important; font-size:1.4rem; }
+  .sym-label { display:none; }
+  .sym-repeat, .sym-repeat2, .sym-nc, .sym-slash { background:transparent !important; }
   .mode-val { color:#000 !important; font-weight:bold !important; font-style:normal !important; }
   .barline-repeat-start { border-left-color:#000; }
   .barline-repeat-end   { border-right-color:#000; }
@@ -296,11 +322,17 @@ label { font-size:0.85rem; color:#aaa; }
 <div id="modal-overlay" class="overlay">
   <div id="modal" class="modal-box">
     <h3 id="modal-title"></h3>
+    <div id="modal-sym-panel">
+      <label id="lbl-symbols"></label>
+      <div class="modal-sym-grid" id="modal-sym-btns"></div>
+    </div>
+    <div id="modal-chord-section">
     <div style="margin-bottom:12px;"><label id="lbl-root" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="root-btns"></div></div>
     <div style="margin-bottom:12px;"><label id="lbl-quality" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="quality-btns"></div></div>
     <div style="margin-bottom:12px;"><label id="lbl-ext" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="ext-btns"></div></div>
     <div class="modal-row"><label id="lbl-bass"></label><input type="text" id="bass-input" style="width:70px"><button class="chord-btn" id="btn-clear-bass" onclick="document.getElementById('bass-input').value=''"></button></div>
     <div class="modal-row"><label id="lbl-free-chord"></label><input type="text" id="free-chord" style="flex:1"></div>
+    </div>
     <div class="modal-row"><label id="lbl-beats"></label><input type="number" id="chord-beats" min="1" max="8" value="4" style="width:70px"></div>
     <div class="modal-footer">
       <button class="btn danger" id="btn-delete-chord" onclick="deleteChord()"></button>
@@ -406,6 +438,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Thème :',themeLight:'☀️ Clair',themeDark:'🌙 Sombre',lblContrast:'Contraste :',lblSectionColors:'Couleurs sections :',btnDoPrint:'Imprimer',contrastLabels:['Léger','Standard','Soutenu','Fort','Maximum'],
     alertLastSection:'Impossible de supprimer la dernière section.',alertBadJSON:'JSON invalide.',alertBadXML:'Erreur MusicXML.',
     defaultTitle:'Mon Thème Jazz',editHint:'clic: éditer',tipDeleteMeasure:'Supprimer mesure',tipDupMeasure:'Dupliquer mesure',tipAddChord:'Ajouter un accord',sectionDefault:'Section',
+    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',
   },
   es: {
     btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',
@@ -420,6 +453,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Claro',themeDark:'🌙 Oscuro',lblContrast:'Contraste :',lblSectionColors:'Colores secciones :',btnDoPrint:'Imprimir',contrastLabels:['Suave','Estándar','Medio','Fuerte','Máximo'],
     alertLastSection:'No se puede eliminar la última sección.',alertBadJSON:'JSON inválido.',alertBadXML:'Error MusicXML.',
     defaultTitle:'Mi Tema Jazz',editHint:'clic: editar',tipDeleteMeasure:'Eliminar compás',tipDupMeasure:'Duplicar compás',tipAddChord:'Agregar acorde',sectionDefault:'Sección',
+    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',
   },
   it: {
     btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',
@@ -434,6 +468,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Chiaro',themeDark:'🌙 Scuro',lblContrast:'Contrasto :',lblSectionColors:'Colori sezioni :',btnDoPrint:'Stampa',contrastLabels:['Leggero','Standard','Sostenuto','Forte','Massimo'],
     alertLastSection:"Impossibile eliminare l'ultima sezione.",alertBadJSON:'JSON non valido.',alertBadXML:'Errore MusicXML.',
     defaultTitle:'Il Mio Tema Jazz',editHint:'clic: modifica',tipDeleteMeasure:'Elimina misura',tipDupMeasure:'Duplica misura',tipAddChord:'Aggiungi accordo',sectionDefault:'Sezione',
+    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',
   },
   en: {
     btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',
@@ -448,6 +483,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Theme :',themeLight:'☀️ Light',themeDark:'🌙 Dark',lblContrast:'Contrast :',lblSectionColors:'Section colors :',btnDoPrint:'Print',contrastLabels:['Light','Standard','Medium','Strong','Maximum'],
     alertLastSection:'Cannot delete the last section.',alertBadJSON:'Invalid JSON.',alertBadXML:'MusicXML error.',
     defaultTitle:'My Jazz Theme',editHint:'click: edit',tipDeleteMeasure:'Delete measure',tipDupMeasure:'Duplicate measure',tipAddChord:'Add chord',sectionDefault:'Section',
+    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',
   }
 };
 
@@ -473,6 +509,7 @@ function applyTranslations(){
   document.getElementById('meta-style-label').textContent=t('metaStyle');
   document.getElementById('btn-add-section').textContent=t('btnAddSection');
   document.getElementById('lbl-root').textContent=t('lblRoot');
+  document.getElementById('lbl-symbols').textContent=t('lblSymbols');
   document.getElementById('lbl-quality').textContent=t('lblQuality');
   document.getElementById('lbl-ext').textContent=t('lblExt');
   document.getElementById('lbl-bass').textContent=t('lblBass');
@@ -521,7 +558,7 @@ function applyTranslations(){
   if(document.getElementById('chart-editor').style.display!=='none')render();
 }
 
-function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();}
+function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();buildModal();}
 
 /* ============================================================ MODE SVG DIAGRAMS ============================================================ */
 const MODE_SVGS = {
@@ -614,7 +651,7 @@ function noteIdx(n){const i=CHROMATIC.indexOf(n);return i!==-1?i:(ENH[n]?CHROMAT
 function tr(root,s){const idx=noteIdx(root);if(idx===-1)return'?';const r=CHROMATIC[(idx+s+12)%12];return['F','Bb','Eb','Ab','Db','Gb'].includes(root)&&ENH[r]?ENH[r]:r;}
 function trToKey(note,s,destKey){const idx=noteIdx(note);if(idx===-1)return'?';const r=CHROMATIC[(idx+s+12)%12];return['F','Bb','Eb','Ab','Db','Gb','Cb'].includes(destKey)&&ENH[r]?ENH[r]:r;}
 function semitoneDiff(a,b){const x=noteIdx(a),y=noteIdx(b);if(x===-1||y===-1)return 0;return(y-x+12)%12;}
-function transposeChordSymbol(sym,s,destKey){if(!sym||sym==='%'||sym==='–')return sym;const p=sym.split('/'),main=p[0],bass=p[1]||null;const rm=main.match(/^([A-G][#b]?)(.*)/);if(!rm)return sym;return trToKey(rm[1],s,destKey||tr(rm[1],s))+rm[2]+(bass?'/'+trToKey(bass,s,destKey||tr(bass,s)):'');}
+function transposeChordSymbol(sym,s,destKey){if(!sym||sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat'||sym==='–')return sym;const p=sym.split('/'),main=p[0],bass=p[1]||null;const rm=main.match(/^([A-G][#b]?)(.*)/);if(!rm)return sym;return trToKey(rm[1],s,destKey||tr(rm[1],s))+rm[2]+(bass?'/'+trToKey(bass,s,destKey||tr(bass,s)):'');}
 const ARP_DEF={'':    {i:[0,4,7,12],n:['1','3','5','8']},'maj7':{i:[0,4,7,11],n:['1','3','5','7']},'maj9':{i:[0,4,7,11],n:['1','3','5','7']},'maj13':{i:[0,4,7,11],n:['1','3','5','7']},'6':{i:[0,4,7,9],n:['1','3','5','6']},'6/9':{i:[0,4,7,9],n:['1','3','5','6']},'m':{i:[0,3,7,12],n:['1','b3','5','8']},'m6':{i:[0,3,7,9],n:['1','b3','5','6']},'m7':{i:[0,3,7,10],n:['1','b3','5','b7']},'m9':{i:[0,3,7,10],n:['1','b3','5','b7']},'m11':{i:[0,3,7,10],n:['1','b3','5','b7']},'m13':{i:[0,3,7,10],n:['1','b3','5','b7']},'mM7':{i:[0,3,7,11],n:['1','b3','5','7']},'7':{i:[0,4,7,10],n:['1','3','5','b7']},'9':{i:[0,4,7,10],n:['1','3','5','b7']},'11':{i:[0,4,7,10],n:['1','3','5','b7']},'13':{i:[0,4,7,10],n:['1','3','5','b7']},'dim':{i:[0,3,6,12],n:['1','b3','b5','8']},'dim7':{i:[0,3,6,9],n:['1','b3','b5','bb7']},'m7b5':{i:[0,3,6,10],n:['1','b3','b5','b7']},'aug':{i:[0,4,8,12],n:['1','3','#5','8']},'sus2':{i:[0,2,7,12],n:['1','2','5','8']},'sus4':{i:[0,5,7,12],n:['1','4','5','8']},'7sus4':{i:[0,5,7,10],n:['1','4','5','b7']}};
 function getInversions(root,quality){const def=ARP_DEF[quality]||ARP_DEF['maj7'];const base=def.i.map(s=>tr(root,s)),baseN=def.n;return t('invLabels').map((label,k)=>({label,notes:[...base.slice(k),...base.slice(0,k)],degrees:[...baseN.slice(k),...baseN.slice(0,k)]}));}
 const MODES_DEF={'':    [{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]}],'maj7':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],'maj9':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],'maj13':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],'6':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]}],'6/9':[{name:'Ionien',desc:'1 2 3 4 5 6 7',i:[0,2,4,5,7,9,11]},{name:'Lydien',desc:'1 2 3 #4 5 6 7',i:[0,2,4,6,7,9,11]}],'m':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],'m6':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Mélodie mineure',desc:'1 2 b3 4 5 6 7',i:[0,2,3,5,7,9,11]}],'m7':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]},{name:'Éolien',desc:'1 2 b3 4 5 b6 b7',i:[0,2,3,5,7,8,10]},{name:'Phrygien',desc:'1 b2 b3 4 5 b6 b7',i:[0,1,3,5,7,8,10]}],'m9':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],'m11':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],'m13':[{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],'mM7':[{name:'Mélodie mineure',desc:'1 2 b3 4 5 6 7',i:[0,2,3,5,7,9,11]}],'7':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]},{name:'Mixolydien b9b13',desc:'1 b2 3 4 5 b6 b7',i:[0,1,4,5,7,8,10]},{name:'Altéré',desc:'1 b2 #2 3 b5 b6 b7',i:[0,1,3,4,6,8,10]}],'9':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],'11':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}],'13':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Lydien b7',desc:'1 2 3 #4 5 6 b7',i:[0,2,4,6,7,9,10]}],'dim':[{name:'Dim. ton-demi',desc:'1 2 b3 4 b5 b6 6 7',i:[0,2,3,5,6,8,9,11]}],'dim7':[{name:'Dim. demi-ton',desc:'1 b2 b3 3 b5 5 6 b7',i:[0,1,3,4,6,7,9,10]}],'m7b5':[{name:'Locrien',desc:'1 b2 b3 4 b5 b6 b7',i:[0,1,3,5,6,8,10]},{name:'Locrien #2',desc:'1 2 b3 4 b5 b6 b7',i:[0,2,3,5,6,8,10]}],'aug':[{name:'Lydien augmenté',desc:'1 2 3 #4 #5 6 7',i:[0,2,4,6,8,9,11]},{name:'Tons entiers',desc:'1 2 3 #4 #5 b7',i:[0,2,4,6,8,10]}],'sus2':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}],'sus4':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]},{name:'Dorien',desc:'1 2 b3 4 5 6 b7',i:[0,2,3,5,7,9,10]}],'7sus4':[{name:'Mixolydien',desc:'1 2 3 4 5 6 b7',i:[0,2,4,5,7,9,10]}]};
@@ -623,8 +660,11 @@ const TENS_DEF={'':    {a:['9','13'],av:['b7']},'maj7':{a:['9','#11','13'],av:[]
 
 /* ============================================================ PARSER ============================================================ */
 function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,'application/xml');const te=doc.querySelector('work-title,movement-title');const title=te?te.textContent.trim():'Thème';let tempo=120;const se=doc.querySelector('sound[tempo]');if(se)tempo=parseInt(se.getAttribute('tempo'));let ts='4/4';const b=doc.querySelector('beats'),bt=doc.querySelector('beat-type');if(b&&bt)ts=`${b.textContent}/${bt.textContent}`;const bpm=parseInt(ts.split('/')[0])||4;let key='C';const fi=doc.querySelector('fifths');if(fi){const f=parseInt(fi.textContent);const km={0:'C',1:'G',2:'D',3:'A',4:'E',5:'B',6:'F#','-1':'F','-2':'Bb','-3':'Eb','-4':'Ab','-5':'Db','-6':'Gb'};key=km[f]||'C';}const measures=doc.querySelectorAll('measure'),pm=[];measures.forEach((m,idx)=>{const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false};m.querySelectorAll('barline').forEach(bl=>{const loc=bl.getAttribute('location'),rep=bl.querySelector('repeat');if(rep){if(loc==='left'||rep.getAttribute('direction')==='forward')md.repeatStart=true;if(loc==='right'||rep.getAttribute('direction')==='backward')md.repeatEnd=true;}});m.querySelectorAll('harmony').forEach(h=>{const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');if(!re)return;let root=re.textContent.trim();if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};if(km[kind]!==undefined)kind=km[kind];let bass='';if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});});if(md.chords.length>0){const t2=bpm;md.chords.forEach(c=>{c.beats=Math.round(t2/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t2-s;}else md.chords.push({symbol:'%',beats:bpm,annot:null});pm.push(md);});const sections=[];let cur={label:'A',annotation:'',measures:[]};measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});if(cur.measures.length>0)sections.push(cur);return{title,key,tempo,timeSig:ts,style:'Swing',sections};}
-function parseChordSym(sym){if(!sym||sym==='%'||sym==='–')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
-function fmtChord(sym){if(!sym||sym==='%')return '–';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
+function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
+function fmtChord(sym){if(!sym||sym==='%')return '–';if(sym==='%%')return '𝄎';if(sym==='N.C.')return 'N.C.';if(sym==='/beat')return '/';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
+function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat';}
+function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 'sym-repeat2';if(sym==='N.C.')return 'sym-nc';if(sym==='/beat')return 'sym-slash';return '';}
+function getSymLabel(sym){if(sym==='%')return t('symRepeat');if(sym==='%%')return t('symRepeat2');if(sym==='N.C.')return t('symNC');if(sym==='/beat')return t('symSlash');return '';}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 /* ============================================================ STATE ============================================================ */
@@ -690,7 +730,21 @@ const tgtMeasures=chartData.sections[si].measures;let tgtIdx=mi;if(src.si===si&&
   div.addEventListener('mouseleave',()=>{btnL.style.opacity='0';btnR.style.opacity='0';});
   const beatsRow=document.createElement('div');beatsRow.className='beats-row';(measure.chords||[]).forEach((chord,ci)=>beatsRow.appendChild(renderChordSlot(chord,si,mi,ci)));const addBtn=document.createElement('button');addBtn.className='add-chord-btn';addBtn.textContent='+';addBtn.title=t('tipAddChord');addBtn.onclick=e=>{e.stopPropagation();openModal(si,mi,-1,null);};beatsRow.appendChild(addBtn);div.appendChild(beatsRow);
   const delM=document.createElement('button');delM.className='chord-del-btn';delM.textContent='✕';delM.title=t('tipDeleteMeasure');delM.onclick=e=>{e.stopPropagation();deleteMeasure(si,mi);};div.appendChild(delM);const dupM=document.createElement('button');dupM.style.cssText='position:absolute;top:2px;right:18px;background:none;border:none;color:#f0a500;font-size:0.6rem;cursor:pointer;opacity:0;transition:opacity 0.2s;';dupM.textContent='⧉';dupM.title=t('tipDupMeasure');dupM.onclick=e=>{e.stopPropagation();duplicateMeasure(si,mi);};div.appendChild(dupM);div.addEventListener('mouseenter',()=>dupM.style.opacity='1');div.addEventListener('mouseleave',()=>dupM.style.opacity='0');div.addEventListener('contextmenu',e=>{e.preventDefault();openModal(si,mi,-1,null);});return div;}
-function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=parseChordSym(chord.symbol);const slot=document.createElement('div');slot.className='chord-slot'+(annot&&(annot.showMode||annot.showArp||annot.showTens||annot.showFree)?' has-annot':'');slot.style.flex=chord.beats||1;const hdr=document.createElement('div');hdr.className='chord-header';hdr.innerHTML=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;hdr.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};slot.appendChild(hdr);
+function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=parseChordSym(chord.symbol);
+  const symClass=getSymClass(chord.symbol);
+  const slot=document.createElement('div');
+  slot.className='chord-slot'+(symClass?' '+symClass:'')+(annot&&(annot.showMode||annot.showArp||annot.showTens||annot.showFree)?' has-annot':'');
+  slot.style.flex=chord.beats||1;
+  // — Rendu symbole spécial —
+  if(symClass){
+    const disp=document.createElement('div');disp.className='sym-display';disp.textContent=fmtChord(chord.symbol);
+    const lbl=document.createElement('div');lbl.className='sym-label';lbl.textContent=getSymLabel(chord.symbol);
+    const hint=document.createElement('div');hint.className='chord-edit-hint';hint.textContent=t('editHint');
+    slot.appendChild(disp);slot.appendChild(lbl);slot.appendChild(hint);
+    slot.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
+    return slot;
+  }
+  const hdr=document.createElement('div');hdr.className='chord-header';hdr.innerHTML=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;hdr.onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};slot.appendChild(hdr);
   if(parsed&&annot.showMode){
     const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
     const idx=Math.min(annot.modeIdx||0,modes.length-1);
@@ -724,10 +778,66 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
 const ROOTS=['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'];
 const QUALITIES=[{label:'',value:''},{label:'maj7',value:'maj7'},{label:'maj9',value:'maj9'},{label:'maj13',value:'maj13'},{label:'6',value:'6'},{label:'6/9',value:'6/9'},{label:'m',value:'m'},{label:'m6',value:'m6'},{label:'m7',value:'m7'},{label:'m9',value:'m9'},{label:'m11',value:'m11'},{label:'m13',value:'m13'},{label:'mM7',value:'mM7'},{label:'7',value:'7'},{label:'9',value:'9'},{label:'11',value:'11'},{label:'13',value:'13'},{label:'dim',value:'dim'},{label:'dim7',value:'dim7'},{label:'ø7',value:'m7b5'},{label:'aug',value:'aug'},{label:'sus2',value:'sus2'},{label:'sus4',value:'sus4'},{label:'7sus4',value:'7sus4'}];
 const EXTS=['b5','#5','b9','#9','#11','b13','add9','add11','omit3'];
-function buildModal(){const rc=document.getElementById('root-btns');rc.innerHTML='';ROOTS.forEach(r=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=r;b.dataset.val=r;b.onclick=()=>{document.querySelectorAll('#root-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedRoot=r;document.getElementById('free-chord').value='';};rc.appendChild(b);});const qc=document.getElementById('quality-btns');qc.innerHTML='';QUALITIES.forEach(q=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=q.label||'—';b.dataset.val=q.value;b.onclick=()=>{document.querySelectorAll('#quality-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedQuality=q.value;document.getElementById('free-chord').value='';};qc.appendChild(b);});const ec=document.getElementById('ext-btns');ec.innerHTML='';EXTS.forEach(e=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=e;b.dataset.val=e;b.onclick=()=>{b.classList.toggle('active');if(b.classList.contains('active')){if(!selectedExts.includes(e))selectedExts.push(e);}else selectedExts=selectedExts.filter(x=>x!==e);document.getElementById('free-chord').value='';};ec.appendChild(b);});}
-function openModal(si,mi,ci,chord){editTarget={si,mi,ci};selectedExts=[];document.querySelectorAll('#root-btns .chord-btn,#quality-btns .chord-btn,#ext-btns .chord-btn').forEach(b=>b.classList.remove('active'));const bpm=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;if(chord&&chord.symbol&&chord.symbol!=='%'){const rm=chord.symbol.match(/^([A-G][#b]?)/);if(rm){selectedRoot=rm[1];const btn=document.querySelector(`#root-btns .chord-btn[data-val="${selectedRoot}"]`);if(btn)btn.classList.add('active');}document.getElementById('free-chord').value=chord.symbol;document.getElementById('bass-input').value=chord.symbol.includes('/')?chord.symbol.split('/')[1]:'';document.getElementById('chord-beats').value=chord.beats||bpm;}else{document.getElementById('free-chord').value='';document.getElementById('bass-input').value='';document.getElementById('chord-beats').value=bpm;const dr=document.querySelector('#root-btns .chord-btn[data-val="C"]');if(dr)dr.classList.add('active');const dq=document.querySelector('#quality-btns .chord-btn[data-val="maj7"]');if(dq)dq.classList.add('active');selectedRoot='C';selectedQuality='maj7';}document.getElementById('modal-title').textContent=ci===-1?t('modalAddChord'):t('modalEditChord');document.getElementById('modal-overlay').classList.add('active');}
+function buildModal(){
+  // — Symboles rapides —
+  const sc=document.getElementById('modal-sym-btns');sc.innerHTML='';
+  const SYMS=[
+    {label:'— '+t('symNone').replace('— ',''),value:''},
+    {label:'%',value:'%',title:t('symRepeat')},
+    {label:'𝄎',value:'%%',title:t('symRepeat2')},
+    {label:'N.C.',value:'N.C.',title:t('symNC')},
+    {label:'/',value:'/beat',title:t('symSlash')},
+  ];
+  SYMS.forEach(s=>{const b=document.createElement('button');b.className='modal-sym-btn';b.textContent=s.label;b.dataset.sym=s.value;if(s.title)b.title=s.title;b.onclick=()=>{document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');// si symbole spécial : masquer la partie accord, sinon afficher
+const isSpec=s.value!=='';document.getElementById('modal-chord-section').style.display=isSpec?'none':'block';if(isSpec)document.getElementById('free-chord').value=s.value;else document.getElementById('free-chord').value='';};sc.appendChild(b);});
+  const rc=document.getElementById('root-btns');rc.innerHTML='';ROOTS.forEach(r=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=r;b.dataset.val=r;b.onclick=()=>{document.querySelectorAll('#root-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedRoot=r;document.getElementById('free-chord').value='';// désélectionner les symboles
+document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));document.querySelector('.modal-sym-btn[data-sym=""]').classList.add('selected');document.getElementById('modal-chord-section').style.display='block';};rc.appendChild(b);});
+  const qc=document.getElementById('quality-btns');qc.innerHTML='';QUALITIES.forEach(q=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=q.label||'—';b.dataset.val=q.value;b.onclick=()=>{document.querySelectorAll('#quality-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selectedQuality=q.value;document.getElementById('free-chord').value='';document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));document.querySelector('.modal-sym-btn[data-sym=""]').classList.add('selected');document.getElementById('modal-chord-section').style.display='block';};qc.appendChild(b);});
+  const ec=document.getElementById('ext-btns');ec.innerHTML='';EXTS.forEach(e=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=e;b.dataset.val=e;b.onclick=()=>{b.classList.toggle('active');if(b.classList.contains('active')){if(!selectedExts.includes(e))selectedExts.push(e);}else selectedExts=selectedExts.filter(x=>x!==e);document.getElementById('free-chord').value='';document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));document.querySelector('.modal-sym-btn[data-sym=""]').classList.add('selected');document.getElementById('modal-chord-section').style.display='block';};ec.appendChild(b);});
+}
+function openModal(si,mi,ci,chord){
+  editTarget={si,mi,ci};selectedExts=[];
+  document.querySelectorAll('#root-btns .chord-btn,#quality-btns .chord-btn,#ext-btns .chord-btn').forEach(b=>b.classList.remove('active'));
+  const bpm=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;
+  // — Initialiser les symboles rapides —
+  document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));
+  const sym=chord?chord.symbol:'';
+  const isSpec=isSpecialSym(sym);
+  document.getElementById('modal-chord-section').style.display=isSpec?'none':'block';
+  const activeSymBtn=document.querySelector(`.modal-sym-btn[data-sym="${isSpec?sym:''}"]`);
+  if(activeSymBtn)activeSymBtn.classList.add('selected');
+  if(chord&&chord.symbol&&!isSpec){
+    const rm=chord.symbol.match(/^([A-G][#b]?)/);
+    if(rm){selectedRoot=rm[1];const btn=document.querySelector(`#root-btns .chord-btn[data-val="${selectedRoot}"]`);if(btn)btn.classList.add('active');}
+    document.getElementById('free-chord').value=chord.symbol;
+    document.getElementById('bass-input').value=chord.symbol.includes('/')?chord.symbol.split('/')[1]:'';
+    document.getElementById('chord-beats').value=chord.beats||bpm;
+  }else{
+    document.getElementById('free-chord').value=isSpec?sym:'';
+    document.getElementById('bass-input').value='';
+    document.getElementById('chord-beats').value=chord?chord.beats||bpm:bpm;
+    if(!isSpec){
+      const dr=document.querySelector('#root-btns .chord-btn[data-val="C"]');if(dr)dr.classList.add('active');
+      const dq=document.querySelector('#quality-btns .chord-btn[data-val="maj7"]');if(dq)dq.classList.add('active');
+      selectedRoot='C';selectedQuality='maj7';
+    }
+  }
+  document.getElementById('modal-title').textContent=ci===-1?t('modalAddChord'):t('modalEditChord');
+  document.getElementById('modal-overlay').classList.add('active');
+}
 function closeModal(){document.getElementById('modal-overlay').classList.remove('active');editTarget=null;}
-function buildChordSymbol(){const free=document.getElementById('free-chord').value.trim();if(free)return free;const bass=document.getElementById('bass-input').value.trim();let sym=selectedRoot+selectedQuality;if(selectedExts.length>0)sym+='('+selectedExts.join(',')+')';if(bass)sym+='/'+bass;return sym;}
+function buildChordSymbol(){
+  // Symbole spécial sélectionné ?
+  const selSym=document.querySelector('.modal-sym-btn.selected');
+  if(selSym&&selSym.dataset.sym!=='')return selSym.dataset.sym;
+  const free=document.getElementById('free-chord').value.trim();
+  if(free)return free;
+  const bass=document.getElementById('bass-input').value.trim();
+  let sym=selectedRoot+selectedQuality;
+  if(selectedExts.length>0)sym+='('+selectedExts.join(',')+')';
+  if(bass)sym+='/'+bass;
+  return sym;
+}
 function applyChord(){const{si,mi,ci}=editTarget;const symbol=buildChordSymbol(),beats=parseInt(document.getElementById('chord-beats').value)||4;const measure=chartData.sections[si].measures[mi];if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}else{const ex=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:ex?ex.annot:null};}closeModal();render();}
 function deleteChord(){const{si,mi,ci}=editTarget;if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);closeModal();render();}
 function toggleSection(key){aShow[key]=!aShow[key];document.getElementById('toggle-'+key).classList.toggle('on',aShow[key]);}
