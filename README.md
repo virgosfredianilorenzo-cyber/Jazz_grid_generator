@@ -15,6 +15,11 @@
 
 - 📂 **Import MusicXML** — glisser-déposer ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo — formats `.musicxml`, `.xml` et `.mxl` (compressé)
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse slash, saisie libre, durée par accord en temps
+- 🎵 **Symboles de mesure** inspirés d'iReal Pro :
+  - `%` — répétition de mesure
+  - `𝄎` — répétition de 2 mesures
+  - `N.C.` — No Chord (silence harmonique)
+  - `/` — beat slash (pulsation sans accord précisé)
 - 🎼 **Annotations de théorie musicale** par accord :
   - Modes compatibles avec diagramme de manche SVG dynamique (16 modes, basse 4 cordes EADG)
   - Arpèges 4 sons avec tous les renversements
@@ -23,11 +28,11 @@
 - 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, gestion automatique des enharmoniques
 - 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), déplacement par glisser-déposer ou boutons ▲▼, duplication, annotation libre
 - 📐 **Déplacement des mesures** — glisser-déposer y compris entre sections, boutons ◀▶ au survol, duplication
-- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, diagrammes SVG inclus dans le PDF
+- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, sections jamais coupées entre deux pages, diagrammes SVG inclus dans le PDF
 - 💾 **Sauvegarde JSON** — fidélité totale incluant toutes les annotations
 - 🎼 **Export MusicXML / MXL** — compatible MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- 📱 **Fichier unique** — HTML + CSS + JS sans build, fonctionne hors ligne (JSZip 3.10.1 intégré)
+- 📱 **Fichier unique structuré** — HTML + CSS + JS sans build, fonctionne hors ligne (JSZip 3.10.1 intégré)
 
 ---
 
@@ -87,7 +92,8 @@ Déposer `index.html` sur n'importe quel hébergeur statique (Netlify, Vercel, C
 1. Cliquer sur **✨ Nouveau** — une grille vierge de 8 mesures en Do majeur s'ouvre
 2. Renseigner le **titre**, la **tonalité**, le **tempo**, la **mesure** et le **style** dans l'en-tête
 3. Cliquer sur un accord pour l'éditer, ou sur **+** dans une mesure pour en ajouter un
-4. Cliquer sur l'icône **✏️** d'un accord pour ajouter des annotations théoriques (mode, arpège, tensions, note libre)
+4. Dans la modale d'accord, utiliser la section **SYMBOLES RAPIDES** (`%`, `𝄎`, `N.C.`, `/`) pour les mesures spéciales
+5. Cliquer sur l'icône **✏️** d'un accord pour ajouter des annotations théoriques (mode, arpège, tensions, note libre)
 
 ### Importer un fichier MusicXML
 
@@ -133,6 +139,8 @@ Les enharmoniques sont choisis automatiquement selon la tonalité de destination
 3. Régler le **contraste** (1–5) — contrôle l'épaisseur des bordures et la taille des symboles d'accords
 4. Vérifier les **couleurs de sections** — chaque label de section reçoit une couleur distincte automatiquement
 5. Cliquer sur **Imprimer** → utiliser **Enregistrer en PDF** dans la boîte de dialogue du navigateur
+
+> Les sections ne sont jamais coupées à cheval sur deux pages (`break-inside: avoid`).
 
 ---
 
@@ -197,19 +205,29 @@ Jazz_grid_generator/
     └── capt3.png       # Sortie PDF
 ```
 
-Le code JavaScript est organisé en modules logiques délimités par des commentaires :
+Le fichier est organisé en **blocs délimités par des séparateurs visuels** `/* ━━━ */` pour faciliter la maintenance sans outil externe. Chercher `/* ━━━ JS — NOM` dans le fichier pour naviguer directement vers une section.
 
-- `i18n` — dictionnaire de traduction et changement de langue
-- `theory` — moteur musical (gammes, arpèges, tensions, transposition)
-- `parser` — parseur MusicXML / MXL
-- `state` — état de l'application
-- `transpose` — logique de transposition
-- `render` — rendu DOM
-- `modals` — dialogues d'édition d'accords et d'annotations
-- `actions` — mutations de la grille (ajout, suppression, duplication, déplacement)
-- `io` — import/export (JSON, MusicXML, MXL)
-- `print` — thème et système de couleurs pour l'impression
-- `app` — initialisation et événements globaux
+| Ligne | Bloc | Contenu |
+|-------|------|---------|
+| L8 | `CSS — APP` | Toolbar, layout, sections, mesures, symboles |
+| L143 | `CSS — MODALS` | Overlay, modales accord / annotation / section |
+| L228 | `CSS — PRINT` | @media print : thèmes, couleurs, page-break |
+| L281 | `HTML — STRUCTURE` | Toolbar, dropzone, éditeur, modales, barre impression |
+| L469 | `JS — I18N` | Dictionnaires FR/ES/IT/EN + `setLang()` |
+| L610 | `JS — SVG DIAGRAMS` | Diagrammes de modes (manche de basse) |
+| L698 | `JS — THEORY ENGINE` | Gammes, arpèges, tensions, helpers chromatiques |
+| L718 | `JS — PARSER` | Import MusicXML → `chartData` |
+| L732 | `JS — STATE` | Variables globales partagées |
+| L747 | `JS — TRANSPOSE` | Transposition demi-ton / tonalité |
+| L760 | `JS — RENDER` | DOM rendering : sections, mesures, accords, symboles |
+| L854 | `JS — MODALS` | Modales : édition accord, annotation, label section |
+| L938 | `JS — ACTIONS` | add / delete / duplicate / move |
+| L952 | `JS — I/O` | Import/export JSON + MusicXML + MXL |
+| L968 | `JS — MUSICXML HELPERS` | Fonctions utilitaires export MusicXML |
+| L1160 | `JS — PRINT` | Thèmes impression, palettes, CSS dynamique |
+| L1180 | `JS — INIT` | Event listeners globaux, premier render |
+
+> Les numéros de ligne sont indicatifs et évoluent à chaque release.
 
 ---
 
@@ -217,7 +235,7 @@ Le code JavaScript est organisé en modules logiques délimités par des comment
 
 L'interface est entièrement traduite en **4 langues**. Le changement de langue est instantané, sans rechargement de la page.
 
-Pour ajouter une nouvelle langue, ajouter une entrée dans l'objet `LANGS` dans `index.html` et une `<option>` dans la liste déroulante `#lang-select`.
+Pour ajouter une nouvelle langue, ajouter une entrée dans l'objet `LANGS` (section `JS — I18N`) et une `<option>` dans la liste déroulante `#lang-select`.
 
 ---
 
@@ -225,7 +243,7 @@ Pour ajouter une nouvelle langue, ajouter une entrée dans l'objet `LANGS` dans 
 
 ### Modifier la grille par défaut
 
-Éditer la fonction `newChart()` pour changer la tonalité, le nombre de mesures ou l'accord initial.
+Éditer la fonction `newChart()` (section `JS — ACTIONS`) pour changer la tonalité, le nombre de mesures ou l'accord initial.
 
 ### Ajouter une qualité d'accord
 
@@ -237,7 +255,14 @@ Ajouter une entrée dans :
 
 ### Ajouter un label de section
 
-Éditer le tableau `LETTERS`.
+Éditer le tableau `LETTERS` (section `JS — MODALS`).
+
+### Ajouter un symbole de mesure
+
+1. Déclarer la valeur interne dans `isSpecialSym()`, `getSymClass()`, `getSymLabel()`
+2. Ajouter le style CSS dans `CSS — APP` (classe `.sym-xxx`)
+3. Ajouter le bouton dans `buildModal()` tableau `SYMS`
+4. S'assurer que `transposeChordSymbol()` ignore ce symbole
 
 ---
 
@@ -290,6 +315,10 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ## 📝 Changelog
 
+### 4.4
+- ✨ **Symboles de mesure iReal Pro** — `%` (répétition), `𝄎` (répétition 2 mesures), `N.C.` (No Chord), `/` (beat slash) ; sélection depuis la modale d'accord via panneau **SYMBOLES RAPIDES** ; rendu visuel distinct par type ; ignorés à la transposition
+- 🔧 **Restructuration du fichier** — CSS et JS découpés en blocs nommés délimités par des séparateurs `/* ━━━ */` ; navigation directe sans outil externe
+
 ### 4.3
 - ✨ **Déplacement des mesures** — poignée ⠿ drag & drop sur chaque mesure (y compris entre sections), boutons ◀ ▶ au survol pour déplacer d'un cran dans la même section
 
@@ -297,7 +326,7 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 - ✨ **Déplacement des sections** — poignée ⠿ drag & drop avec indicateur visuel orange, boutons ▲ ▼ pour monter/descendre d'un cran
 
 ### 4.1
-- 🐛 **Fix impression PDF** — la grille ne commence plus en page 2 : suppression du `min-height:100vh` à l'impression, `page-break-inside:avoid` déplacé au niveau `.measure`, header compacté, `#chart-editor` forcé visible
+- 🐛 **Fix impression PDF** — les sections ne sont plus coupées à cheval sur deux pages (`break-inside: avoid` sur `.section` et `.measure`) ; suppression du `min-height:100vh` à l'impression ; header compacté ; `#chart-editor` forcé visible
 
 ### 4.0
 - ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
@@ -322,6 +351,12 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 - [x] Déplacement des mesures par glisser-déposer (inter-sections)
 - [x] Diagrammes de manche SVG (basse 4 cordes, 16 modes)
 - [x] Import/Export MXL compressé
+- [x] Symboles de mesure iReal Pro (`%`, `𝄎`, `N.C.`, `/`)
+- [x] Sections non coupées à l'impression PDF
+- [x] Fichier structuré en blocs commentés (navigation sans outil)
+- [ ] Barres de mesure enrichies (double barre, finale, voltas 1./2./3.)
+- [ ] Symboles de navigation (Coda, Segno, D.C. al Coda, D.S. al Fine…)
+- [ ] Accord alternatif (petit accord au-dessus)
 - [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
 - [ ] Historique Annuler / Rétablir
 - [ ] Import iReal Pro `.irealbook`
@@ -351,7 +386,8 @@ Ce projet est distribué sous licence **Apache 2.0** — voir le fichier [LICENS
 
 - Développé en HTML, CSS et JavaScript vanilla — sans framework ni bundler
 - Format MusicXML par [MakeMusic / W3C Music Notation Community Group](https://www.w3.org/2021/06/musicxml40/)
-- Rendu des symboles d'accords inspiré des conventions des lead sheets jazz (iReal Pro, Hal Leonard)
+- Compression MXL via [JSZip](https://stuk.github.io/jszip/) 3.10.1
+- Conventions de symboles d'accords inspirées des lead sheets jazz (iReal Pro, Hal Leonard)
 
 ---
 
