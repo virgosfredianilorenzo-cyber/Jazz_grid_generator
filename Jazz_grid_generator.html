@@ -5,13 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jazz Grid Generator</title>
 
+<style id="css-app">
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — APP
    Toolbar, layout, sections, mesures, accords, symboles
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-
-<style id="css-app">
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
 #toolbar { background:#16213e; padding:12px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; border-bottom:2px solid #f0a500; position:sticky; top:0; z-index:100; }
@@ -85,8 +84,58 @@ label { font-size:0.85rem; color:#aaa; }
 .measure.measure-dragging { opacity:0.35; border:2px dashed #f0a500 !important; }
 .measure.measure-drag-over-left { border-left:3px solid #f0a500 !important; }
 .measure.measure-drag-over-right { border-right:3px solid #f0a500 !important; }
+/* ── Barlines existantes (compatibilité) ── */
 .barline-repeat-start { border-left:4px double #f0a500; }
 .barline-repeat-end   { border-right:4px double #f0a500; }
+/* ── Barlines enrichies ── */
+.bl-normal       {}
+.bl-double-left  { border-left: 3px double #ccc !important; }
+.bl-double-right { border-right:3px double #ccc !important; }
+.bl-final-left   { border-left: 5px solid #ccc !important; }
+.bl-final-right  { border-right:5px solid #ccc !important; }
+.bl-repeat-start { border-left:4px double #f0a500 !important; }
+.bl-repeat-end   { border-right:4px double #f0a500 !important; }
+/* ── Volta bracket ── */
+.volta-bracket { position:absolute; top:-18px; left:0; right:0; height:16px;
+  border-top:2px solid #7dd3fc; border-left:2px solid #7dd3fc;
+  font-size:0.65rem; font-weight:bold; color:#7dd3fc;
+  padding:1px 4px; pointer-events:none; z-index:2; }
+.volta-bracket.volta-open { border-right:none; }
+.volta-bracket.volta-closed { border-right:2px solid #7dd3fc; }
+/* ── Boutons barline hover ── */
+.barline-btn { position:absolute; top:50%; transform:translateY(-50%);
+  width:14px; height:32px; background:none; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity 0.15s; z-index:5; font-size:0.7rem; }
+.barline-btn-left  { left:-7px; }
+.barline-btn-right { right:-7px; }
+.measure:hover .barline-btn { opacity:0.6; }
+.barline-btn:hover { opacity:1 !important; color:#f0a500; }
+/* ── Symboles de navigation au-dessus de la mesure ── */
+.nav-symbol { position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+  font-size:1.1rem; color:#f0c060; cursor:pointer; z-index:3;
+  white-space:nowrap; line-height:1; }
+.nav-symbol.nav-text { font-size:0.62rem; font-weight:bold; font-family:'Courier New',monospace;
+  color:#f0c060; background:#1a1a2e; border:1px solid #f0c06088;
+  border-radius:3px; padding:1px 4px; top:-20px; }
+.nav-symbol.nav-coda  { color:#86efac; }
+.nav-symbol.nav-segno { color:#c4b5fd; }
+/* ── Bouton nav hover ── */
+.nav-add-btn { position:absolute; top:-18px; right:2px; width:14px; height:14px;
+  background:none; border:1px dashed #4a6a9a; border-radius:2px; cursor:pointer;
+  font-size:0.6rem; color:#4a6a9a; opacity:0; transition:opacity 0.15s; z-index:4;
+  display:flex; align-items:center; justify-content:center; line-height:1; }
+.measure:hover .nav-add-btn { opacity:0.7; }
+.nav-add-btn:hover { opacity:1 !important; color:#f0c060; border-color:#f0c060; }
+/* ── Popup menu barline / nav ── */
+.bl-popup { position:absolute; background:#16213e; border:1px solid #f0a500;
+  border-radius:6px; padding:6px; z-index:200; display:flex; flex-direction:column; gap:3px;
+  min-width:130px; box-shadow:0 4px 16px rgba(0,0,0,0.5); }
+.bl-popup button { background:none; border:none; color:#eee; font-size:0.78rem;
+  cursor:pointer; padding:4px 8px; border-radius:3px; text-align:left; white-space:nowrap; }
+.bl-popup button:hover { background:#2d4a7a; color:#f0a500; }
+.bl-popup button.active-item { color:#f0c060; font-weight:bold; }
+.bl-popup hr { border:none; border-top:1px solid #2d4a7a; margin:2px 0; }
 .beats-row { display:flex; gap:2px; }
 .chord-slot { flex:1; display:flex; flex-direction:column; border:1px solid transparent; border-radius:4px; transition:border-color 0.15s; cursor:pointer; min-width:0; }
 .chord-slot:hover { border-color:#f0a50088; background:rgba(240,165,0,0.06); }
@@ -140,13 +189,12 @@ label { font-size:0.85rem; color:#aaa; }
 .cols-select { width:60px; }
 </style>
 
+<style id="css-modals">
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — MODALS
    Overlay, modales accord / annotation / section
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-
-<style id="css-modals">
 .overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center; }
 .overlay.active { display:flex; }
 .modal-box { background:#16213e; border-radius:10px; padding:22px; max-width:95vw; max-height:92vh; overflow-y:auto; }
@@ -225,16 +273,18 @@ label { font-size:0.85rem; color:#aaa; }
 }
 </style>
 
+<style id="css-print">
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — PRINT
    @media print : thèmes, couleurs, page-break
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-
-<style id="css-print">
 @media print {
   body { background:white; min-height:0 !important; }
   #toolbar,#print-contrast-bar,.section-actions,.add-measure-btn,.add-section-btn,.chord-annot-icon,.chord-edit-hint,.chord-del-btn,.add-chord-btn { display:none !important; }
+  .barline-btn,.nav-add-btn,.bl-popup { display:none !important; }
+  .nav-symbol { color:#000 !important; background:white !important; border-color:#000 !important; }
+  .volta-bracket { border-color:#000 !important; color:#000 !important; }
   #chart-editor { display:block !important; padding:8px 12px 0; }
   #dropzone { display:none !important; }
   /* Hide annotation input row (edit zone) — always */
@@ -278,10 +328,7 @@ label { font-size:0.85rem; color:#aaa; }
 </head>
 <body>
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   HTML — STRUCTURE
-   Toolbar, dropzone, éditeur, modales, barre impression
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+<!-- HTML — STRUCTURE : Toolbar, dropzone, éditeur, modales, barre impression -->
 
 
 
@@ -456,10 +503,7 @@ label { font-size:0.85rem; color:#aaa; }
 </div>
 
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   JS — LIBRAIRIES EXTERNES
-   JSZip (lecture fichiers .mxl compressés)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+<!-- JS — LIBRAIRIES EXTERNES : JSZip -->
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -472,8 +516,9 @@ label { font-size:0.85rem; color:#aaa; }
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
+const LANGS = {
   fr: {
-    btnOpen:'📂 Ouvrir MusicXML',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',
+    btnOpen:'📂 Ouvrir MusicXML',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
     dzTitle:'Déposer un fichier MusicXML',dzSub:'ou cliquer pour choisir un fichier .musicxml / .xml',
     metaKey:'Tonalité :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Mesure :',metaStyle:'Style :',
     btnAddSection:'+ Ajouter une section',secAddMeasure:'+ Mesure',secDuplicate:'⧉ Dupliquer',secDelete:'✕ Supprimer',secAnnotPlaceholder:'Annotation de section…',
@@ -488,7 +533,7 @@ label { font-size:0.85rem; color:#aaa; }
     lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',
   },
   es: {
-    btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',
+    btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',
     dzTitle:'Arrastra un archivo MusicXML',dzSub:'o haz clic para elegir un archivo .musicxml / .xml',
     metaKey:'Tonalidad :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Compás :',metaStyle:'Estilo :',
     btnAddSection:'+ Agregar sección',secAddMeasure:'+ Compás',secDuplicate:'⧉ Duplicar',secDelete:'✕ Eliminar',secAnnotPlaceholder:'Anotación de sección…',
@@ -503,7 +548,7 @@ label { font-size:0.85rem; color:#aaa; }
     lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',
   },
   it: {
-    btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',
+    btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',
     dzTitle:'Trascina un file MusicXML',dzSub:'o clicca per scegliere un file .musicxml / .xml',
     metaKey:'Tonalità :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Misura :',metaStyle:'Stile :',
     btnAddSection:'+ Aggiungi sezione',secAddMeasure:'+ Misura',secDuplicate:'⧉ Duplica',secDelete:'✕ Elimina',secAnnotPlaceholder:'Annotazione di sezione…',
@@ -518,7 +563,7 @@ label { font-size:0.85rem; color:#aaa; }
     lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',
   },
   en: {
-    btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',
+    btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
     dzTitle:'Drop a MusicXML file here',dzSub:'or click to choose a .musicxml / .xml file',
     metaKey:'Key :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Time :',metaStyle:'Style :',
     btnAddSection:'+ Add section',secAddMeasure:'+ Measure',secDuplicate:'⧉ Duplicate',secDelete:'✕ Delete',secAnnotPlaceholder:'Section annotation…',
@@ -721,7 +766,55 @@ const TENS_DEF={'':    {a:['9','13'],av:['b7']},'maj7':{a:['9','#11','13'],av:[]
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
-function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,'application/xml');const te=doc.querySelector('work-title,movement-title');const title=te?te.textContent.trim():'Thème';let tempo=120;const se=doc.querySelector('sound[tempo]');if(se)tempo=parseInt(se.getAttribute('tempo'));let ts='4/4';const b=doc.querySelector('beats'),bt=doc.querySelector('beat-type');if(b&&bt)ts=`${b.textContent}/${bt.textContent}`;const bpm=parseInt(ts.split('/')[0])||4;let key='C';const fi=doc.querySelector('fifths');if(fi){const f=parseInt(fi.textContent);const km={0:'C',1:'G',2:'D',3:'A',4:'E',5:'B',6:'F#','-1':'F','-2':'Bb','-3':'Eb','-4':'Ab','-5':'Db','-6':'Gb'};key=km[f]||'C';}const measures=doc.querySelectorAll('measure'),pm=[];measures.forEach((m,idx)=>{const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false};m.querySelectorAll('barline').forEach(bl=>{const loc=bl.getAttribute('location'),rep=bl.querySelector('repeat');if(rep){if(loc==='left'||rep.getAttribute('direction')==='forward')md.repeatStart=true;if(loc==='right'||rep.getAttribute('direction')==='backward')md.repeatEnd=true;}});m.querySelectorAll('harmony').forEach(h=>{const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');if(!re)return;let root=re.textContent.trim();if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};if(km[kind]!==undefined)kind=km[kind];let bass='';if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});});if(md.chords.length>0){const t2=bpm;md.chords.forEach(c=>{c.beats=Math.round(t2/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t2-s;}else md.chords.push({symbol:'%',beats:bpm,annot:null});pm.push(md);});const sections=[];let cur={label:'A',annotation:'',measures:[]};measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});if(cur.measures.length>0)sections.push(cur);return{title,key,tempo,timeSig:ts,style:'Swing',sections};}
+function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,'application/xml');const te=doc.querySelector('work-title,movement-title');const title=te?te.textContent.trim():'Thème';let tempo=120;const se=doc.querySelector('sound[tempo]');if(se)tempo=parseInt(se.getAttribute('tempo'));let ts='4/4';const b=doc.querySelector('beats'),bt=doc.querySelector('beat-type');if(b&&bt)ts=`${b.textContent}/${bt.textContent}`;const bpm=parseInt(ts.split('/')[0])||4;let key='C';const fi=doc.querySelector('fifths');if(fi){const f=parseInt(fi.textContent);const km={0:'C',1:'G',2:'D',3:'A',4:'E',5:'B',6:'F#','-1':'F','-2':'Bb','-3':'Eb','-4':'Ab','-5':'Db','-6':'Gb'};key=km[f]||'C';}
+  const measures=doc.querySelectorAll('measure'),pm=[];
+  measures.forEach((m,idx)=>{
+    const md={number:idx+1,chords:[],repeatStart:false,repeatEnd:false,
+              barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null};
+    // ── Barlines & voltas ──
+    m.querySelectorAll('barline').forEach(bl=>{
+      const loc=bl.getAttribute('location');
+      const style=bl.querySelector('bar-style');
+      const rep=bl.querySelector('repeat');
+      const ending=bl.querySelector('ending');
+      const styleMap={'light-light':'double','light-heavy':'final','heavy-light':'repeat-start','light-heavy':'final'};
+      if(loc==='left'||loc===null){
+        if(rep&&rep.getAttribute('direction')==='forward'){md.barlineLeft='repeat-start';md.repeatStart=true;}
+        else if(style){const s=styleMap[style.textContent];if(s)md.barlineLeft=s;}
+        if(ending&&ending.getAttribute('type')==='start')md.volta=ending.getAttribute('number')||'1';
+      }
+      if(loc==='right'){
+        if(rep&&rep.getAttribute('direction')==='backward'){md.barlineRight='repeat-end';md.repeatEnd=true;}
+        else if(style){const map2={'light-light':'double','light-heavy':'final'};const s=map2[style.textContent];if(s)md.barlineRight=s;}
+      }
+    });
+    // ── Symboles de navigation ──
+    m.querySelectorAll('direction').forEach(dir=>{
+      if(dir.querySelector('segno'))md.navSymbol='segno';
+      else if(dir.querySelector('coda'))md.navSymbol='coda';
+      else if(dir.querySelector('fermata'))md.navSymbol='fermata';
+      else{
+        const w=dir.querySelector('words');
+        if(w){
+          const txt=w.textContent.trim();
+          if(/D\.C\..*Coda/i.test(txt))md.navSymbol='dc-coda';
+          else if(/D\.S\..*Coda/i.test(txt))md.navSymbol='ds-coda';
+          else if(/D\.C\..*Fine/i.test(txt))md.navSymbol='dc-fine';
+          else if(/^Fine$/i.test(txt))md.navSymbol='fine';
+        }
+      }
+    });
+    // ── Accords ──
+    m.querySelectorAll('harmony').forEach(h=>{const re=h.querySelector('root-step'),ae=h.querySelector('root-alter'),ke=h.querySelector('kind'),be=h.querySelector('bass-step'),bae=h.querySelector('bass-alter');if(!re)return;let root=re.textContent.trim();if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};if(km[kind]!==undefined)kind=km[kind];let bass='';if(be){bass=be.textContent.trim();if(bae){const a=parseFloat(bae.textContent);if(a===1)bass+='#';if(a===-1)bass+='b';}}md.chords.push({symbol:root+kind+(bass?'/'+bass:''),beats:0,annot:null});});
+    if(md.chords.length>0){const t2=bpm;md.chords.forEach(c=>{c.beats=Math.round(t2/md.chords.length);});const s=md.chords.slice(0,-1).reduce((a,c)=>a+c.beats,0);md.chords[md.chords.length-1].beats=t2-s;}
+    else md.chords.push({symbol:'%',beats:bpm,annot:null});
+    pm.push(md);
+  });
+  const sections=[];let cur={label:'A',annotation:'',measures:[]};
+  measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});
+  if(cur.measures.length>0)sections.push(cur);
+  return{title,key,tempo,timeSig:ts,style:'Swing',sections};
+}
 function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
 function fmtChord(sym){if(!sym||sym==='%')return '–';if(sym==='%%')return '𝄎';if(sym==='N.C.')return 'N.C.';if(sym==='/beat')return '/';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
 function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat';}
@@ -738,6 +831,17 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
 let currentSemitoneOffset=0,originalKey='C';
 let editTarget=null,annotTarget=null;
+// ── Barlines & navigation ──
+const BARLINE_TYPES=['normal','double','final','repeat-start','repeat-end'];
+const BARLINE_LABELS={'normal':'| Normal','double':'‖ Double','final':'𝄂 Finale','repeat-start':'|: Répétition début','repeat-end':'⟨: Répétition fin'};
+const BARLINE_XML={'normal':null,'double':'light-light','final':'light-heavy','repeat-start':'heavy-light','repeat-end':'light-heavy'};
+const VOLTA_TYPES=[null,'1','2','3'];
+const NAV_TYPES=[null,'segno','coda','dc-coda','ds-coda','dc-fine','fine','fermata'];
+const NAV_DISPLAY={'segno':'𝄋','coda':'𝄌','dc-coda':'D.C. al Coda','ds-coda':'D.S. al Coda','dc-fine':'D.C. al Fine','fine':'Fine','fermata':'𝄐'};
+const NAV_IS_TEXT={'dc-coda':true,'ds-coda':true,'dc-fine':true,'fine':true};
+const NAV_XML_WORDS={'dc-coda':'D.C. al Coda','ds-coda':'D.S. al Coda','dc-fine':'D.C. al Fine','fine':'Fine'};
+let activePopup=null;
+function closeActivePopup(){if(activePopup){activePopup.remove();activePopup=null;}}
 let selectedRoot='C',selectedQuality='maj7',selectedExts=[];
 let selectedAnnotColor='#c4b5fd';
 let aShow={mode:false,arp:false,tens:false,free:false};
@@ -785,28 +889,89 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
 function renderSectionAnnotDisplay(text,el){if(!text||!text.trim()){el.style.display='none';return;}el.style.display='flex';el.className='section-annot-display';el.innerHTML=`<span class="annot-icon">💬</span><span>${escHtml(text)}</span>`;}
 function moveMeasure(si,mi,dir){const measures=chartData.sections[si].measures;const newMi=mi+dir;if(newMi<0||newMi>=measures.length)return;const tmp=measures[mi];measures[mi]=measures[newMi];measures[newMi]=tmp;render();}
 let dragMeasureSrc=null; // {si, mi}
-function renderMeasure(measure,si,mi){const div=document.createElement('div');div.className='measure';div.dataset.si=si;div.dataset.mi=mi;if(measure.repeatStart)div.classList.add('barline-repeat-start');if(measure.repeatEnd)div.classList.add('barline-repeat-end');
+function renderMeasure(measure,si,mi){
+  // ── Normaliser les champs (rétrocompat JSON anciens) ──
+  if(!measure.barlineLeft) measure.barlineLeft = measure.repeatStart?'repeat-start':'normal';
+  if(!measure.barlineRight) measure.barlineRight = measure.repeatEnd?'repeat-end':'normal';
+
+  const div=document.createElement('div');
+  div.className='measure';
+  div.dataset.si=si; div.dataset.mi=mi;
+  div.style.position='relative';
+  div.style.marginTop = (measure.volta||measure.navSymbol)?'22px':'';
+
+  // Appliquer classes barline
+  div.classList.remove('barline-repeat-start','barline-repeat-end');
+  ['left','right'].forEach(side=>{
+    const val=side==='left'?measure.barlineLeft:measure.barlineRight;
+    const cls=`bl-${val}-${side==='left'?'left':'right'}`;
+    if(val==='repeat-start'||val==='repeat-end'){
+      div.classList.add(val==='repeat-start'?'barline-repeat-start':'barline-repeat-end');
+    } else if(val&&val!=='normal'){
+      div.classList.add(cls);
+    }
+  });
+
+  // ── Volta bracket ──
+  if(measure.volta){
+    const vb=document.createElement('div');
+    vb.className='volta-bracket volta-open';
+    vb.textContent=measure.volta+'.';
+    vb.onclick=e=>{e.stopPropagation();openBarlinePopup(e,si,mi,'volta');};
+    div.appendChild(vb);
+  }
+
+  // ── Nav symbol ──
+  if(measure.navSymbol){
+    const ns=document.createElement('div');
+    const isText=NAV_IS_TEXT[measure.navSymbol];
+    ns.className='nav-symbol'+(isText?' nav-text':'')+(measure.navSymbol==='coda'?' nav-coda':measure.navSymbol==='segno'?' nav-segno':'');
+    ns.textContent=NAV_DISPLAY[measure.navSymbol]||measure.navSymbol;
+    ns.title='Cliquer pour modifier';
+    ns.onclick=e=>{e.stopPropagation();openNavPopup(e,si,mi);};
+    div.appendChild(ns);
+  }
+
   // drag & drop
   div.draggable=true;
   div.addEventListener('dragstart',e=>{dragMeasureSrc={si,mi};setTimeout(()=>div.classList.add('measure-dragging'),0);e.dataTransfer.effectAllowed='move';e.stopPropagation();});
   div.addEventListener('dragend',e=>{div.classList.remove('measure-dragging');document.querySelectorAll('.measure').forEach(m=>m.classList.remove('measure-drag-over-left','measure-drag-over-right'));dragMeasureSrc=null;e.stopPropagation();});
   div.addEventListener('dragover',e=>{if(!dragMeasureSrc)return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;document.querySelectorAll('.measure').forEach(m=>m.classList.remove('measure-drag-over-left','measure-drag-over-right'));div.classList.add(e.clientX<mid?'measure-drag-over-left':'measure-drag-over-right');});
   div.addEventListener('dragleave',e=>{div.classList.remove('measure-drag-over-left','measure-drag-over-right');});
-  div.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();div.classList.remove('measure-drag-over-left','measure-drag-over-right');if(!dragMeasureSrc)return;const src=dragMeasureSrc;const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;const insertAfter=e.clientX>=mid;// remove from source
-const srcMeasures=chartData.sections[src.si].measures;const moved=srcMeasures.splice(src.mi,1)[0];// insert into target
-const tgtMeasures=chartData.sections[si].measures;let tgtIdx=mi;if(src.si===si&&src.mi<mi)tgtIdx--;if(insertAfter)tgtIdx++;tgtIdx=Math.max(0,Math.min(tgtIdx,tgtMeasures.length));tgtMeasures.splice(tgtIdx,0,moved);dragMeasureSrc=null;render();});
+  div.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();div.classList.remove('measure-drag-over-left','measure-drag-over-right');if(!dragMeasureSrc)return;const src=dragMeasureSrc;const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;const insertAfter=e.clientX>=mid;const srcMeasures=chartData.sections[src.si].measures;const moved=srcMeasures.splice(src.mi,1)[0];const tgtMeasures=chartData.sections[si].measures;let tgtIdx=mi;if(src.si===si&&src.mi<mi)tgtIdx--;if(insertAfter)tgtIdx++;tgtIdx=Math.max(0,Math.min(tgtIdx,tgtMeasures.length));tgtMeasures.splice(tgtIdx,0,moved);dragMeasureSrc=null;render();});
+
   const topRow=document.createElement('div');topRow.style.cssText='display:flex;align-items:flex-start;gap:2px;';
-  // drag handle
   const handle=document.createElement('span');handle.className='measure-drag-handle';handle.textContent='⠿';handle.title='Glisser pour déplacer';
   const numEl=document.createElement('div');numEl.className='measure-number';numEl.textContent=mi+1;
-  // ◀ ▶ move buttons (visible on hover)
   const btnL=document.createElement('button');btnL.textContent='◀';btnL.title='Reculer';btnL.style.cssText='background:none;border:none;color:#4a6a9a;font-size:0.55rem;cursor:pointer;padding:0 2px;opacity:0;transition:opacity 0.15s;';btnL.disabled=mi===0;btnL.onclick=e=>{e.stopPropagation();moveMeasure(si,mi,-1);};
   const btnR=document.createElement('button');btnR.textContent='▶';btnR.title='Avancer';btnR.style.cssText='background:none;border:none;color:#4a6a9a;font-size:0.55rem;cursor:pointer;padding:0 2px;opacity:0;transition:opacity 0.15s;';btnR.disabled=mi===chartData.sections[si].measures.length-1;btnR.onclick=e=>{e.stopPropagation();moveMeasure(si,mi,+1);};
   topRow.append(handle,numEl,btnL,btnR);div.appendChild(topRow);
   div.addEventListener('mouseenter',()=>{btnL.style.opacity=mi===0?'0.2':'0.8';btnR.style.opacity=mi===chartData.sections[si].measures.length-1?'0.2':'0.8';});
   div.addEventListener('mouseleave',()=>{btnL.style.opacity='0';btnR.style.opacity='0';});
+
+  // ── Boutons barline gauche/droit (hover) ──
+  const blLeft=document.createElement('button');
+  blLeft.className='barline-btn barline-btn-left';blLeft.textContent='◧';blLeft.title='Barre gauche';
+  blLeft.onclick=e=>{e.stopPropagation();openBarlinePopup(e,si,mi,'left');};
+  const blRight=document.createElement('button');
+  blRight.className='barline-btn barline-btn-right';blRight.textContent='◨';blRight.title='Barre droite';
+  blRight.onclick=e=>{e.stopPropagation();openBarlinePopup(e,si,mi,'right');};
+  div.appendChild(blLeft);div.appendChild(blRight);
+
+  // ── Bouton nav symbol (hover) ──
+  const navBtn=document.createElement('button');
+  navBtn.className='nav-add-btn';navBtn.textContent='𝄌';navBtn.title='Ajouter symbole de navigation';
+  navBtn.onclick=e=>{e.stopPropagation();openNavPopup(e,si,mi);};
+  div.appendChild(navBtn);
+
   const beatsRow=document.createElement('div');beatsRow.className='beats-row';(measure.chords||[]).forEach((chord,ci)=>beatsRow.appendChild(renderChordSlot(chord,si,mi,ci)));const addBtn=document.createElement('button');addBtn.className='add-chord-btn';addBtn.textContent='+';addBtn.title=t('tipAddChord');addBtn.onclick=e=>{e.stopPropagation();openModal(si,mi,-1,null);};beatsRow.appendChild(addBtn);div.appendChild(beatsRow);
-  const delM=document.createElement('button');delM.className='chord-del-btn';delM.textContent='✕';delM.title=t('tipDeleteMeasure');delM.onclick=e=>{e.stopPropagation();deleteMeasure(si,mi);};div.appendChild(delM);const dupM=document.createElement('button');dupM.style.cssText='position:absolute;top:2px;right:18px;background:none;border:none;color:#f0a500;font-size:0.6rem;cursor:pointer;opacity:0;transition:opacity 0.2s;';dupM.textContent='⧉';dupM.title=t('tipDupMeasure');dupM.onclick=e=>{e.stopPropagation();duplicateMeasure(si,mi);};div.appendChild(dupM);div.addEventListener('mouseenter',()=>dupM.style.opacity='1');div.addEventListener('mouseleave',()=>dupM.style.opacity='0');div.addEventListener('contextmenu',e=>{e.preventDefault();openModal(si,mi,-1,null);});return div;}
+  const delM=document.createElement('button');delM.className='chord-del-btn';delM.textContent='✕';delM.title=t('tipDeleteMeasure');delM.onclick=e=>{e.stopPropagation();deleteMeasure(si,mi);};div.appendChild(delM);
+  const dupM=document.createElement('button');dupM.style.cssText='position:absolute;top:2px;right:18px;background:none;border:none;color:#f0a500;font-size:0.6rem;cursor:pointer;opacity:0;transition:opacity 0.2s;';dupM.textContent='⧉';dupM.title=t('tipDupMeasure');dupM.onclick=e=>{e.stopPropagation();duplicateMeasure(si,mi);};div.appendChild(dupM);
+  div.addEventListener('mouseenter',()=>dupM.style.opacity='1');
+  div.addEventListener('mouseleave',()=>dupM.style.opacity='0');
+  div.addEventListener('contextmenu',e=>{e.preventDefault();openModal(si,mi,-1,null);});
+  return div;
+}
 function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=parseChordSym(chord.symbol);
   const symClass=getSymClass(chord.symbol);
   const slot=document.createElement('div');
@@ -928,6 +1093,84 @@ function openAnnotModal(si,mi,ci,chord){annotTarget={si,mi,ci};const annot=chord
 function closeAnnotModal(){document.getElementById('annot-overlay').classList.remove('active');annotTarget=null;}
 function applyAnnotation(){const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
 function clearAnnotation(){const{si,mi,ci}=annotTarget;chartData.sections[si].measures[mi].chords[ci].annot=null;closeAnnotModal();render();}
+
+/* ── Popup barline ── */
+function openBarlinePopup(e,si,mi,side){
+  e.stopPropagation();closeActivePopup();
+  const measure=chartData.sections[si].measures[mi];
+  const pop=document.createElement('div');pop.className='bl-popup';
+  activePopup=pop;
+  if(side==='left'||side==='right'){
+    const cur=side==='left'?measure.barlineLeft:measure.barlineRight;
+    const items=side==='left'
+      ?['normal','double','final','repeat-start']
+      :['normal','double','final','repeat-end'];
+    const icons={'normal':'| Normal','double':'‖ Double','final':'𝄂 Finale',
+      'repeat-start':'|: Répét. début','repeat-end':'⟨: Répét. fin'};
+    items.forEach(type=>{
+      const b=document.createElement('button');
+      b.textContent=icons[type]||type;
+      if(type===cur)b.classList.add('active-item');
+      b.onclick=e2=>{e2.stopPropagation();
+        if(side==='left'){
+          measure.barlineLeft=type;
+          measure.repeatStart=(type==='repeat-start');
+        } else {
+          measure.barlineRight=type;
+          measure.repeatEnd=(type==='repeat-end');
+        }
+        closeActivePopup();render();};
+      pop.appendChild(b);
+    });
+    pop.appendChild(document.createElement('hr'));
+    // Volta
+    const vLabel=document.createElement('button');
+    vLabel.textContent='— Volta (1ère / 2ème / 3ème) —';
+    vLabel.style.cssText='color:#7dd3fc;font-size:0.7rem;cursor:default;';
+    pop.appendChild(vLabel);
+    [null,'1','2','3'].forEach(v=>{
+      const b=document.createElement('button');
+      b.textContent=v?`[${v}.`:'✕ Supprimer volta';
+      if(v===measure.volta)b.classList.add('active-item');
+      b.onclick=e2=>{e2.stopPropagation();measure.volta=v;closeActivePopup();render();};
+      pop.appendChild(b);
+    });
+  }
+  // Positionner
+  const rect=e.target.getBoundingClientRect();
+  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;`;
+  document.body.appendChild(pop);
+  setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
+}
+
+/* ── Popup nav symbol ── */
+function openNavPopup(e,si,mi){
+  e.stopPropagation();closeActivePopup();
+  const measure=chartData.sections[si].measures[mi];
+  const pop=document.createElement('div');pop.className='bl-popup';
+  activePopup=pop;
+  const items=[
+    {val:null,   label:'✕ Supprimer'},
+    {val:'segno',label:'𝄋 Segno'},
+    {val:'coda', label:'𝄌 Coda'},
+    {val:'dc-coda',label:'D.C. al Coda'},
+    {val:'ds-coda',label:'D.S. al Coda'},
+    {val:'dc-fine',label:'D.C. al Fine'},
+    {val:'fine', label:'Fine'},
+    {val:'fermata',label:'𝄐 Fermata'},
+  ];
+  items.forEach(({val,label})=>{
+    const b=document.createElement('button');
+    b.textContent=label;
+    if(val===measure.navSymbol)b.classList.add('active-item');
+    b.onclick=e2=>{e2.stopPropagation();measure.navSymbol=val;closeActivePopup();render();};
+    pop.appendChild(b);
+  });
+  const rect=e.target.getBoundingClientRect();
+  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;`;
+  document.body.appendChild(pop);
+  setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
+}
 const LETTERS=['A','B','C','D','E','F','G','H','I','Intro','Verse','Chorus','Bridge','Outro','Coda','Tag','Vamp','Head'];
 function buildLabelModal(){const suffixVals=['',"'","''",'1','2'];const lb=document.getElementById('letter-btns');lb.innerHTML='';LETTERS.forEach(l=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=l;b.dataset.val=l;b.style.minWidth='36px';b.onclick=()=>{document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selLetter=l;updateLabelPreview();};lb.appendChild(b);});const sb=document.getElementById('suffix-btns');sb.innerHTML='';t('suffixLabels').forEach((lbl,i)=>{const val=suffixVals[i];const b=document.createElement('button');b.className='chord-btn';b.textContent=lbl;b.dataset.val=val;b.style.minWidth='60px';b.onclick=()=>{document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selSuffix=val;updateLabelPreview();};sb.appendChild(b);});}
 function updateLabelPreview(){document.getElementById('label-preview').textContent=selLetter+selSuffix;}
@@ -941,11 +1184,11 @@ function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarge
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
-function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}
-function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false}))});render();}
+function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}
+function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
 function duplicateSection(si){const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
 function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));chartData.sections.splice(si,1);render();}
-function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false});render();}
+function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null});render();}
 function deleteMeasure(si,mi){chartData.sections[si].measures.splice(mi,1);render();}
 function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
 
@@ -1039,9 +1282,43 @@ function buildMusicXMLString(){
       const chords=measure.chords||[];
       let hXML='',ob=0;
       chords.forEach(c=>{hXML+=harmonyToXML(c,ob);ob+=c.beats||beats;});
-      let bStart='',bEnd='';
-      if(measure.repeatStart)bStart=`\n      <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>`;
-      if(measure.repeatEnd)bEnd=`\n      <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>`;
+
+      // ── Barlines (nouvelles + rétrocompat) ──
+      const bl=measure.barlineLeft||(measure.repeatStart?'repeat-start':'normal');
+      const br=measure.barlineRight||(measure.repeatEnd?'repeat-end':'normal');
+      const blXML={
+        'normal':   '',
+        'double':   `\n      <barline location="left"><bar-style>light-light</bar-style></barline>`,
+        'final':    `\n      <barline location="left"><bar-style>light-heavy</bar-style></barline>`,
+        'repeat-start': `\n      <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>`,
+      };
+      const brXML={
+        'normal':   '',
+        'double':   `\n      <barline location="right"><bar-style>light-light</bar-style></barline>`,
+        'final':    `\n      <barline location="right"><bar-style>light-heavy</bar-style></barline>`,
+        'repeat-end': `\n      <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>`,
+      };
+      let bStart=blXML[bl]||'';
+      let bEnd  =brXML[br]||'';
+
+      // ── Volta (ending) ──
+      if(measure.volta){
+        bStart+=`\n      <barline location="left"><ending number="${measure.volta}" type="start"/></barline>`;
+        bEnd  +=`\n      <barline location="right"><ending number="${measure.volta}" type="stop"/></barline>`;
+      }
+
+      // ── Symboles de navigation ──
+      let navXML='';
+      const nav=measure.navSymbol;
+      if(nav==='segno')
+        navXML=`\n      <direction placement="above"><direction-type><segno/></direction-type></direction>`;
+      else if(nav==='coda')
+        navXML=`\n      <direction placement="above"><direction-type><coda/></direction-type></direction>`;
+      else if(nav==='fermata')
+        navXML=`\n      <direction placement="above"><direction-type><fermata/></direction-type></direction>`;
+      else if(NAV_XML_WORDS[nav])
+        navXML=`\n      <direction placement="above"><direction-type><words>${NAV_XML_WORDS[nav]}</words></direction-type><sound ${nav==='dc-coda'||nav==='ds-coda'?'dacapo="yes"':nav==='dc-fine'?'dacapo="yes"':'fine="yes"'}/></direction>`;
+
       let rehearsal='';
       if(mi===0&&section.label){
         rehearsal=`\n      <direction placement="above"><direction-type><rehearsal enclosure="box">${escHtml(section.label)}</rehearsal></direction-type></direction>`;
@@ -1060,9 +1337,8 @@ function buildMusicXMLString(){
           `</direction-type><sound tempo="${chartData.tempo}"/></direction>`;
         isFirst=false;
       }
-      // Whole-measure rest
       const restDur=beats*DIVISIONS;
-      mXML+=`\n    <measure number="${mn++}">${bStart}${attrs}${rehearsal}${hXML}`+
+      mXML+=`\n    <measure number="${mn++}">${bStart}${attrs}${rehearsal}${navXML}${hXML}`+
         `\n      <note><rest measure="yes"/><duration>${restDur}</duration></note>${bEnd}`+
         `\n    </measure>`;
     });
@@ -1186,7 +1462,7 @@ function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-s
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
 document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();closeActivePopup();}});
 buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
