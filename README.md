@@ -21,8 +21,9 @@
   - `N.C.` — No Chord (silence harmonique)
   - `/` — beat slash (pulsation sans accord précisé)
 - 🎼 **Barres de mesure enrichies** — simple, double `‖`, finale `𝄂`, répétition début `|:` et fin `:|`, accessibles au survol sur le bord de chaque mesure
-- 🔂 **Voltas (1ère / 2ème / 3ème fois)** — bracket visuel au-dessus des mesures, accessible depuis le bouton barre gauche
-- 🧭 **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐` — accessibles au survol en haut de chaque mesure
+- 🔂 **Voltas (1ère / 2ème / 3ème fois)** — bracket visuel au-dessus des mesures
+- 🧭 **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐`
+- 🔀 **Accord alternatif** — petit accord en italique affiché au-dessus de l'accord principal (substitution tritoniée, anticipation…) avec suggestion automatique pour les dominantes
 - 🎼 **Annotations de théorie musicale** par accord :
   - Modes compatibles avec diagramme de manche SVG dynamique (16 modes, basse 4 cordes EADG)
   - Arpèges 4 sons avec tous les renversements
@@ -98,6 +99,17 @@ Déposer `index.html` sur n'importe quel hébergeur statique (Netlify, Vercel, C
 4. Dans la modale d'accord, utiliser la section **SYMBOLES RAPIDES** (`%`, `𝄎`, `N.C.`, `/`) pour les mesures spéciales
 5. Cliquer sur l'icône **✏️** d'un accord pour ajouter des annotations théoriques (mode, arpège, tensions, note libre)
 
+### Accord alternatif
+
+Au survol d'un accord, un bouton **`♯±`** apparaît en haut à gauche du slot. Un clic ouvre un popup permettant de saisir un accord alternatif (substitution tritoniée, anticipation, accord de passage…).
+
+- L'accord s'affiche en **petit italique ambré** au-dessus de l'accord principal
+- Pour les dominantes (ex. `G7`), la **substitution tritoniée** est proposée automatiquement (`Db7`)
+- Cliquer sur l'accord alternatif affiché pour le modifier ou le supprimer
+- Ignoré par la transposition automatique (à retransposer manuellement si besoin)
+
+**Export MusicXML :** exporté comme seconde `<harmony>` avec `print-frame="no"` et `<footnote>alt</footnote>` — compatible MuseScore et Sibelius.
+
 ### Barres de mesure et voltas
 
 Au survol d'une mesure, deux boutons apparaissent sur les bords gauche `◧` et droit `◨`. Un clic ouvre un menu permettant de choisir le type de barre :
@@ -110,7 +122,7 @@ Au survol d'une mesure, deux boutons apparaissent sur les bords gauche `◧` et 
 | Répétition début | `\|:` | `<repeat direction="forward"/>` |
 | Répétition fin | `:\|` | `<repeat direction="backward"/>` |
 
-Le même menu permet d'ajouter un **bracket de volta** (1ère / 2ème / 3ème fois) au-dessus de la mesure, exporté en `<ending>` MusicXML.
+Le même menu permet d'ajouter un **bracket de volta** (1ère / 2ème / 3ème fois), exporté en `<ending>` MusicXML.
 
 ### Symboles de navigation
 
@@ -131,7 +143,7 @@ Au survol, un bouton `𝄌` apparaît en haut à droite de chaque mesure. Il ouv
 Glisser-déposer un fichier `.musicxml`, `.xml` ou `.mxl` sur la zone de dépôt, ou cliquer sur **📂 Ouvrir MusicXML**.
 
 Données importées :
-- Symboles d'accords et durées
+- Symboles d'accords, accords alternatifs (`<footnote>alt</footnote>`) et durées
 - Tonalité, tempo, chiffrage de mesure
 - Marques de répétition → sections
 - Barres de reprise, double barres, barres finales
@@ -148,7 +160,7 @@ Pour un déplacement précis d'un cran, utiliser les boutons **▲ ▼** (sectio
 
 | Action | Format | Notes |
 |--------|--------|-------|
-| **💾 Export JSON** | `.json` | Fidélité totale — accords, annotations, barres, navigation |
+| **💾 Export JSON** | `.json` | Fidélité totale — accords, accords alternatifs, annotations, barres, navigation |
 | **📥 Import JSON** | `.json` | Recharger une session précédemment sauvegardée |
 | **🎼 Export MusicXML** | `.musicxml` | Partager avec MuseScore, Sibelius, Finale, etc. |
 | **🎼 Export MXL** | `.mxl` | Format compressé, idéal pour l'échange de fichiers |
@@ -163,7 +175,7 @@ Pour un déplacement précis d'un cran, utiliser les boutons **▲ ▼** (sectio
 | Liste déroulante | Transposer directement vers une tonalité cible |
 | Bouton **↺** | Restaurer la tonalité d'origine |
 
-Les enharmoniques sont choisis automatiquement selon la tonalité de destination (ex. F# → B♭ s'écrit B♭, pas A#).
+Les enharmoniques sont choisis automatiquement selon la tonalité de destination (ex. F# → B♭ s'écrit B♭, pas A#). Les accords alternatifs ne sont pas transposés automatiquement.
 
 ### Impression / PDF
 
@@ -173,7 +185,7 @@ Les enharmoniques sont choisis automatiquement selon la tonalité de destination
 4. Vérifier les **couleurs de sections** — chaque label de section reçoit une couleur distincte automatiquement
 5. Cliquer sur **Imprimer** → utiliser **Enregistrer en PDF** dans la boîte de dialogue du navigateur
 
-> Les sections ne sont jamais coupées à cheval sur deux pages (`break-inside: avoid`). Les barres enrichies, voltas et symboles de navigation s'impriment en noir.
+> Les sections ne sont jamais coupées à cheval sur deux pages (`break-inside: avoid`). Les barres enrichies, voltas, symboles de navigation et accords alternatifs s'impriment en noir/gris.
 
 ---
 
@@ -238,27 +250,27 @@ Jazz_grid_generator/
     └── capt3.png       # Sortie PDF
 ```
 
-Le fichier est organisé en **blocs délimités par des séparateurs visuels** `/* ━━━ */` pour faciliter la maintenance sans outil externe. Chercher `/* ━━━ JS — NOM` dans le fichier pour naviguer directement vers une section.
+Le fichier est organisé en **blocs délimités par des séparateurs visuels** `/* ━━━ */`. Chercher `/* ━━━ JS — NOM` dans le fichier pour naviguer directement vers une section.
 
 | Ligne | Bloc | Contenu |
 |-------|------|---------|
-| L10 | `CSS — APP` | Toolbar, layout, sections, mesures, barlines, symboles |
-| L194 | `CSS — MODALS` | Overlay, modales accord / annotation / section |
-| L278 | `CSS — PRINT` | @media print : thèmes, couleurs, page-break |
-| L331 | `HTML — STRUCTURE` | Toolbar, dropzone, éditeur, modales, barre impression |
-| L513 | `JS — I18N` | Dictionnaires FR/ES/IT/EN + `setLang()` |
-| L655 | `JS — SVG DIAGRAMS` | Diagrammes de modes (manche de basse) |
-| L743 | `JS — THEORY ENGINE` | Gammes, arpèges, tensions, helpers chromatiques |
-| L763 | `JS — PARSER` | Import MusicXML → `chartData` |
-| L825 | `JS — STATE` | Variables globales + constantes barlines/navigation |
-| L851 | `JS — TRANSPOSE` | Transposition demi-ton / tonalité |
-| L864 | `JS — RENDER` | DOM rendering : sections, mesures, accords, symboles |
-| L1019 | `JS — MODALS` | Modales accord/annotation/section + popups barline/nav |
-| L1181 | `JS — ACTIONS` | add / delete / duplicate / move |
-| L1195 | `JS — I/O` | Import/export JSON + MusicXML + MXL |
-| L1211 | `JS — MUSICXML HELPERS` | Fonctions utilitaires export MusicXML |
-| L1436 | `JS — PRINT` | Thèmes impression, palettes, CSS dynamique |
-| L1456 | `JS — INIT` | Event listeners globaux, premier render |
+| L10 | `CSS — APP` | Toolbar, layout, sections, mesures, barlines, accords alternatifs |
+| L208 | `CSS — MODALS` | Overlay, modales accord / annotation / section |
+| L292 | `CSS — PRINT` | @media print : thèmes, couleurs, page-break |
+| L348 | `HTML — STRUCTURE` | Toolbar, dropzone, éditeur, modales, barre impression |
+| L530 | `JS — I18N` | Dictionnaires FR/ES/IT/EN + `setLang()` |
+| L672 | `JS — SVG DIAGRAMS` | Diagrammes de modes (manche de basse) |
+| L760 | `JS — THEORY ENGINE` | Gammes, arpèges, tensions, helpers chromatiques |
+| L780 | `JS — PARSER` | Import MusicXML → `chartData` |
+| L867 | `JS — STATE` | Variables globales + constantes barlines/navigation |
+| L893 | `JS — TRANSPOSE` | Transposition demi-ton / tonalité |
+| L906 | `JS — RENDER` | DOM rendering : sections, mesures, accords, symboles |
+| L1078 | `JS — MODALS` | Modales accord/annotation/section + popups barline/nav/altChord |
+| L1299 | `JS — ACTIONS` | add / delete / duplicate / move |
+| L1313 | `JS — I/O` | Import/export JSON + MusicXML + MXL |
+| L1329 | `JS — MUSICXML HELPERS` | Fonctions utilitaires export MusicXML |
+| L1563 | `JS — PRINT` | Thèmes impression, palettes, CSS dynamique |
+| L1583 | `JS — INIT` | Event listeners globaux, premier render |
 
 > Les numéros de ligne sont indicatifs et évoluent à chaque release.
 
@@ -302,13 +314,13 @@ Ajouter une entrée dans :
 1. Ajouter la valeur dans `BARLINE_TYPES` et `BARLINE_LABELS` (section `JS — STATE`)
 2. Ajouter le mapping XML dans `BARLINE_XML`
 3. Ajouter le style CSS dans `CSS — APP` (classe `.bl-xxx-left` / `.bl-xxx-right`)
-4. Ajouter l'entrée dans les maps `blXML` / `brXML` de l'export MusicXML (section `JS — MUSICXML HELPERS`)
+4. Ajouter l'entrée dans les maps `blXML` / `brXML` de l'export (section `JS — MUSICXML HELPERS`)
 
 ### Ajouter un symbole de navigation
 
 1. Ajouter la valeur dans `NAV_TYPES` et `NAV_DISPLAY` (section `JS — STATE`)
 2. Ajouter l'entrée dans `openNavPopup()` (section `JS — MODALS`)
-3. Ajouter le mapping XML dans la section barlines/nav de l'export (section `JS — MUSICXML HELPERS`)
+3. Ajouter le mapping XML dans l'export (section `JS — MUSICXML HELPERS`)
 4. Ajouter la détection dans `parseMusicXML()` (section `JS — PARSER`)
 
 ---
@@ -320,6 +332,7 @@ Le panneau d'annotations est optimisé pour la **basse guitare** :
 - Les **renversements d'arpèges** indiquent l'ordre exact des notes pour chaque position — utile pour mapper les positions sur une basse 4 ou 5 cordes
 - Les **tensions** sont affichées en noms de notes réels (ex. *b9 → Ré♭* sur un C7) plutôt qu'en intervalles seuls
 - Les **diagrammes de manche** donnent une référence visuelle immédiate au pupitre
+- Les **accords alternatifs** permettent d'indiquer une substitution tritoniée ou un accord de guide tone directement sur la grille
 - La **mise en page en colonnes** (1–4 mesures par ligne) s'adapte à l'impression paysage sur tablette ou pupitre
 
 ---
@@ -362,55 +375,49 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ## 📝 Changelog
 
+### 4.6
+- ✨ **Accord alternatif** — petit accord en italique ambré affiché au-dessus de l'accord principal (substitution tritoniée, anticipation, accord de passage) ; suggestion automatique de la sub tritoniée pour les dominantes ; export en `<harmony print-frame="no"><footnote>alt</footnote>` MusicXML ; import depuis les fichiers MusicXML existants
+
 ### 4.5
-- ✨ **Barres de mesure enrichies** — double `‖`, finale `𝄂`, répétition début `|:` et fin `:|` ; accessibles via boutons `◧` / `◨` au survol sur les bords de chaque mesure ; export/import MusicXML (`bar-style`, `repeat`)
-- ✨ **Voltas (1ère / 2ème / 3ème fois)** — bracket visuel au-dessus des mesures ; export/import en `<ending>` MusicXML
-- ✨ **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐` ; accessibles via bouton `𝄌` au survol ; export/import MusicXML (`<segno/>`, `<coda/>`, `<words/>`, `<fermata/>`)
-- 🔧 Rétrocompatibilité JSON : les grilles sans barlineLeft/barlineRight se chargent correctement
+- ✨ **Barres de mesure enrichies** — double `‖`, finale `𝄂`, répétition début `|:` et fin `:|` ; boutons `◧` / `◨` au survol ; export/import MusicXML
+- ✨ **Voltas (1./2./3.)** — bracket visuel ; export/import `<ending>` MusicXML
+- ✨ **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Fermata `𝄐` ; export/import MusicXML
 
 ### 4.4
-- ✨ **Symboles de mesure iReal Pro** — `%` (répétition), `𝄎` (répétition 2 mesures), `N.C.` (No Chord), `/` (beat slash) ; sélection depuis la modale d'accord via panneau **SYMBOLES RAPIDES** ; rendu visuel distinct par type ; ignorés à la transposition
-- 🔧 **Restructuration du fichier** — CSS et JS découpés en blocs nommés délimités par des séparateurs `/* ━━━ */` ; navigation directe sans outil externe
+- ✨ **Symboles de mesure iReal Pro** — `%`, `𝄎`, `N.C.`, `/` ; panneau SYMBOLES RAPIDES dans la modale d'accord
+- 🔧 **Restructuration du fichier** — blocs CSS et JS délimités par des séparateurs `/* ━━━ */`
 
 ### 4.3
-- ✨ **Déplacement des mesures** — poignée ⠿ drag & drop sur chaque mesure (y compris entre sections), boutons ◀ ▶ au survol pour déplacer d'un cran dans la même section
+- ✨ **Déplacement des mesures** — poignée ⠿ drag & drop inter-sections, boutons ◀ ▶ au survol
 
 ### 4.2
-- ✨ **Déplacement des sections** — poignée ⠿ drag & drop avec indicateur visuel orange, boutons ▲ ▼ pour monter/descendre d'un cran
+- ✨ **Déplacement des sections** — poignée ⠿ drag & drop, boutons ▲ ▼
 
 ### 4.1
-- 🐛 **Fix impression PDF** — les sections ne sont plus coupées à cheval sur deux pages (`break-inside: avoid` sur `.section` et `.measure`) ; suppression du `min-height:100vh` à l'impression ; header compacté ; `#chart-editor` forcé visible
+- 🐛 **Fix impression PDF** — `break-inside: avoid` sur `.section` et `.measure`
 
 ### 4.0
-- ✨ **Diagrammes SVG de modes** — 16 diagrammes de manche basse 4 cordes (EADG) : Ionien, Dorien, Phrygien, Lydien, Mixolydien, Éolien, Locrien, Lydien b7, Mixolydien b9b13, Altéré, Mélodie mineure, Lydien augmenté, Locrien #2, Dim. ton-demi, Dim. demi-ton, Tons entiers
-- ✨ **Transposition des diagrammes** — notes recalculées dynamiquement (rouge = fondamentale, ambre = arpège, bleu = gamme)
-- ✨ **Export / Import MXL** — format MusicXML compressé via JSZip 3.10.1
-- ✨ **Système de labels compact** — `A:` arpège, `T:` tensions, liste des modes alternatifs sous chaque accord
-- 🐛 Fix CSS impression : textes SVG noirs/gras, notes dans les points blanches, lignes de manche sombres
+- ✨ **Diagrammes SVG de modes** — 16 modes, basse 4 cordes EADG, transposition dynamique
+- ✨ **Export / Import MXL** — format compressé via JSZip 3.10.1
 
 ### 3.0
-- ✨ Sélecteur de langue intégré (FR / ES / IT / EN)
-- ✨ Export/Import JSON
-- ✨ Export MusicXML
-- ✨ Transposition par demi-ton et par tonalité cible
-- ✨ Annotations de section (texte libre)
-- ✨ Panneau d'impression avancé (thème, contraste, couleurs par section)
+- ✨ Sélecteur de langue (FR / ES / IT / EN), Export/Import JSON, Export MusicXML, Transposition, Panneau d'impression avancé
 
 ---
 
 ## 📋 Feuille de route
 
-- [x] Déplacement des sections par glisser-déposer
-- [x] Déplacement des mesures par glisser-déposer (inter-sections)
+- [x] Déplacement des sections et mesures par glisser-déposer
 - [x] Diagrammes de manche SVG (basse 4 cordes, 16 modes)
 - [x] Import/Export MXL compressé
 - [x] Symboles de mesure iReal Pro (`%`, `𝄎`, `N.C.`, `/`)
 - [x] Barres de mesure enrichies (double, finale, répétitions)
-- [x] Voltas (1./2./3.) — export/import MusicXML `<ending>`
+- [x] Voltas (1./2./3.) — export/import MusicXML
 - [x] Symboles de navigation (Coda, Segno, D.C., D.S., Fine, Fermata)
+- [x] Accord alternatif (small chord) — export/import MusicXML
 - [x] Sections non coupées à l'impression PDF
-- [x] Fichier structuré en blocs commentés (navigation sans outil)
-- [ ] Accord alternatif (petit accord au-dessus)
+- [x] Fichier structuré en blocs commentés
+- [ ] Invisible root `(w)` — basse visible sans harmonie
 - [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
 - [ ] Historique Annuler / Rétablir
 - [ ] Import iReal Pro `.irealbook`
