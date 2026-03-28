@@ -30,6 +30,7 @@
   - Tensions disponibles et notes à éviter
   - Notes libres avec couleur, gras/italique
 - 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, gestion automatique des enharmoniques
+- 🎹 **Panneau des modes de la tonalité** — après saisie ou changement de la tonalité, affiche les **7 modes** (I→VII) de la gamme majeure ou mineure naturelle en 2 lignes : note, degré romain, nom du mode, accord de référence (ex. Dm7, G7…) ; détection automatique majeur/mineur (`Am`, `Dm`…) ; mis à jour instantanément à la transposition
 - 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), déplacement par glisser-déposer ou boutons ▲▼, duplication, annotation libre
 - 📐 **Déplacement des mesures** — glisser-déposer y compris entre sections, boutons ◀▶ au survol, duplication
 - 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable (5 niveaux), couleurs automatiques par section, sections jamais coupées entre deux pages, diagrammes SVG inclus dans le PDF
@@ -375,6 +376,9 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 
 ## 📝 Changelog
 
+### 4.7
+- ✨ **Panneau des modes de la tonalité** — sous les métadonnées, affiche les **7 modes** (I→VII) de la gamme majeure **ou mineure naturelle** selon la tonalité saisie (ex. `C` → Ionien, `Am` → Éolien en I) ; note transposée, degré romain, nom du mode, accord de référence ; 2 lignes de 4+3 ; mis à jour en temps réel à chaque changement de tonalité (saisie, transposition, reset) ; label multilingue FR/ES/IT/EN ; tonique (I) surlignée en or
+
 ### 4.6
 - ✨ **Accord alternatif** — petit accord en italique ambré affiché au-dessus de l'accord principal (substitution tritoniée, anticipation, accord de passage) ; suggestion automatique de la sub tritoniée pour les dominantes ; export en `<harmony print-frame="no"><footnote>alt</footnote>` MusicXML ; import depuis les fichiers MusicXML existants
 
@@ -417,6 +421,7 @@ Ce projet utilise une version simplifiée de [Conventional Commits](https://www.
 - [x] Accord alternatif (small chord) — export/import MusicXML
 - [x] Sections non coupées à l'impression PDF
 - [x] Fichier structuré en blocs commentés
+- [x] Panneau des modes de la tonalité (8 degrés, nom du mode, accord de référence)
 - [ ] Invisible root `(w)` — basse visible sans harmonie
 - [ ] Basse 5 cordes (BEADG) — variantes des diagrammes
 - [ ] Historique Annuler / Rétablir

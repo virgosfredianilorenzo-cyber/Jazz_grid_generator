@@ -56,6 +56,17 @@ label { font-size:0.85rem; color:#aaa; }
 #chart-title { font-size:2rem; font-weight:bold; color:#f0a500; border:none; background:transparent; text-align:center; width:100%; outline:none; border-bottom:1px dashed #555; }
 #chart-meta { display:flex; justify-content:center; gap:20px; margin-top:8px; flex-wrap:wrap; font-size:0.9rem; color:#aaa; }
 #chart-meta input { width:120px; text-align:center; }
+/* ── Key Modes Panel ── */
+#key-modes-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; max-width:680px; margin:0 auto; }
+@media(max-width:600px){ #key-modes-grid { grid-template-columns:repeat(2,1fr); } }
+.key-mode-pill { background:#12102a; border:1px solid #2a1a5a; border-radius:8px; padding:6px 10px; text-align:center; transition:border-color 0.15s, background 0.15s; cursor:default; }
+.key-mode-pill:hover { border-color:#a78bfa; background:#1a1238; }
+.key-mode-pill .kmp-degree { font-size:0.6rem; color:#7a6aaa; text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+.key-mode-pill .kmp-note { font-size:1rem; font-weight:bold; color:#f0a500; font-family:'Georgia',serif; line-height:1.1; }
+.key-mode-pill .kmp-name { font-size:0.68rem; color:#c4b5fd; font-style:italic; margin-top:1px; }
+.key-mode-pill .kmp-chord { font-size:0.6rem; color:#7dd3fc; font-family:'Courier New',monospace; margin-top:2px; }
+.key-mode-pill.kmp-tonic { border-color:#f0a500; background:#1a1200; }
+.key-mode-pill.kmp-tonic .kmp-note { color:#ffd060; }
 .section { margin-bottom:30px; background:#16213e; border-radius:8px; overflow:hidden; border:1px solid #2d4a7a; }
 .section-header { background:#0f3460; padding:8px 14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .section-header-top { display:flex; align-items:center; gap:8px; width:100%; }
@@ -319,10 +330,32 @@ label { font-size:0.85rem; color:#aaa; }
   #chart-title { font-size:1.4rem !important; border-bottom:1px solid #ccc !important; padding-bottom:2px !important; }
   #chart-meta { margin-top:4px !important; font-size:0.78rem !important; gap:10px !important; }
   #chart-meta input { font-size:0.78rem !important; }
-  .section { border:2px solid #000; background:white; page-break-inside:auto; margin-bottom:10px; }
+  .section { border:2px solid #000; background:white;
+    page-break-inside:avoid; break-inside:avoid;
+    overflow:visible !important;
+    margin-bottom:14px; border-radius:0 !important; }
   .section-header { background:#ddd; }
   .section-label { color:#000; }
-  .measure { background:white; border:1.5px solid #333; page-break-inside:avoid; }
+  /* Passer le grid en flex-wrap à l'impression — display:grid empêche break-inside sur les enfants */
+  .measures-grid {
+    display:flex !important;
+    flex-wrap:wrap !important;
+    padding:8px !important;
+    gap:4px !important;
+    align-items:stretch;
+  }
+  /* Largeurs des mesures selon le nombre de colonnes (data-cols) */
+  .measures-grid[data-cols="1"] .measure { width:calc(100% - 4px) !important; }
+  .measures-grid[data-cols="2"] .measure { width:calc(50% - 4px) !important; }
+  .measures-grid[data-cols="3"] .measure { width:calc(33.333% - 4px) !important; }
+  .measures-grid[data-cols="4"] .measure { width:calc(25% - 4px) !important; }
+  /* Fallback si data-cols absent */
+  .measures-grid:not([data-cols]) .measure { width:calc(25% - 4px) !important; }
+  .measure {
+    background:white; border:1.5px solid #333;
+    page-break-inside:avoid; break-inside:avoid;
+    flex-shrink:0; box-sizing:border-box;
+  }
   .chord-symbol { color:#000!important; font-size:1.1rem; }
   .sym-display { color:#000!important; font-size:1.4rem; }
   .sym-label { display:none; }
@@ -409,6 +442,11 @@ label { font-size:0.85rem; color:#aaa; }
       <span id="meta-tempo-label"></span><input type="number" id="meta-tempo" value="120" style="width:70px"><span id="meta-bpm-label"></span>
       <span id="meta-time-label"></span><input type="text" id="meta-time" value="4/4" style="width:60px">
       <span id="meta-style-label"></span><input type="text" id="meta-style" value="Swing" style="width:100px">
+    </div>
+    <!-- ── Panneau modes de la tonalité ── -->
+    <div id="key-modes-panel" style="display:none;margin-top:12px;">
+      <div id="key-modes-label" style="font-size:0.7rem;color:#7a6aaa;letter-spacing:1.5px;font-weight:bold;margin-bottom:6px;"></div>
+      <div id="key-modes-grid"></div>
     </div>
   </div>
   <div id="sections-container"></div>
@@ -667,7 +705,7 @@ function applyTranslations(){
   if(document.getElementById('chart-editor').style.display!=='none')render();
 }
 
-function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();buildModal();}
+function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();buildModal();updateKeyModesPanel(chartData.key);}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — SVG DIAGRAMS
@@ -898,8 +936,8 @@ let labelTarget=null,selLetter='A',selSuffix='';
 
 function buildTransposeKeySelect(){const sel=document.getElementById('transpose-key-select');while(sel.options.length>1)sel.remove(1);ALL_KEYS.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});}
 function snapshotOriginalChords(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol===undefined)c._originalSymbol=c.symbol;})));originalKey=chartData.key;}
-function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>noteIdx(k)===(noteIdx(originalKey)+semitones+120)%12)||originalKey;chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined)c.symbol=transposeChordSymbol(c._originalSymbol,semitones,destKey);})));chartData.key=destKey;currentSemitoneOffset=((semitones%12)+12)%12;if(currentSemitoneOffset>6)currentSemitoneOffset-=12;document.getElementById('semitone-display').textContent=currentSemitoneOffset>0?'+'+currentSemitoneOffset:currentSemitoneOffset;document.getElementById('meta-key').value=destKey;document.getElementById('transpose-key-select').value=destKey;render();}
-function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined){c.symbol=c._originalSymbol;delete c._originalSymbol;}})));chartData.key=originalKey;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('meta-key').value=originalKey;document.getElementById('transpose-key-select').value='';render();}
+function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>noteIdx(k)===(noteIdx(originalKey)+semitones+120)%12)||originalKey;chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined)c.symbol=transposeChordSymbol(c._originalSymbol,semitones,destKey);})));chartData.key=destKey;currentSemitoneOffset=((semitones%12)+12)%12;if(currentSemitoneOffset>6)currentSemitoneOffset-=12;document.getElementById('semitone-display').textContent=currentSemitoneOffset>0?'+'+currentSemitoneOffset:currentSemitoneOffset;document.getElementById('meta-key').value=destKey;document.getElementById('transpose-key-select').value=destKey;render();updateKeyModesPanel(destKey);}
+function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined){c.symbol=c._originalSymbol;delete c._originalSymbol;}})));chartData.key=originalKey;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('meta-key').value=originalKey;document.getElementById('transpose-key-select').value='';render();updateKeyModesPanel(originalKey);}
 function transposeBySemitone(delta){snapshotOriginalChords();applyTranspositionToChart((semitoneDiff(originalKey,chartData.key)+delta+12)%12);}
 function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords();applyTranspositionToChart(semitoneDiff(originalKey,destKeyStr));}
 
@@ -927,7 +965,7 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
   const btnUp=document.createElement('button');btnUp.textContent='▲';btnUp.title='Monter';btnUp.disabled=si===0;btnUp.style.opacity=si===0?'0.3':'1';btnUp.onclick=()=>moveSection(si,-1);
   const btnDn=document.createElement('button');btnDn.textContent='▼';btnDn.title='Descendre';btnDn.disabled=si===chartData.sections.length-1;btnDn.style.opacity=si===chartData.sections.length-1?'0.3':'1';btnDn.onclick=()=>moveSection(si,+1);
   acts.append(btnUp,btnDn);
-  [t('secAddMeasure'),t('secDuplicate'),t('secDelete')].forEach((txt,k)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k];acts.appendChild(b);});topRow.append(handle,li,acts);const annotRow=document.createElement('div');annotRow.className='section-annot-row';const annotBadge=document.createElement('span');annotBadge.className='section-annot-badge';annotBadge.textContent='✎';const annotInput=document.createElement('input');annotInput.type='text';annotInput.className='section-annot-input';annotInput.value=section.annotation||'';annotInput.placeholder=t('secAnnotPlaceholder');const annotDisplayEl=document.createElement('div');annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(annotInput.value,annotDisplayEl);});annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));annotRow.append(annotBadge,annotInput);hdr.append(topRow,annotRow);renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);const grid=document.createElement('div');grid.className='measures-grid';grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));const ab=document.createElement('button');ab.className='add-measure-btn';ab.textContent='+';ab.onclick=()=>addMeasure(si);grid.appendChild(ab);div.append(hdr,annotDisplayEl,grid);return div;}
+  [t('secAddMeasure'),t('secDuplicate'),t('secDelete')].forEach((txt,k)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k];acts.appendChild(b);});topRow.append(handle,li,acts);const annotRow=document.createElement('div');annotRow.className='section-annot-row';const annotBadge=document.createElement('span');annotBadge.className='section-annot-badge';annotBadge.textContent='✎';const annotInput=document.createElement('input');annotInput.type='text';annotInput.className='section-annot-input';annotInput.value=section.annotation||'';annotInput.placeholder=t('secAnnotPlaceholder');const annotDisplayEl=document.createElement('div');annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(annotInput.value,annotDisplayEl);});annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));annotRow.append(annotBadge,annotInput);hdr.append(topRow,annotRow);renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);const grid=document.createElement('div');grid.className='measures-grid';grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.dataset.cols=cols;section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));const ab=document.createElement('button');ab.className='add-measure-btn';ab.textContent='+';ab.onclick=()=>addMeasure(si);grid.appendChild(ab);div.append(hdr,annotDisplayEl,grid);return div;}
 function renderSectionAnnotDisplay(text,el){if(!text||!text.trim()){el.style.display='none';return;}el.style.display='flex';el.className='section-annot-display';el.innerHTML=`<span class="annot-icon">💬</span><span>${escHtml(text)}</span>`;}
 function moveMeasure(si,mi,dir){const measures=chartData.sections[si].measures;const newMi=mi+dir;if(newMi<0||newMi>=measures.length)return;const tmp=measures[mi];measures[mi]=measures[newMi];measures[newMi]=tmp;render();}
 let dragMeasureSrc=null; // {si, mi}
@@ -1302,7 +1340,7 @@ function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarge
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
-function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}
+function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();updateKeyModesPanel('C');}
 function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
 function duplicateSection(si){const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
 function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));chartData.sections.splice(si,1);render();}
@@ -1318,13 +1356,14 @@ function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sec
 
 function syncMetaToData(){chartData.title=document.getElementById('chart-title').value;chartData.key=document.getElementById('meta-key').value;chartData.tempo=document.getElementById('meta-tempo').value;chartData.timeSig=document.getElementById('meta-time').value;chartData.style=document.getElementById('meta-style').value;}
 function exportJSON(){syncMetaToData();const clean=JSON.parse(JSON.stringify(chartData));clean.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{delete c._originalSymbol;})));const blob=new Blob([JSON.stringify(clean,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(chartData.title||'chart')+'.json';a.click();}
-document.getElementById('import-json').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{chartData=JSON.parse(ev.target.result);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch{alert(t('alertBadJSON'));}};r.readAsText(file);});
-document.getElementById('file-input').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}e.target.value='';});
+document.getElementById('import-json').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{chartData=JSON.parse(ev.target.result);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();updateKeyModesPanel(chartData.key);}catch{alert(t('alertBadJSON'));}};r.readAsText(file);});
+document.getElementById('file-input').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();updateKeyModesPanel(chartData.key);}catch(err){console.error(err);alert(t('alertBadXML'));}e.target.value='';});
 const dz=document.getElementById('dropzone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
-dz.addEventListener('drop',async e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}});
-['chart-title','meta-key','meta-tempo','meta-time','meta-style'].forEach(id=>{document.getElementById(id).addEventListener('change',e=>{const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};chartData[m[id]]=e.target.value;if(id==='meta-key')originalKey=e.target.value;});});
+dz.addEventListener('drop',async e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();updateKeyModesPanel(chartData.key);}catch(err){console.error(err);alert(t('alertBadXML'));}});
+['chart-title','meta-key','meta-tempo','meta-time','meta-style'].forEach(id=>{document.getElementById(id).addEventListener('change',e=>{const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};chartData[m[id]]=e.target.value;if(id==='meta-key'){originalKey=e.target.value;updateKeyModesPanel(e.target.value);}});});
+document.getElementById('meta-key').addEventListener('input',e=>updateKeyModesPanel(e.target.value));
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — MUSICXML EXPORT HELPERS
@@ -1579,6 +1618,89 @@ function updateContrastPreview(){document.getElementById('contrast-preview').tex
 function injectPrintStyle(v){removePrintStyle();const el=document.createElement('style');el.id='dps';el.media='print';el.textContent=buildSectionColorCSS(v);document.head.appendChild(el);}
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — KEY MODES PANEL
+   Affiche les 7 modes de la gamme majeure ou mineure naturelle
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const KMP_CHROMATIC_SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const KMP_CHROMATIC_FLAT= ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+// Tonalités dont le root utilise les bémols
+const KMP_FLAT_ROOTS=['F','Bb','Eb','Ab','Db','Gb','Cb'];
+// Tonalités mineures bémols
+const KMP_FLAT_MINOR_ROOTS=['Dm','Gm','Cm','Fm','Bbm','Ebm','Abm'];
+
+// Gamme majeure : intervalles depuis la tonique
+const KMP_MAJOR_IV=[0,2,4,5,7,9,11];
+// Gamme mineure naturelle (éolienne) : intervalles depuis la tonique
+const KMP_MINOR_IV=[0,2,3,5,7,8,10];
+
+// 7 modes de la gamme MAJEURE (I→VII)
+const KMP_MODES_MAJ=[
+  {name:'Ionien',     degree:'I',   chord:'maj7',  color:'#f0a500'},
+  {name:'Dorien',     degree:'II',  chord:'m7',    color:'#7dd3fc'},
+  {name:'Phrygien',   degree:'III', chord:'m7',    color:'#86efac'},
+  {name:'Lydien',     degree:'IV',  chord:'maj7',  color:'#fcd34d'},
+  {name:'Mixolydien', degree:'V',   chord:'7',     color:'#fb923c'},
+  {name:'Éolien',     degree:'VI',  chord:'m7',    color:'#c4b5fd'},
+  {name:'Locrien',    degree:'VII', chord:'m7b5',  color:'#fca5a5'},
+];
+
+// 7 modes de la gamme MINEURE naturelle (I→VII)
+const KMP_MODES_MIN=[
+  {name:'Éolien',     degree:'I',   chord:'m7',    color:'#c4b5fd'},
+  {name:'Locrien',    degree:'II',  chord:'m7b5',  color:'#fca5a5'},
+  {name:'Ionien',     degree:'III', chord:'maj7',  color:'#f0a500'},
+  {name:'Dorien',     degree:'IV',  chord:'m7',    color:'#7dd3fc'},
+  {name:'Phrygien',   degree:'V',   chord:'m7',    color:'#86efac'},
+  {name:'Lydien',     degree:'VI',  chord:'maj7',  color:'#fcd34d'},
+  {name:'Mixolydien', degree:'VII', chord:'7',     color:'#fb923c'},
+];
+
+const KMP_LABEL_MAJ={fr:'majeur',en:'major',es:'mayor',it:'maggiore'};
+const KMP_MODE_LABELS={fr:'Modes de la tonalité',en:'Key modes',es:'Modos de la tonalidad',it:'Modi della tonalità'};
+
+function updateKeyModesPanel(key){
+  const panel=document.getElementById('key-modes-panel');
+  const grid=document.getElementById('key-modes-grid');
+  const lbl=document.getElementById('key-modes-label');
+  if(!key||!key.trim()){panel.style.display='none';return;}
+
+  // Détecter mineur : tonalité se terminant par 'm' (ex: Am, Dm, F#m, Bbm)
+  const isMinor=/^[A-G][b#]?m$/.test(key.trim());
+  const rootName=isMinor?key.trim().slice(0,-1):key.trim();
+
+  // Choisir la gamme chromatique (dièses ou bémols)
+  const useFlat=isMinor?KMP_FLAT_MINOR_ROOTS.includes(key.trim()):KMP_FLAT_ROOTS.includes(rootName);
+  const chromatic=useFlat?KMP_CHROMATIC_FLAT:KMP_CHROMATIC_SHARP;
+  const rootIdx=chromatic.indexOf(rootName);
+  if(rootIdx===-1){panel.style.display='none';return;}
+
+  const intervals=isMinor?KMP_MINOR_IV:KMP_MAJOR_IV;
+  const modes=isMinor?KMP_MODES_MIN:KMP_MODES_MAJ;
+  const scaleNotes=intervals.map(iv=>chromatic[(rootIdx+iv)%12]);
+
+  grid.innerHTML='';
+  modes.forEach((mode,i)=>{
+    const note=scaleNotes[i];
+    const isTonic=(i===0);
+    const pill=document.createElement('div');
+    pill.className='key-mode-pill'+(isTonic?' kmp-tonic':'');
+    pill.innerHTML=`
+      <div class="kmp-degree">${mode.degree}</div>
+      <div class="kmp-note" style="color:${mode.color}">${note}</div>
+      <div class="kmp-name">${mode.name}</div>
+      <div class="kmp-chord">${note}${mode.chord}</div>
+    `;
+    grid.appendChild(pill);
+  });
+
+  const qualLabel=isMinor?'':(KMP_LABEL_MAJ[currentLang]||KMP_LABEL_MAJ.fr);
+  const fixedText=(KMP_MODE_LABELS[currentLang]||KMP_MODE_LABELS.fr).toUpperCase();
+  lbl.innerHTML=`<span style="text-transform:uppercase">${fixedText}</span> — <span style="text-transform:none">${key}${qualLabel?' '+qualLabel:''}</span>`;
+  panel.style.display='block';
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — INIT
