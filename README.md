@@ -206,8 +206,9 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 
 ## 📝 Changelog
 
-### 4.8.3
-- 🔗 **Share Link** — bouton 🔗 dans la toolbar ; encode `chartData` via LZString + URI component dans le fragment `#share=` de l'URL ; copie dans le presse-papier (fallback `prompt` si HTTP) ; toast de confirmation animé ; décodage automatique à l'ouverture du lien ; URL nettoyée après chargement (`history.replaceState`) ; traduit dans les 4 langues
+### 4.9
+- 🎸 **Diagrammes basse 5 cordes BEADG** — 7 modes diatoniques (Ionien→Locrien) validés manuellement, doigtés cohérents sur toutes les cordes
+- 🔀 **Toggle 4🎸 / 5🎸** — dans le bloc Mode de la modale annotation ; bascule instantanée entre diagrammes 4 et 5 cordes ; état global persistant
 
 ### 4.8.2
 - 🎨 **Sélecteur de couleur par section** — bouton 🎨 dans chaque header de section ; popup avec 15 teintes prédéfinies + sélecteur de couleur libre ; indicateur live (bordure gauche colorée dans l'éditeur) ; couleur utilisée à l'impression et dans le panneau d'aperçu ; bouton de réinitialisation vers la palette automatique ; intégré à l'historique Annuler/Rétablir
@@ -242,7 +243,7 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 ## 📋 Feuille de route
 
 - [x] Drag & drop sections et mesures
-- [x] Diagrammes SVG basse 4 cordes (16 modes)
+- [x] Diagrammes SVG basse 4 et 5 cordes BEADG (7 modes diatoniques validés + modes avancés)
 - [x] Import/Export MXL
 - [x] Tous les symboles iReal Pro (`%` `𝄎` `N.C.` `/` `(w)`)
 - [x] Barres enrichies, Voltas, Navigation
@@ -250,7 +251,7 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 - [x] Annuler / Rétablir (10 niveaux)
 - [x] Support tactile tablette
 - [x] Suffixes de section 0–9
-- [ ] Basse 5 cordes (BEADG)
+- [x] Basse 5 cordes (BEADG) — toggle 4🎸/5🎸
 - [ ] Lecture MIDI des fondamentales
 - [x] Sélecteur de couleur personnalisé par section
 
