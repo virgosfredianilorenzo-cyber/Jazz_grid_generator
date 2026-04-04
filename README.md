@@ -1,6 +1,6 @@
 # 𝄢 Jazz Grid Generator
 
-> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse, import/export MusicXML et sortie PDF optimisée.
+> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
 
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/fait%20avec-HTML%2FJS-c4b5fd?style=flat-square)
@@ -22,13 +22,14 @@
 - 🔂 **Voltas** (1ère / 2ème / 3ème fois) — bracket visuel + export MusicXML
 - 🧭 **Symboles de navigation** — Segno `𝄋`, Coda `𝄌`, D.C./D.S. al Coda, Fine, Fermata `𝄐`
 - 🔀 **Accord alternatif** — substitution tritoniée avec suggestion automatique pour les dominantes
-- 🎼 **Annotations de théorie musicale** — modes + diagramme SVG, arpèges 4 sons, tensions, notes libres
+- 🎼 **Annotations de théorie musicale** — modes + diagramme SVG basse 4/5 cordes, arpèges 4 sons, tensions, notes libres
+- 🎸 **Toggle 4🎸 / 5🎸** — bascule dans la barre d'outils entre diagrammes 4 cordes (EADG) et 5 cordes (BEADG)
 - 🎵 **Transposition** — par demi-ton (±) ou tonalité cible, enharmoniques automatiques
 - 🗂️ **Labels de section personnalisables** — lettres A–I, mots-clés (Intro, Chorus…) + suffixes `'` `''` `1`–`9` `0`
 - 📐 **Déplacement** sections et mesures — drag & drop + boutons ▲▼ ◀▶
 - ↩️ **Annuler / Rétablir** — 10 niveaux, Ctrl+Z / Ctrl+Y, boutons ↩ ↪
 - 📱 **Support tactile tablette** — drag & drop au doigt, pinch-to-zoom
-- 🖨️ **Impression / PDF** — thème clair/sombre, contraste (5 niveaux), couleurs par section
+- 🖨️ **Impression / PDF** — thème clair/sombre, contraste (5 niveaux), couleurs par section ; mise en page adaptative selon la densité des mesures
 - 💾 **Sauvegarde JSON** — fidélité totale
 - 🎼 **Export MusicXML / MXL** — compatible MuseScore, Sibelius, Finale
 - 🌐 **4 langues** — FR 🇫🇷 ES 🇪🇸 IT 🇮🇹 EN 🇬🇧
@@ -183,9 +184,11 @@ Jazz_grid_generator/
 ## 🎸 Conçu pour les bassistes
 
 - Renversements d'arpèges pour le mapping sur 4 cordes EADG
+- **Diagrammes 5 cordes BEADG** — 7 modes diatoniques, doigtés validés, toggle 4🎸/5🎸 dans la barre d'outils
 - Tensions en noms de notes réels (*b9 → Ré♭* sur C7)
 - Diagrammes SVG dynamiques — référence immédiate au pupitre
 - `(w)` pour les lignes de basse solo
+- **PDF adaptatif** — police et mise en page réduites automatiquement pour les mesures chargées
 - Pinch-to-zoom pour adapter la grille sur tablette
 - Undo/Redo pour expérimenter sans risque
 
@@ -206,7 +209,13 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 
 ## 📝 Changelog
 
+### 4.10
+- 🖨️ **PDF adaptatif** — à partir de 2 accords par mesure : réduction automatique de la police, arpèges affichés en grille 2 colonnes (toutes les notes lisibles), tensions condensées sur une ligne, noms de modes empilés verticalement ; réduction progressive pour 3 et 4 accords par mesure
+- 🧭 **Menus contextuels intelligents** — les popups (barlines, symboles de navigation, accord alternatif) restent toujours dans l'écran : décalage automatique vers la gauche et remontée si le bas est tronqué
+- 🖨️ **Éléments masqués à l'impression** — poignées de déplacement (sections et mesures) et bouton de couleur de section cachés dans le PDF
+
 ### 4.9
+- 🤖 **Auto-annotation à l'import MusicXML** — mode principal (SVG basse) + premier arpège 4 sons + toutes les tensions affichés automatiquement sur chaque accord ; mesures à 1 accord : SVG + théorie ; mesures à plusieurs accords : noms de modes + arpège + tensions (sans SVG)
 - 🎸 **Diagrammes basse 5 cordes BEADG** — 7 modes diatoniques (Ionien→Locrien) validés manuellement, doigtés cohérents sur toutes les cordes
 - 🔀 **Toggle 4🎸 / 5🎸** — dans le bloc Mode de la modale annotation ; bascule instantanée entre diagrammes 4 et 5 cordes ; état global persistant
 
@@ -252,6 +261,7 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 - [x] Support tactile tablette
 - [x] Suffixes de section 0–9
 - [x] Basse 5 cordes (BEADG) — toggle 4🎸/5🎸
+- [x] PDF adaptatif selon la densité des mesures
 - [ ] Lecture MIDI des fondamentales
 - [x] Sélecteur de couleur personnalisé par section
 

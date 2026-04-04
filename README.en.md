@@ -1,6 +1,6 @@
 # 𝄢 Jazz Grid Generator
 
-> An online jazz chord chart editor with music theory annotations, bass fretboard diagrams, MusicXML import/export and print-optimised PDF output.
+> An online jazz chord chart editor with music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export and print-optimised PDF output.
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
@@ -22,15 +22,15 @@
 - 🔂 **Voltas** (1st / 2nd / 3rd ending) — visual bracket + MusicXML export
 - 🧭 **Navigation symbols** — Segno `𝄋`, Coda `𝄌`, D.C./D.S. al Coda, Fine, Fermata `𝄐`
 - 🔀 **Alternate chord** — tritone substitution with automatic suggestion for dominant chords
-- 🎼 **Music theory annotations** — mode + SVG fretboard diagram, 4-note arpeggios, tensions, free notes
+- 🎼 **Music theory annotations** — mode + SVG fretboard diagram (4- or 5-string), 4-note arpeggios, tensions, free notes
+- 🎸 **4🎸 / 5🎸 toggle** — toolbar switch between 4-string (EADG) and 5-string (BEADG) fretboard diagrams
 - 🎵 **Transposition** — by semitone (±) or target key, automatic enharmonic spelling
 - 🗂️ **Customisable section labels** — letters A–I, keywords (Intro, Chorus…) + suffixes `'` `''` `1`–`9` `0`
 - 📐 **Move sections and measures** — drag & drop + ▲▼ ◀▶ buttons
 - ↩️ **Undo / Redo** — 10 levels, Ctrl+Z / Ctrl+Y, ↩ ↪ toolbar buttons
 - 📱 **Tablet touch support** — finger drag & drop, pinch-to-zoom
-- 🔗 **Share Link** — one click copies a URL that opens the chart directly for anyone
 - 🎨 **Custom section colour** — 15 preset swatches, free colour picker, live indicator, auto reset
-- 🖨️ **Print / PDF** — light/dark theme, contrast (5 levels), auto or custom per-section colours
+- 🖨️ **Print / PDF** — light/dark theme, contrast (5 levels), per-section colours; adaptive layout for dense measures
 - 💾 **JSON save** — full fidelity including all annotations
 - 🎼 **MusicXML / MXL export** — compatible with MuseScore, Sibelius, Finale
 - 🌐 **4 languages** — FR 🇫🇷 ES 🇪🇸 IT 🇮🇹 EN 🇬🇧
@@ -164,6 +164,8 @@ Drag & drop a `.musicxml`, `.xml` or `.mxl` file onto the drop zone, or click **
 3. Adjust **contrast** (1–5)
 4. Click **Print** → **Save as PDF**
 
+The layout adapts automatically to measure density: with 2+ chords per measure, font sizes are reduced, arpeggios display in a 2-column grid (all notes visible), tensions fit on one line, and mode names stack vertically. Handle icons and section colour buttons are hidden.
+
 ---
 
 ## 🎼 Music Theory Engine
@@ -227,10 +229,11 @@ Jazz_grid_generator/
 ## 🎸 Designed for Bass Players
 
 - **Arpeggio inversions** — exact note order for each position on 4 strings EADG
+- **5-string BEADG diagrams** — 7 diatonic modes, hand-validated fingerings, 4🎸/5🎸 toolbar toggle
 - **Tensions as real pitch names** — e.g. *b9 → D♭* on C7, not just the interval
 - **Dynamic SVG fretboard diagrams** — instant visual reference at the music stand
 - **`(w)`** for bass-only passages with no written harmony
-- **Alternate chords** for tritone substitutions and guide tones
+- **Adaptive PDF** — font and layout automatically scaled for busy measures
 - **Pinch-to-zoom** to fit the grid on a tablet stand
 - **Undo/Redo** to experiment freely
 
@@ -252,8 +255,14 @@ Commit prefixes: `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 
 ## 📝 Changelog
 
-### 4.8.3
-- 🔗 **Share Link** — 🔗 toolbar button; encodes `chartData` via LZString + URI component into the `#share=` URL fragment; copies to clipboard (prompt fallback on HTTP); animated confirmation toast; automatic decode on link open; URL cleaned after load (`history.replaceState`); translated in all 4 languages
+### 4.10
+- 🖨️ **Adaptive PDF layout** — from 2 chords per measure: automatic font reduction, arpeggios displayed in a 2-column grid (all notes fully visible), tensions condensed to one line, mode names stacked vertically; progressive reduction for 3 and 4 chords per measure
+- 🧭 **Smart context menus** — barline, navigation symbol and alternate chord popups always stay on screen: automatic left-shift and upward repositioning when content would overflow
+- 🖨️ **Hidden print elements** — section and measure drag handles, and the section colour button, are now hidden in PDF output
+
+### 4.9
+- 🎸 **5-string BEADG fretboard diagrams** — 7 diatonic modes (Ionian→Locrian), hand-validated fingerings, consistent across all strings
+- 🔀 **4🎸 / 5🎸 toggle** — toolbar button; instant switch between 4- and 5-string diagrams; global persistent state
 
 ### 4.8.2
 - 🎨 **Custom section colour picker** — 🎨 button in each section header; popup with 15 preset swatches + free colour input; live indicator (coloured left border in editor); colour applied at print time and in the preview panel; reset button to restore automatic palette; integrated with Undo/Redo history
@@ -296,7 +305,8 @@ Commit prefixes: `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 - [x] Undo / Redo (10 levels)
 - [x] Tablet touch support
 - [x] Extended section suffixes (0–9)
-- [ ] 5-string bass (BEADG) fretboard variants
+- [x] 5-string bass (BEADG) fretboard diagrams — 4🎸/5🎸 toggle
+- [x] Adaptive PDF layout for dense measures
 - [ ] MIDI playback of root notes
 - [x] Custom colour picker per section
 
