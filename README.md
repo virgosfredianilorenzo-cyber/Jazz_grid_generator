@@ -206,6 +206,12 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 
 ## 📝 Changelog
 
+### 4.8.3
+- 🔗 **Share Link** — bouton 🔗 dans la toolbar ; encode `chartData` via LZString + URI component dans le fragment `#share=` de l'URL ; copie dans le presse-papier (fallback `prompt` si HTTP) ; toast de confirmation animé ; décodage automatique à l'ouverture du lien ; URL nettoyée après chargement (`history.replaceState`) ; traduit dans les 4 langues
+
+### 4.8.2
+- 🎨 **Sélecteur de couleur par section** — bouton 🎨 dans chaque header de section ; popup avec 15 teintes prédéfinies + sélecteur de couleur libre ; indicateur live (bordure gauche colorée dans l'éditeur) ; couleur utilisée à l'impression et dans le panneau d'aperçu ; bouton de réinitialisation vers la palette automatique ; intégré à l'historique Annuler/Rétablir
+
 ### 4.8.1
 - ✨ **Suffixes de section étendus** — chiffres `3` à `9` et `0` ajoutés au sélecteur de suffixe ; labels possibles : `A3`, `Chorus7`, `Head0`…
 
@@ -246,7 +252,7 @@ Préfixes commits : `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 - [x] Suffixes de section 0–9
 - [ ] Basse 5 cordes (BEADG)
 - [ ] Lecture MIDI des fondamentales
-- [ ] Sélecteur de couleur personnalisé par section
+- [x] Sélecteur de couleur personnalisé par section
 
 ---
 

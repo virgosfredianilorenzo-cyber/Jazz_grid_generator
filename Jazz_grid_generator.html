@@ -48,6 +48,17 @@ label { font-size:0.85rem; color:#aaa; }
 
 #kofi-btn { display:inline-flex; align-items:center; gap:5px; background:#ff5e5b; color:#fff; border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:bold; text-decoration:none; white-space:nowrap; transition:background 0.2s, transform 0.15s; }
 #kofi-btn:hover { background:#ff3a37; transform:translateY(-1px); }
+/* ── Share Link ── */
+#btn-share { position:relative; }
+#btn-share.copied { background:#2a7a4a !important; color:#fff !important; }
+.share-toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
+  background:#2a7a4a; color:#fff; padding:10px 22px; border-radius:24px;
+  font-size:0.88rem; font-weight:bold; z-index:9999; pointer-events:none;
+  box-shadow:0 4px 18px rgba(0,0,0,0.4);
+  animation:toastIn 0.2s ease, toastOut 0.3s ease 1.7s forwards; }
+@keyframes toastIn  { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes toastOut { from{opacity:1} to{opacity:0} }
+
 #kofi-wrap { display:inline-flex; align-items:center; gap:8px; }
 #kofi-wrap span { font-size:0.75rem; color:#aaa; white-space:nowrap; }
 @media print { #kofi-wrap { position:fixed; bottom:8px; right:12px; z-index:9999; } #kofi-wrap span { display:none; } #kofi-btn { background:#ff5e5b !important; color:#fff !important; padding:4px 10px; font-size:0.72rem; } }
@@ -95,6 +106,33 @@ label { font-size:0.85rem; color:#aaa; }
 .section-drag-handle { cursor:grab; color:#4a6a9a; font-size:1rem; padding:2px 6px; border-radius:3px; user-select:none; transition:color 0.15s; }
 .section-drag-handle:hover { color:#f0a500; }
 .section-drag-handle:active { cursor:grabbing; }
+/* ── Sélecteur de couleur de section ── */
+.sec-color-btn { background:none; border:none; cursor:pointer; font-size:0.85rem;
+  padding:2px 4px; border-radius:3px; transition:transform 0.15s; line-height:1;
+  opacity:0.6; flex-shrink:0; }
+.sec-color-btn:hover { opacity:1; transform:scale(1.2); }
+.sec-color-dot { display:inline-block; width:10px; height:10px; border-radius:50%;
+  border:1.5px solid #555; vertical-align:middle; margin-right:2px; }
+.sec-color-popup { position:fixed; background:#16213e; border:1px solid #f0a500;
+  border-radius:8px; padding:10px 12px; z-index:300; box-shadow:0 6px 24px rgba(0,0,0,0.6);
+  display:flex; flex-direction:column; gap:8px; min-width:200px; }
+.sec-color-popup-title { font-size:0.72rem; color:#f0a500; font-weight:bold;
+  text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+.sec-color-swatches { display:flex; flex-wrap:wrap; gap:6px; }
+.sec-color-swatch { width:22px; height:22px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:transform 0.1s, border-color 0.1s; }
+.sec-color-swatch:hover { transform:scale(1.2); }
+.sec-color-swatch.active { border-color:#fff; transform:scale(1.15); }
+.sec-color-custom-row { display:flex; align-items:center; gap:6px; margin-top:2px; }
+.sec-color-custom-row label { font-size:0.72rem; color:#aaa; }
+.sec-color-custom-row input[type="color"] { width:32px; height:24px; padding:0;
+  border:1px solid #4a6a9a; border-radius:3px; cursor:pointer; background:none; }
+.sec-color-reset { background:none; border:1px solid #555; color:#aaa;
+  font-size:0.7rem; border-radius:3px; padding:3px 8px; cursor:pointer; }
+.sec-color-reset:hover { border-color:#f0a500; color:#f0a500; }
+/* Indicateur couleur live sur la section dans l'éditeur */
+.section.has-custom-color { border-left-width:4px !important; }
+
 .section.dragging { opacity:0.4; border:2px dashed #f0a500 !important; }
 .section.drag-over-top { border-top:3px solid #f0a500 !important; }
 .section.drag-over-bottom { border-bottom:3px solid #f0a500 !important; }
@@ -428,6 +466,7 @@ label { font-size:0.85rem; color:#aaa; }
   <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
   <input type="file" id="import-json" accept=".json" style="display:none">
   <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
+  <button class="btn secondary" id="btn-share" onclick="shareLink()" title="Copier le lien de partage">🔗</button>
   <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
   <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
   <!-- Sélecteur de langue intégré à la fin de la toolbar -->
@@ -580,6 +619,7 @@ label { font-size:0.85rem; color:#aaa; }
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 
 <script>
 
@@ -603,7 +643,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Thème :',themeLight:'☀️ Clair',themeDark:'🌙 Sombre',lblContrast:'Contraste :',lblSectionColors:'Couleurs sections :',btnDoPrint:'Imprimer',contrastLabels:['Léger','Standard','Soutenu','Fort','Maximum'],
     alertLastSection:'Impossible de supprimer la dernière section.',alertBadJSON:'JSON invalide.',alertBadXML:'Erreur MusicXML.',
     defaultTitle:'Mon Thème Jazz',editHint:'clic: éditer',tipDeleteMeasure:'Supprimer mesure',tipDupMeasure:'Dupliquer mesure',tipAddChord:'Ajouter un accord',sectionDefault:'Section',
-    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',
+    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',btnShare:'🔗 Partager',shareToast:'✅ Lien copié !',shareFallback:'Copie ce lien :',
   },
   es: {
     btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',
@@ -618,7 +658,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Claro',themeDark:'🌙 Oscuro',lblContrast:'Contraste :',lblSectionColors:'Colores secciones :',btnDoPrint:'Imprimir',contrastLabels:['Suave','Estándar','Medio','Fuerte','Máximo'],
     alertLastSection:'No se puede eliminar la última sección.',alertBadJSON:'JSON inválido.',alertBadXML:'Error MusicXML.',
     defaultTitle:'Mi Tema Jazz',editHint:'clic: editar',tipDeleteMeasure:'Eliminar compás',tipDupMeasure:'Duplicar compás',tipAddChord:'Agregar acorde',sectionDefault:'Sección',
-    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',
+    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',btnShare:'🔗 Compartir',shareToast:'✅ ¡Enlace copiado!',shareFallback:'Copia este enlace :',
   },
   it: {
     btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',
@@ -633,7 +673,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Chiaro',themeDark:'🌙 Scuro',lblContrast:'Contrasto :',lblSectionColors:'Colori sezioni :',btnDoPrint:'Stampa',contrastLabels:['Leggero','Standard','Sostenuto','Forte','Massimo'],
     alertLastSection:"Impossibile eliminare l'ultima sezione.",alertBadJSON:'JSON non valido.',alertBadXML:'Errore MusicXML.',
     defaultTitle:'Il Mio Tema Jazz',editHint:'clic: modifica',tipDeleteMeasure:'Elimina misura',tipDupMeasure:'Duplica misura',tipAddChord:'Aggiungi accordo',sectionDefault:'Sezione',
-    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',
+    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',btnShare:'🔗 Condividi',shareToast:'✅ Link copiato!',shareFallback:'Copia questo link :',
   },
   en: {
     btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
@@ -648,7 +688,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Theme :',themeLight:'☀️ Light',themeDark:'🌙 Dark',lblContrast:'Contrast :',lblSectionColors:'Section colors :',btnDoPrint:'Print',contrastLabels:['Light','Standard','Medium','Strong','Maximum'],
     alertLastSection:'Cannot delete the last section.',alertBadJSON:'Invalid JSON.',alertBadXML:'MusicXML error.',
     defaultTitle:'My Jazz Theme',editHint:'click: edit',tipDeleteMeasure:'Delete measure',tipDupMeasure:'Duplicate measure',tipAddChord:'Add chord',sectionDefault:'Section',
-    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',
+    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',btnShare:'🔗 Share',shareToast:'✅ Link copied!',shareFallback:'Copy this link:',
   }
 };
 
@@ -665,6 +705,7 @@ function applyTranslations(){
   document.getElementById('btn-import-json').textContent=t('btnImportJSON');
   document.getElementById('btn-export-xml').textContent=t('btnExportXML');
   document.getElementById('btn-export-mxl').textContent=t('btnExportMXL');
+  document.getElementById('btn-share').title=t('btnShare');
   document.getElementById('dz-title').textContent=t('dzTitle');
   document.getElementById('dz-sub').textContent=t('dzSub');
   document.getElementById('meta-key-label').textContent=t('metaKey');
@@ -978,12 +1019,23 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
   const hdr=document.createElement('div');hdr.className='section-header';const topRow=document.createElement('div');topRow.className='section-header-top';
   // drag handle
   const handle=document.createElement('span');handle.className='section-drag-handle';handle.textContent='⠿';handle.title='Glisser pour déplacer';handle.addEventListener('mousedown',()=>div.draggable=true);
-  const li=document.createElement('button');li.className='section-label';li.innerHTML=`<span class="sec-label-text">${section.label||'A'}</span><span class="sec-label-edit"> ✎</span>`;li.onclick=()=>openLabelModal(si);const acts=document.createElement('div');acts.className='section-actions';
+  const li=document.createElement('button');li.className='section-label';li.innerHTML=`<span class="sec-label-text">${section.label||'A'}</span><span class="sec-label-edit"> ✎</span>`;li.onclick=()=>openLabelModal(si);
+  // ── Bouton sélecteur de couleur ──
+  const colorBtn=document.createElement('button');colorBtn.className='sec-color-btn';
+  const colorDot=document.createElement('span');colorDot.className='sec-color-dot';
+  if(section.color){colorDot.style.background=section.color;colorDot.style.borderColor=section.color;}
+  else{colorDot.style.background='#2d4a7a';colorDot.style.borderColor='#4a6a9a';}
+  colorBtn.appendChild(colorDot);colorBtn.appendChild(document.createTextNode('🎨'));
+  colorBtn.title='Couleur de section';
+  colorBtn.onclick=e=>{e.stopPropagation();openSectionColorPopup(e,si);};
+  // Appliquer la couleur live sur le bord gauche de la section dans l'éditeur
+  if(section.color){div.style.borderLeftColor=section.color;div.style.borderLeftWidth='4px';div.classList.add('has-custom-color');}
+  const acts=document.createElement('div');acts.className='section-actions';
   // ▲▼ move buttons
   const btnUp=document.createElement('button');btnUp.textContent='▲';btnUp.title='Monter';btnUp.disabled=si===0;btnUp.style.opacity=si===0?'0.3':'1';btnUp.onclick=()=>moveSection(si,-1);
   const btnDn=document.createElement('button');btnDn.textContent='▼';btnDn.title='Descendre';btnDn.disabled=si===chartData.sections.length-1;btnDn.style.opacity=si===chartData.sections.length-1?'0.3':'1';btnDn.onclick=()=>moveSection(si,+1);
   acts.append(btnUp,btnDn);
-  [t('secAddMeasure'),t('secDuplicate'),t('secDelete')].forEach((txt,k)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k];acts.appendChild(b);});topRow.append(handle,li,acts);const annotRow=document.createElement('div');annotRow.className='section-annot-row';const annotBadge=document.createElement('span');annotBadge.className='section-annot-badge';annotBadge.textContent='✎';const annotInput=document.createElement('input');annotInput.type='text';annotInput.className='section-annot-input';annotInput.value=section.annotation||'';annotInput.placeholder=t('secAnnotPlaceholder');const annotDisplayEl=document.createElement('div');annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(annotInput.value,annotDisplayEl);});annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));annotRow.append(annotBadge,annotInput);hdr.append(topRow,annotRow);renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);const grid=document.createElement('div');grid.className='measures-grid';grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.dataset.cols=cols;section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));const ab=document.createElement('button');ab.className='add-measure-btn';ab.textContent='+';ab.onclick=()=>addMeasure(si);grid.appendChild(ab);div.append(hdr,annotDisplayEl,grid);return div;}
+  [t('secAddMeasure'),t('secDuplicate'),t('secDelete')].forEach((txt,k)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k];acts.appendChild(b);});topRow.append(handle,li,colorBtn,acts);const annotRow=document.createElement('div');annotRow.className='section-annot-row';const annotBadge=document.createElement('span');annotBadge.className='section-annot-badge';annotBadge.textContent='✎';const annotInput=document.createElement('input');annotInput.type='text';annotInput.className='section-annot-input';annotInput.value=section.annotation||'';annotInput.placeholder=t('secAnnotPlaceholder');const annotDisplayEl=document.createElement('div');annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(annotInput.value,annotDisplayEl);});annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));annotRow.append(annotBadge,annotInput);hdr.append(topRow,annotRow);renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);const grid=document.createElement('div');grid.className='measures-grid';grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.dataset.cols=cols;section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));const ab=document.createElement('button');ab.className='add-measure-btn';ab.textContent='+';ab.onclick=()=>addMeasure(si);grid.appendChild(ab);div.append(hdr,annotDisplayEl,grid);return div;}
 function renderSectionAnnotDisplay(text,el){if(!text||!text.trim()){el.style.display='none';return;}el.style.display='flex';el.className='section-annot-display';el.innerHTML=`<span class="annot-icon">💬</span><span>${escHtml(text)}</span>`;}
 function moveMeasure(si,mi,dir){snapshotUndo();const measures=chartData.sections[si].measures;const newMi=mi+dir;if(newMi<0||newMi>=measures.length)return;const tmp=measures[mi];measures[mi]=measures[newMi];measures[newMi]=tmp;render();}
 let dragMeasureSrc=null; // {si, mi}
@@ -1269,6 +1321,80 @@ function openAltChordPopup(e,si,mi,ci,chord){
   setTimeout(()=>inp.focus(),50);
   setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
 }
+/* ── Popup sélecteur de couleur de section ── */
+function openSectionColorPopup(e, si) {
+  e.stopPropagation();
+  closeActivePopup();
+  const section = chartData.sections[si];
+  const pop = document.createElement('div');
+  pop.className = 'sec-color-popup';
+  activePopup = pop;
+
+  const title = document.createElement('div');
+  title.className = 'sec-color-popup-title';
+  title.textContent = '🎨 Couleur — ' + (section.label || 'Section');
+  pop.appendChild(title);
+
+  // Swatches prédéfinis
+  const swatchGrid = document.createElement('div');
+  swatchGrid.className = 'sec-color-swatches';
+  SEC_COLOR_PRESETS.forEach(hex => {
+    const sw = document.createElement('div');
+    sw.className = 'sec-color-swatch' + (section.color === hex ? ' active' : '');
+    sw.style.background = hex;
+    sw.title = hex;
+    sw.onclick = e2 => {
+      e2.stopPropagation();
+      snapshotUndo();
+      section.color = hex;
+      closeActivePopup();
+      render();
+    };
+    swatchGrid.appendChild(sw);
+  });
+  pop.appendChild(swatchGrid);
+
+  // Input couleur personnalisé
+  const customRow = document.createElement('div');
+  customRow.className = 'sec-color-custom-row';
+  const customLabel = document.createElement('label');
+  customLabel.textContent = 'Personnalisé :';
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = section.color || '#f0a500';
+  colorInput.oninput = () => {
+    snapshotUndo();
+    section.color = colorInput.value;
+    render();
+    // Rafraîchir le popup sans le fermer
+    const dot = pop.querySelector('.sec-color-swatch.active');
+    if (dot) dot.classList.remove('active');
+  };
+  customRow.append(customLabel, colorInput);
+  pop.appendChild(customRow);
+
+  // Bouton réinitialiser
+  const resetBtn = document.createElement('button');
+  resetBtn.className = 'sec-color-reset';
+  resetBtn.textContent = '↺ Couleur automatique';
+  resetBtn.onclick = e2 => {
+    e2.stopPropagation();
+    snapshotUndo();
+    delete section.color;
+    closeActivePopup();
+    render();
+  };
+  pop.appendChild(resetBtn);
+
+  // Positionner le popup
+  const rect = e.target.closest('button').getBoundingClientRect();
+  const top = rect.bottom + 4;
+  const left = Math.min(rect.left, window.innerWidth - 220);
+  pop.style.cssText = `position:fixed;top:${top}px;left:${left}px;`;
+  document.body.appendChild(pop);
+  setTimeout(() => document.addEventListener('click', closeActivePopup, { once: true }), 10);
+}
+
 function openBarlinePopup(e,si,mi,side){
   e.stopPropagation();closeActivePopup();
   const measure=chartData.sections[si].measures[mi];
@@ -1626,9 +1752,42 @@ async function loadFileAsXML(file){
 let printTheme='light';
 const SECTION_PALETTES_LIGHT=[{bg:'#fff9e6',border:'#d4a500',header:'#ffedb3',text:'#7a5800',chord:'#1a1a1a'},{bg:'#e8f4ff',border:'#2d7ab8',header:'#bee3f8',text:'#1a4a7a',chord:'#1a1a1a'},{bg:'#edfff0',border:'#2a9a4a',header:'#c3f0cc',text:'#1a5a2a',chord:'#1a1a1a'},{bg:'#ffeef8',border:'#b83aaa',header:'#f5c6f0',text:'#6a1a5a',chord:'#1a1a1a'},{bg:'#fff0e8',border:'#c05820',header:'#ffd6b8',text:'#7a2800',chord:'#1a1a1a'},{bg:'#f0edff',border:'#5a3ab8',header:'#d4ccf8',text:'#2a1a7a',chord:'#1a1a1a'},{bg:'#e8fffe',border:'#1a9a8a',header:'#b8f0ec',text:'#0a5a50',chord:'#1a1a1a'},{bg:'#fff4f4',border:'#b82a2a',header:'#ffd0d0',text:'#7a1a1a',chord:'#1a1a1a'}];
 const SECTION_PALETTES_DARK=[{bg:'#2a2000',border:'#f0c040',header:'#3a2e00',text:'#ffd060',chord:'#ffffff'},{bg:'#001a30',border:'#4ab0f0',header:'#002040',text:'#7dd3fc',chord:'#ffffff'},{bg:'#001a08',border:'#3aaa5a',header:'#002010',text:'#86efac',chord:'#ffffff'},{bg:'#280020',border:'#d060c8',header:'#350028',text:'#f0a8ec',chord:'#ffffff'},{bg:'#280e00',border:'#e07838',header:'#341200',text:'#fbb060',chord:'#ffffff'},{bg:'#180030',border:'#8060e8',header:'#200038',text:'#c4b5fd',chord:'#ffffff'},{bg:'#001a18',border:'#28c8b0',header:'#002020',text:'#5eead4',chord:'#ffffff'},{bg:'#280000',border:'#e04040',header:'#340000',text:'#fca5a5',chord:'#ffffff'}];
+/* Palette de teintes rapides pour le sélecteur de couleur */
+const SEC_COLOR_PRESETS=[
+  '#f0a500','#4ab0f0','#3aaa5a','#d060c8','#e07838',
+  '#8060e8','#28c8b0','#e04040','#f472b6','#a3e635',
+  '#fb923c','#67e8f9','#c4b5fd','#ffffff','#888888',
+];
+
+/* Dériver bg/header/border/text depuis une couleur accent hex */
+function deriveFromAccent(hex){
+  // Convertir hex → rgb
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  // Luminosité relative
+  const lum=(0.299*r+0.587*g+0.114*b)/255;
+  const isDark=lum<0.45;
+  if(printTheme==='light'){
+    return{
+      bg:`rgba(${r},${g},${b},0.08)`,
+      border:hex,
+      header:`rgba(${r},${g},${b},0.18)`,
+      text:isDark?hex:`rgb(${Math.round(r*0.6)},${Math.round(g*0.6)},${Math.round(b*0.6)})`,
+      chord:'#1a1a1a'
+    };
+  } else {
+    return{
+      bg:`rgba(${r},${g},${b},0.12)`,
+      border:hex,
+      header:`rgba(${r},${g},${b},0.22)`,
+      text:isDark?`rgba(${r},${g},${b},0.9)`:hex,
+      chord:'#ffffff'
+    };
+  }
+}
+
 function getSectionColorMap(){const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const m={};let i=0;chartData.sections.forEach(s=>{const l=s.label||'';if(!(l in m)){m[l]=i%palettes.length;i++;}});return m;}
-function buildSectionColorCSS(cl){const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const lm=getSectionColorMap();const bBg=printTheme==='dark'?'#111':'white',bC=printTheme==='dark'?'#eee':'black';const bw=[1,1.5,2,2.5,3][cl-1],fs=[1.0,1.05,1.15,1.25,1.35][cl-1];let css=`body{background:${bBg};color:${bC};}#chart-title,#chart-meta input{color:${printTheme==='dark'?'#ffd060':'#1a1a1a'};}`;chartData.sections.forEach((s,si)=>{const p=palettes[lm[s.label||'']];css+=`.section[data-si="${si}"]{background:${p.bg};border:${bw}px solid ${p.border};}.section[data-si="${si}"] .section-header{background:${p.header};}.section[data-si="${si}"] .section-label{color:${p.text};}.section[data-si="${si}"] .measure{background:${printTheme==='dark'?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.7)'};border:${Math.max(1,bw-0.5)}px solid ${p.border}88;}.section[data-si="${si}"] .chord-symbol{color:${p.chord}!important;font-size:${fs}rem;font-weight:${cl>=3?900:700};}.section[data-si="${si}"] .measure-number{color:${p.text}66;}`;});css+='.mode-val{color:#000!important;font-weight:bold!important;font-style:normal!important;}'+'.theory-row-label{color:#333!important;}'+'.arp-val{color:#1a5a8a!important;}'+'.tens-val{color:#1a6a3a!important;}'+'.mode-diagram-wrap svg>text{fill:#000!important;font-weight:bold!important;}'+'.mode-diagram-wrap svg g text{fill:#fff!important;}'+'.mode-diagram-wrap svg line{stroke:#333!important;}'+'.mode-diagram-wrap{background:#fff!important;}';return css;}
-function updateSectionColorPreview(){const preview=document.getElementById('section-color-preview');if(!preview)return;preview.innerHTML='';const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const lm=getSectionColorMap();Object.entries(lm).forEach(([lbl,idx])=>{const p=palettes[idx];const dot=document.createElement('div');dot.style.cssText=`width:18px;height:18px;border-radius:50%;background:${p.bg};border:2px solid ${p.border};`;dot.title=lbl||'?';preview.appendChild(dot);const span=document.createElement('span');span.style.cssText=`font-size:0.68rem;color:${p.border};margin-right:4px;`;span.textContent=lbl||'?';preview.appendChild(span);});}
+function buildSectionColorCSS(cl){const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const lm=getSectionColorMap();const bBg=printTheme==='dark'?'#111':'white',bC=printTheme==='dark'?'#eee':'black';const bw=[1,1.5,2,2.5,3][cl-1],fs=[1.0,1.05,1.15,1.25,1.35][cl-1];let css=`body{background:${bBg};color:${bC};}#chart-title,#chart-meta input{color:${printTheme==='dark'?'#ffd060':'#1a1a1a'};}`;chartData.sections.forEach((s,si)=>{const p=s.color?deriveFromAccent(s.color):palettes[lm[s.label||'']];css+=`.section[data-si="${si}"]{background:${p.bg};border:${bw}px solid ${p.border};}.section[data-si="${si}"] .section-header{background:${p.header};}.section[data-si="${si}"] .section-label{color:${p.text};}.section[data-si="${si}"] .measure{background:${printTheme==='dark'?'rgba(255,255,255,0.05)':'rgba(255,255,255,0.7)'};border:${Math.max(1,bw-0.5)}px solid ${p.border}88;}.section[data-si="${si}"] .chord-symbol{color:${p.chord}!important;font-size:${fs}rem;font-weight:${cl>=3?900:700};}.section[data-si="${si}"] .measure-number{color:${p.text}66;}`;});css+='.mode-val{color:#000!important;font-weight:bold!important;font-style:normal!important;}'+'.theory-row-label{color:#333!important;}'+'.arp-val{color:#1a5a8a!important;}'+'.tens-val{color:#1a6a3a!important;}'+'.mode-diagram-wrap svg>text{fill:#000!important;font-weight:bold!important;}'+'.mode-diagram-wrap svg g text{fill:#fff!important;}'+'.mode-diagram-wrap svg line{stroke:#333!important;}'+'.mode-diagram-wrap{background:#fff!important;}';return css;}
+function updateSectionColorPreview(){const preview=document.getElementById('section-color-preview');if(!preview)return;preview.innerHTML='';const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const lm=getSectionColorMap();chartData.sections.forEach((s,si)=>{const p=s.color?deriveFromAccent(s.color):palettes[lm[s.label||'']];const dot=document.createElement('div');dot.style.cssText=`width:18px;height:18px;border-radius:50%;background:${p.bg};border:2px solid ${p.border};`;dot.title=s.label||'?';preview.appendChild(dot);const span=document.createElement('span');span.style.cssText=`font-size:0.68rem;color:${p.border};margin-right:4px;`;span.textContent=s.label||'?';preview.appendChild(span);});}
 function setPrintTheme(theme){printTheme=theme;document.getElementById('theme-light-btn').classList.toggle('on',theme==='light');document.getElementById('theme-dark-btn').classList.toggle('on',theme==='dark');updateSectionColorPreview();}
 function openPrintPanel(){document.getElementById('print-contrast-bar').style.display='flex';updateContrastPreview();updateSectionColorPreview();}
 function closePrintPanel(){document.getElementById('print-contrast-bar').style.display='none';removePrintStyle();}
@@ -1636,6 +1795,73 @@ function updateContrastPreview(){document.getElementById('contrast-preview').tex
 function injectPrintStyle(v){removePrintStyle();const el=document.createElement('style');el.id='dps';el.media='print';el.textContent=buildSectionColorCSS(v);document.head.appendChild(el);}
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — SHARE LINK
+   Encode/decode chartData dans l'URL via LZString
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+function encodeChartToHash() {
+  syncMetaToData();
+  const clean = JSON.parse(JSON.stringify(chartData));
+  clean.sections.forEach(s => s.measures.forEach(m => m.chords.forEach(c => { delete c._originalSymbol; })));
+  return LZString.compressToEncodedURIComponent(JSON.stringify(clean));
+}
+
+function buildShareURL() {
+  const base = window.location.href.split('#')[0];
+  return base + '#share=' + encodeChartToHash();
+}
+
+function showShareToast(msg) {
+  document.querySelectorAll('.share-toast').forEach(el => el.remove());
+  const toast = document.createElement('div');
+  toast.className = 'share-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2100);
+}
+
+async function shareLink() {
+  const url = buildShareURL();
+  const btn = document.getElementById('btn-share');
+  try {
+    await navigator.clipboard.writeText(url);
+    btn.classList.add('copied');
+    setTimeout(() => btn.classList.remove('copied'), 1800);
+    showShareToast(t('shareToast'));
+  } catch {
+    // Fallback pour les navigateurs sans API clipboard (HTTP ou permissions)
+    const msg = t('shareFallback') + '\n' + url;
+    prompt(msg, url);
+  }
+}
+
+function tryLoadFromHash() {
+  const hash = window.location.hash;
+  if (!hash.startsWith('#share=')) return false;
+  try {
+    const encoded = hash.slice(7);
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    if (!json) return false;
+    const data = JSON.parse(json);
+    if (!data.sections) return false;
+    chartData = data;
+    originalKey = data.key || 'C';
+    currentSemitoneOffset = 0;
+    document.getElementById('semitone-display').textContent = '0';
+    document.getElementById('transpose-key-select').value = '';
+    document.getElementById('dropzone').style.display = 'none';
+    document.getElementById('chart-editor').style.display = 'block';
+    // Nettoyer le hash de l'URL sans recharger la page
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+    return true;
+  } catch(e) {
+    console.warn('Share link decode failed:', e);
+    return false;
+  }
+}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — KEY MODES PANEL
@@ -1938,6 +2164,7 @@ buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
 applyTranslations();
+if(tryLoadFromHash()){render();updateKeyModesPanel(chartData.key||'C');undoStack=[];redoStack=[];updateUndoButtons();}
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);

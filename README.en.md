@@ -28,7 +28,9 @@
 - 📐 **Move sections and measures** — drag & drop + ▲▼ ◀▶ buttons
 - ↩️ **Undo / Redo** — 10 levels, Ctrl+Z / Ctrl+Y, ↩ ↪ toolbar buttons
 - 📱 **Tablet touch support** — finger drag & drop, pinch-to-zoom
-- 🖨️ **Print / PDF** — light/dark theme, contrast (5 levels), automatic per-section colours
+- 🔗 **Share Link** — one click copies a URL that opens the chart directly for anyone
+- 🎨 **Custom section colour** — 15 preset swatches, free colour picker, live indicator, auto reset
+- 🖨️ **Print / PDF** — light/dark theme, contrast (5 levels), auto or custom per-section colours
 - 💾 **JSON save** — full fidelity including all annotations
 - 🎼 **MusicXML / MXL export** — compatible with MuseScore, Sibelius, Finale
 - 🌐 **4 languages** — FR 🇫🇷 ES 🇪🇸 IT 🇮🇹 EN 🇬🇧
@@ -250,6 +252,12 @@ Commit prefixes: `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 
 ## 📝 Changelog
 
+### 4.8.3
+- 🔗 **Share Link** — 🔗 toolbar button; encodes `chartData` via LZString + URI component into the `#share=` URL fragment; copies to clipboard (prompt fallback on HTTP); animated confirmation toast; automatic decode on link open; URL cleaned after load (`history.replaceState`); translated in all 4 languages
+
+### 4.8.2
+- 🎨 **Custom section colour picker** — 🎨 button in each section header; popup with 15 preset swatches + free colour input; live indicator (coloured left border in editor); colour applied at print time and in the preview panel; reset button to restore automatic palette; integrated with Undo/Redo history
+
 ### 4.8.1
 - ✨ **Extended section suffixes** — digits `3` through `9` and `0` added to the suffix picker; labels like `A3`, `Chorus7`, `Head0` are now possible
 
@@ -290,7 +298,7 @@ Commit prefixes: `feat:` `fix:` `style:` `refactor:` `docs:` `i18n:`
 - [x] Extended section suffixes (0–9)
 - [ ] 5-string bass (BEADG) fretboard variants
 - [ ] MIDI playback of root notes
-- [ ] Custom colour picker per section
+- [x] Custom colour picker per section
 
 ---
 
