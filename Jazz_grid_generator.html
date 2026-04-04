@@ -48,17 +48,6 @@ label { font-size:0.85rem; color:#aaa; }
 
 #kofi-btn { display:inline-flex; align-items:center; gap:5px; background:#ff5e5b; color:#fff; border-radius:6px; padding:5px 12px; font-size:0.8rem; font-weight:bold; text-decoration:none; white-space:nowrap; transition:background 0.2s, transform 0.15s; }
 #kofi-btn:hover { background:#ff3a37; transform:translateY(-1px); }
-/* ── Share Link ── */
-#btn-share { position:relative; }
-#btn-share.copied { background:#2a7a4a !important; color:#fff !important; }
-.share-toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%);
-  background:#2a7a4a; color:#fff; padding:10px 22px; border-radius:24px;
-  font-size:0.88rem; font-weight:bold; z-index:9999; pointer-events:none;
-  box-shadow:0 4px 18px rgba(0,0,0,0.4);
-  animation:toastIn 0.2s ease, toastOut 0.3s ease 1.7s forwards; }
-@keyframes toastIn  { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
-@keyframes toastOut { from{opacity:1} to{opacity:0} }
-
 #kofi-wrap { display:inline-flex; align-items:center; gap:8px; }
 #kofi-wrap span { font-size:0.75rem; color:#aaa; white-space:nowrap; }
 @media print { #kofi-wrap { position:fixed; bottom:8px; right:12px; z-index:9999; } #kofi-wrap span { display:none; } #kofi-btn { background:#ff5e5b !important; color:#fff !important; padding:4px 10px; font-size:0.72rem; } }
@@ -466,7 +455,6 @@ label { font-size:0.85rem; color:#aaa; }
   <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
   <input type="file" id="import-json" accept=".json" style="display:none">
   <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
-  <button class="btn secondary" id="btn-share" onclick="shareLink()" title="Copier le lien de partage">🔗</button>
   <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
   <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
   <!-- Sélecteur de langue intégré à la fin de la toolbar -->
@@ -619,7 +607,6 @@ label { font-size:0.85rem; color:#aaa; }
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 
 <script>
 
@@ -643,7 +630,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Thème :',themeLight:'☀️ Clair',themeDark:'🌙 Sombre',lblContrast:'Contraste :',lblSectionColors:'Couleurs sections :',btnDoPrint:'Imprimer',contrastLabels:['Léger','Standard','Soutenu','Fort','Maximum'],
     alertLastSection:'Impossible de supprimer la dernière section.',alertBadJSON:'JSON invalide.',alertBadXML:'Erreur MusicXML.',
     defaultTitle:'Mon Thème Jazz',editHint:'clic: éditer',tipDeleteMeasure:'Supprimer mesure',tipDupMeasure:'Dupliquer mesure',tipAddChord:'Ajouter un accord',sectionDefault:'Section',
-    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',btnShare:'🔗 Partager',shareToast:'✅ Lien copié !',shareFallback:'Copie ce lien :',
+    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)'
   },
   es: {
     btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',
@@ -658,7 +645,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Claro',themeDark:'🌙 Oscuro',lblContrast:'Contraste :',lblSectionColors:'Colores secciones :',btnDoPrint:'Imprimir',contrastLabels:['Suave','Estándar','Medio','Fuerte','Máximo'],
     alertLastSection:'No se puede eliminar la última sección.',alertBadJSON:'JSON inválido.',alertBadXML:'Error MusicXML.',
     defaultTitle:'Mi Tema Jazz',editHint:'clic: editar',tipDeleteMeasure:'Eliminar compás',tipDupMeasure:'Duplicar compás',tipAddChord:'Agregar acorde',sectionDefault:'Sección',
-    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',btnShare:'🔗 Compartir',shareToast:'✅ ¡Enlace copiado!',shareFallback:'Copia este enlace :',
+    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)'
   },
   it: {
     btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',
@@ -673,7 +660,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Chiaro',themeDark:'🌙 Scuro',lblContrast:'Contrasto :',lblSectionColors:'Colori sezioni :',btnDoPrint:'Stampa',contrastLabels:['Leggero','Standard','Sostenuto','Forte','Massimo'],
     alertLastSection:"Impossibile eliminare l'ultima sezione.",alertBadJSON:'JSON non valido.',alertBadXML:'Errore MusicXML.',
     defaultTitle:'Il Mio Tema Jazz',editHint:'clic: modifica',tipDeleteMeasure:'Elimina misura',tipDupMeasure:'Duplica misura',tipAddChord:'Aggiungi accordo',sectionDefault:'Sezione',
-    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',btnShare:'🔗 Condividi',shareToast:'✅ Link copiato!',shareFallback:'Copia questo link :',
+    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)'
   },
   en: {
     btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
@@ -688,7 +675,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Theme :',themeLight:'☀️ Light',themeDark:'🌙 Dark',lblContrast:'Contrast :',lblSectionColors:'Section colors :',btnDoPrint:'Print',contrastLabels:['Light','Standard','Medium','Strong','Maximum'],
     alertLastSection:'Cannot delete the last section.',alertBadJSON:'Invalid JSON.',alertBadXML:'MusicXML error.',
     defaultTitle:'My Jazz Theme',editHint:'click: edit',tipDeleteMeasure:'Delete measure',tipDupMeasure:'Duplicate measure',tipAddChord:'Add chord',sectionDefault:'Section',
-    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',btnShare:'🔗 Share',shareToast:'✅ Link copied!',shareFallback:'Copy this link:',
+    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)'
   }
 };
 
@@ -705,7 +692,6 @@ function applyTranslations(){
   document.getElementById('btn-import-json').textContent=t('btnImportJSON');
   document.getElementById('btn-export-xml').textContent=t('btnExportXML');
   document.getElementById('btn-export-mxl').textContent=t('btnExportMXL');
-  document.getElementById('btn-share').title=t('btnShare');
   document.getElementById('dz-title').textContent=t('dzTitle');
   document.getElementById('dz-sub').textContent=t('dzSub');
   document.getElementById('meta-key-label').textContent=t('metaKey');
@@ -1798,72 +1784,6 @@ function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-s
 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   JS — SHARE LINK
-   Encode/decode chartData dans l'URL via LZString
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-
-function encodeChartToHash() {
-  syncMetaToData();
-  const clean = JSON.parse(JSON.stringify(chartData));
-  clean.sections.forEach(s => s.measures.forEach(m => m.chords.forEach(c => { delete c._originalSymbol; })));
-  return LZString.compressToEncodedURIComponent(JSON.stringify(clean));
-}
-
-function buildShareURL() {
-  const base = window.location.href.split('#')[0];
-  return base + '#share=' + encodeChartToHash();
-}
-
-function showShareToast(msg) {
-  document.querySelectorAll('.share-toast').forEach(el => el.remove());
-  const toast = document.createElement('div');
-  toast.className = 'share-toast';
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 2100);
-}
-
-async function shareLink() {
-  const url = buildShareURL();
-  const btn = document.getElementById('btn-share');
-  try {
-    await navigator.clipboard.writeText(url);
-    btn.classList.add('copied');
-    setTimeout(() => btn.classList.remove('copied'), 1800);
-    showShareToast(t('shareToast'));
-  } catch {
-    // Fallback pour les navigateurs sans API clipboard (HTTP ou permissions)
-    const msg = t('shareFallback') + '\n' + url;
-    prompt(msg, url);
-  }
-}
-
-function tryLoadFromHash() {
-  const hash = window.location.hash;
-  if (!hash.startsWith('#share=')) return false;
-  try {
-    const encoded = hash.slice(7);
-    const json = LZString.decompressFromEncodedURIComponent(encoded);
-    if (!json) return false;
-    const data = JSON.parse(json);
-    if (!data.sections) return false;
-    chartData = data;
-    originalKey = data.key || 'C';
-    currentSemitoneOffset = 0;
-    document.getElementById('semitone-display').textContent = '0';
-    document.getElementById('transpose-key-select').value = '';
-    document.getElementById('dropzone').style.display = 'none';
-    document.getElementById('chart-editor').style.display = 'block';
-    // Nettoyer le hash de l'URL sans recharger la page
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-    return true;
-  } catch(e) {
-    console.warn('Share link decode failed:', e);
-    return false;
-  }
-}
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — KEY MODES PANEL
    Affiche les 7 modes de la gamme majeure ou mineure naturelle
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -2164,7 +2084,6 @@ buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
 applyTranslations();
-if(tryLoadFromHash()){render();updateKeyModesPanel(chartData.key||'C');undoStack=[];redoStack=[];updateUndoButtons();}
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);
