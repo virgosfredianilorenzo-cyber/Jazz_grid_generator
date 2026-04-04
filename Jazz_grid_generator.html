@@ -24,6 +24,20 @@ body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-heig
 .btn.secondary { background:#2d4a7a; color:#eee; }
 .btn.secondary:hover { background:#3a5f9a; }
 .btn.danger { background:#c0392b; color:#fff; }
+/* ── Undo / Redo ── */
+#btn-undo:disabled, #btn-redo:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+/* ── Touch / tablette ── */
+@media (pointer: coarse) {
+  .chord-slot { min-height:54px; }
+  .chord-del-btn { opacity:0.7 !important; font-size:0.75rem; }
+  .barline-btn { opacity:0.5 !important; width:22px; }
+  .nav-add-btn { opacity:0.6 !important; width:20px; height:20px; }
+  .measure-drag-handle, .section-drag-handle { font-size:1.3rem; padding:4px 8px; }
+  .alt-chord-btn { opacity:0.7 !important; }
+  .modal-sym-btn { padding:10px 16px; font-size:0.95rem; }
+  .chord-btn { padding:8px; font-size:0.8rem; }
+  #btn-undo, #btn-redo { padding:8px 14px; font-size:1.1rem; }
+}
 select, input[type="text"], input[type="number"] { background:#2d4a7a; color:#eee; border:1px solid #f0a500; padding:6px 10px; border-radius:4px; font-size:0.85rem; }
 label { font-size:0.85rem; color:#aaa; }
 
@@ -387,6 +401,10 @@ label { font-size:0.85rem; color:#aaa; }
   <input type="file" id="file-input" accept=".musicxml,.xml,.mxl">
   <button class="btn" id="btn-open" onclick="document.getElementById('file-input').click()"></button>
   <button class="btn secondary" id="btn-new" onclick="newChart()"></button>
+  <div id="undo-redo-group" style="display:flex;gap:4px;align-items:center;">
+    <button class="btn secondary" id="btn-undo" onclick="undo()" title="Annuler (Ctrl+Z)" style="padding:5px 10px;font-size:1rem;">↩</button>
+    <button class="btn secondary" id="btn-redo" onclick="redo()" title="Rétablir (Ctrl+Y)" style="padding:5px 10px;font-size:1rem;">↪</button>
+  </div>
   <div id="transpose-group">
     <label id="lbl-transpose"></label>
     <div id="transpose-semitones">
@@ -581,7 +599,7 @@ const LANGS = {
     annotTitle:'Annotation',annotShowInBar:'Afficher dans la mesure',annotModeTitle:'🎼 Mode',annotModeHint:'Modes compatibles :',annotArpTitle:'🎹 Arpège 4 sons',annotArpHint:'Notes de base :',annotInvHint:'Renversements :',annotTensTitle:'⚡ Tensions',annotTensHint:'Cliquer pour sélectionner :',annotAvoidHint:'À éviter :',annotFreeTitle:'📝 Note libre',annotFreePH:'Indication de jeu, doigtés, remarques...',annotColorLbl:'Couleur :',lblBold:'Gras',lblItalic:'Italique',btnClearAnnot:'🗑 Tout effacer',annotNone:'Aucune',annotUnknown:'Accord non reconnu.',
     labelModalTitle:'✏️ Lettre de section',lblLetter:'Lettre principale :',lblSuffixLabel:'Suffixe :',lblPreview:'Aperçu :',
     invLabels:['Pos. fondamentale','1er renversement','2ème renversement','3ème renversement'],
-    suffixLabels:["(aucun)","' (bis)","'' (ter)",'1','2'],
+    suffixLabels:["(aucun)","' (bis)","'' (ter)",'1','2','3','4','5','6','7','8','9','0'],
     lblPrintTheme:'🖨️ Thème :',themeLight:'☀️ Clair',themeDark:'🌙 Sombre',lblContrast:'Contraste :',lblSectionColors:'Couleurs sections :',btnDoPrint:'Imprimer',contrastLabels:['Léger','Standard','Soutenu','Fort','Maximum'],
     alertLastSection:'Impossible de supprimer la dernière section.',alertBadJSON:'JSON invalide.',alertBadXML:'Erreur MusicXML.',
     defaultTitle:'Mon Thème Jazz',editHint:'clic: éditer',tipDeleteMeasure:'Supprimer mesure',tipDupMeasure:'Dupliquer mesure',tipAddChord:'Ajouter un accord',sectionDefault:'Section',
@@ -596,7 +614,7 @@ const LANGS = {
     annotTitle:'Anotación',annotShowInBar:'Mostrar en el compás',annotModeTitle:'🎼 Modo',annotModeHint:'Modos compatibles :',annotArpTitle:'🎹 Arpegio 4 notas',annotArpHint:'Notas base :',annotInvHint:'Inversiones :',annotTensTitle:'⚡ Tensiones',annotTensHint:'Clic para seleccionar :',annotAvoidHint:'A evitar :',annotFreeTitle:'📝 Nota libre',annotFreePH:'Indicación de ejecución, digitación, observaciones...',annotColorLbl:'Color :',lblBold:'Negrita',lblItalic:'Cursiva',btnClearAnnot:'🗑 Borrar todo',annotNone:'Ninguna',annotUnknown:'Acorde no reconocido.',
     labelModalTitle:'✏️ Letra de sección',lblLetter:'Letra principal :',lblSuffixLabel:'Sufijo :',lblPreview:'Vista previa :',
     invLabels:['Pos. fundamental','1ª inversión','2ª inversión','3ª inversión'],
-    suffixLabels:['(ninguno)',"' (bis)","'' (ter)",'1','2'],
+    suffixLabels:['(ninguno)',"' (bis)","'' (ter)",'1','2','3','4','5','6','7','8','9','0'],
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Claro',themeDark:'🌙 Oscuro',lblContrast:'Contraste :',lblSectionColors:'Colores secciones :',btnDoPrint:'Imprimir',contrastLabels:['Suave','Estándar','Medio','Fuerte','Máximo'],
     alertLastSection:'No se puede eliminar la última sección.',alertBadJSON:'JSON inválido.',alertBadXML:'Error MusicXML.',
     defaultTitle:'Mi Tema Jazz',editHint:'clic: editar',tipDeleteMeasure:'Eliminar compás',tipDupMeasure:'Duplicar compás',tipAddChord:'Agregar acorde',sectionDefault:'Sección',
@@ -611,7 +629,7 @@ const LANGS = {
     annotTitle:'Annotazione',annotShowInBar:'Mostra nella misura',annotModeTitle:'🎼 Modo',annotModeHint:'Modi compatibili :',annotArpTitle:'🎹 Arpeggio 4 suoni',annotArpHint:'Note di base :',annotInvHint:'Rivolti :',annotTensTitle:'⚡ Tensioni',annotTensHint:'Clicca per selezionare :',annotAvoidHint:'Da evitare :',annotFreeTitle:'📝 Nota libera',annotFreePH:'Indicazioni di esecuzione, diteggiatura, osservazioni...',annotColorLbl:'Colore :',lblBold:'Grassetto',lblItalic:'Corsivo',btnClearAnnot:'🗑 Cancella tutto',annotNone:'Nessuna',annotUnknown:'Accordo non riconosciuto.',
     labelModalTitle:'✏️ Lettera di sezione',lblLetter:'Lettera principale :',lblSuffixLabel:'Suffisso :',lblPreview:'Anteprima :',
     invLabels:['Pos. fondamentale','1° rivolto','2° rivolto','3° rivolto'],
-    suffixLabels:['(nessuno)',"' (bis)","'' (ter)",'1','2'],
+    suffixLabels:['(nessuno)',"' (bis)","'' (ter)",'1','2','3','4','5','6','7','8','9','0'],
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Chiaro',themeDark:'🌙 Scuro',lblContrast:'Contrasto :',lblSectionColors:'Colori sezioni :',btnDoPrint:'Stampa',contrastLabels:['Leggero','Standard','Sostenuto','Forte','Massimo'],
     alertLastSection:"Impossibile eliminare l'ultima sezione.",alertBadJSON:'JSON non valido.',alertBadXML:'Errore MusicXML.',
     defaultTitle:'Il Mio Tema Jazz',editHint:'clic: modifica',tipDeleteMeasure:'Elimina misura',tipDupMeasure:'Duplica misura',tipAddChord:'Aggiungi accordo',sectionDefault:'Sezione',
@@ -626,7 +644,7 @@ const LANGS = {
     annotTitle:'Annotation',annotShowInBar:'Show in measure',annotModeTitle:'🎼 Mode',annotModeHint:'Compatible modes :',annotArpTitle:'🎹 4-note arpeggio',annotArpHint:'Base notes :',annotInvHint:'Inversions :',annotTensTitle:'⚡ Tensions',annotTensHint:'Click to select :',annotAvoidHint:'Avoid :',annotFreeTitle:'📝 Free note',annotFreePH:'Performance notes, fingerings, remarks...',annotColorLbl:'Color :',lblBold:'Bold',lblItalic:'Italic',btnClearAnnot:'🗑 Clear all',annotNone:'None',annotUnknown:'Chord not recognized.',
     labelModalTitle:'✏️ Section label',lblLetter:'Main letter :',lblSuffixLabel:'Suffix :',lblPreview:'Preview :',
     invLabels:['Root position','1st inversion','2nd inversion','3rd inversion'],
-    suffixLabels:['(none)',"' (bis)","'' (ter)",'1','2'],
+    suffixLabels:['(none)',"' (bis)","'' (ter)",'1','2','3','4','5','6','7','8','9','0'],
     lblPrintTheme:'🖨️ Theme :',themeLight:'☀️ Light',themeDark:'🌙 Dark',lblContrast:'Contrast :',lblSectionColors:'Section colors :',btnDoPrint:'Print',contrastLabels:['Light','Standard','Medium','Strong','Maximum'],
     alertLastSection:'Cannot delete the last section.',alertBadJSON:'Invalid JSON.',alertBadXML:'MusicXML error.',
     defaultTitle:'My Jazz Theme',editHint:'click: edit',tipDeleteMeasure:'Delete measure',tipDupMeasure:'Duplicate measure',tipAddChord:'Add chord',sectionDefault:'Section',
@@ -948,7 +966,7 @@ function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords
 
 
 function render(){document.getElementById('chart-title').value=chartData.title;document.getElementById('meta-key').value=chartData.key;document.getElementById('meta-tempo').value=chartData.tempo;document.getElementById('meta-time').value=chartData.timeSig;document.getElementById('meta-style').value=chartData.style;const cont=document.getElementById('sections-container');cont.innerHTML='';chartData.sections.forEach((s,si)=>cont.appendChild(renderSection(s,si)));}
-function moveSection(si,dir){const newIdx=si+dir;if(newIdx<0||newIdx>=chartData.sections.length)return;const tmp=chartData.sections[si];chartData.sections[si]=chartData.sections[newIdx];chartData.sections[newIdx]=tmp;render();}
+function moveSection(si,dir){snapshotUndo();const newIdx=si+dir;if(newIdx<0||newIdx>=chartData.sections.length)return;const tmp=chartData.sections[si];chartData.sections[si]=chartData.sections[newIdx];chartData.sections[newIdx]=tmp;render();}
 let dragSrcIdx=null;
 function renderSection(section,si){const cols=parseInt(document.getElementById('global-cols').value)||4;const div=document.createElement('div');div.className='section';div.dataset.si=si;div.draggable=true;
   // drag events
@@ -956,7 +974,7 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
   div.addEventListener('dragend',()=>{div.classList.remove('dragging');document.querySelectorAll('.section').forEach(s=>s.classList.remove('drag-over-top','drag-over-bottom'));dragSrcIdx=null;});
   div.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';if(dragSrcIdx===null||dragSrcIdx===si)return;const rect=div.getBoundingClientRect();const mid=rect.top+rect.height/2;document.querySelectorAll('.section').forEach(s=>s.classList.remove('drag-over-top','drag-over-bottom'));div.classList.add(e.clientY<mid?'drag-over-top':'drag-over-bottom');});
   div.addEventListener('dragleave',()=>div.classList.remove('drag-over-top','drag-over-bottom'));
-  div.addEventListener('drop',e=>{e.preventDefault();div.classList.remove('drag-over-top','drag-over-bottom');if(dragSrcIdx===null||dragSrcIdx===si)return;const rect=div.getBoundingClientRect();const mid=rect.top+rect.height/2;let targetIdx=e.clientY<mid?si:si+1;if(dragSrcIdx<targetIdx)targetIdx--;const moved=chartData.sections.splice(dragSrcIdx,1)[0];chartData.sections.splice(targetIdx,0,moved);dragSrcIdx=null;render();});
+  div.addEventListener('drop',e=>{e.preventDefault();div.classList.remove('drag-over-top','drag-over-bottom');if(dragSrcIdx===null||dragSrcIdx===si)return;const rect=div.getBoundingClientRect();const mid=rect.top+rect.height/2;let targetIdx=e.clientY<mid?si:si+1;if(dragSrcIdx<targetIdx)targetIdx--;const moved=chartData.sections.splice(dragSrcIdx,1)[0];snapshotUndo();chartData.sections.splice(targetIdx,0,moved);dragSrcIdx=null;render();});
   const hdr=document.createElement('div');hdr.className='section-header';const topRow=document.createElement('div');topRow.className='section-header-top';
   // drag handle
   const handle=document.createElement('span');handle.className='section-drag-handle';handle.textContent='⠿';handle.title='Glisser pour déplacer';handle.addEventListener('mousedown',()=>div.draggable=true);
@@ -967,7 +985,7 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
   acts.append(btnUp,btnDn);
   [t('secAddMeasure'),t('secDuplicate'),t('secDelete')].forEach((txt,k)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=[()=>addMeasure(si),()=>duplicateSection(si),()=>deleteSection(si)][k];acts.appendChild(b);});topRow.append(handle,li,acts);const annotRow=document.createElement('div');annotRow.className='section-annot-row';const annotBadge=document.createElement('span');annotBadge.className='section-annot-badge';annotBadge.textContent='✎';const annotInput=document.createElement('input');annotInput.type='text';annotInput.className='section-annot-input';annotInput.value=section.annotation||'';annotInput.placeholder=t('secAnnotPlaceholder');const annotDisplayEl=document.createElement('div');annotInput.addEventListener('change',()=>{chartData.sections[si].annotation=annotInput.value;renderSectionAnnotDisplay(annotInput.value,annotDisplayEl);});annotInput.addEventListener('input',()=>renderSectionAnnotDisplay(annotInput.value,annotDisplayEl));annotRow.append(annotBadge,annotInput);hdr.append(topRow,annotRow);renderSectionAnnotDisplay(section.annotation||'',annotDisplayEl);const grid=document.createElement('div');grid.className='measures-grid';grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.dataset.cols=cols;section.measures.forEach((m,mi)=>grid.appendChild(renderMeasure(m,si,mi)));const ab=document.createElement('button');ab.className='add-measure-btn';ab.textContent='+';ab.onclick=()=>addMeasure(si);grid.appendChild(ab);div.append(hdr,annotDisplayEl,grid);return div;}
 function renderSectionAnnotDisplay(text,el){if(!text||!text.trim()){el.style.display='none';return;}el.style.display='flex';el.className='section-annot-display';el.innerHTML=`<span class="annot-icon">💬</span><span>${escHtml(text)}</span>`;}
-function moveMeasure(si,mi,dir){const measures=chartData.sections[si].measures;const newMi=mi+dir;if(newMi<0||newMi>=measures.length)return;const tmp=measures[mi];measures[mi]=measures[newMi];measures[newMi]=tmp;render();}
+function moveMeasure(si,mi,dir){snapshotUndo();const measures=chartData.sections[si].measures;const newMi=mi+dir;if(newMi<0||newMi>=measures.length)return;const tmp=measures[mi];measures[mi]=measures[newMi];measures[newMi]=tmp;render();}
 let dragMeasureSrc=null; // {si, mi}
 function renderMeasure(measure,si,mi){
   // ── Normaliser les champs (rétrocompat JSON anciens) ──
@@ -1018,7 +1036,7 @@ function renderMeasure(measure,si,mi){
   div.addEventListener('dragend',e=>{div.classList.remove('measure-dragging');document.querySelectorAll('.measure').forEach(m=>m.classList.remove('measure-drag-over-left','measure-drag-over-right'));dragMeasureSrc=null;e.stopPropagation();});
   div.addEventListener('dragover',e=>{if(!dragMeasureSrc)return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;document.querySelectorAll('.measure').forEach(m=>m.classList.remove('measure-drag-over-left','measure-drag-over-right'));div.classList.add(e.clientX<mid?'measure-drag-over-left':'measure-drag-over-right');});
   div.addEventListener('dragleave',e=>{div.classList.remove('measure-drag-over-left','measure-drag-over-right');});
-  div.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();div.classList.remove('measure-drag-over-left','measure-drag-over-right');if(!dragMeasureSrc)return;const src=dragMeasureSrc;const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;const insertAfter=e.clientX>=mid;const srcMeasures=chartData.sections[src.si].measures;const moved=srcMeasures.splice(src.mi,1)[0];const tgtMeasures=chartData.sections[si].measures;let tgtIdx=mi;if(src.si===si&&src.mi<mi)tgtIdx--;if(insertAfter)tgtIdx++;tgtIdx=Math.max(0,Math.min(tgtIdx,tgtMeasures.length));tgtMeasures.splice(tgtIdx,0,moved);dragMeasureSrc=null;render();});
+  div.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();div.classList.remove('measure-drag-over-left','measure-drag-over-right');if(!dragMeasureSrc)return;const src=dragMeasureSrc;const rect=div.getBoundingClientRect();const mid=rect.left+rect.width/2;const insertAfter=e.clientX>=mid;const srcMeasures=chartData.sections[src.si].measures;const moved=srcMeasures.splice(src.mi,1)[0];const tgtMeasures=chartData.sections[si].measures;let tgtIdx=mi;if(src.si===si&&src.mi<mi)tgtIdx--;if(insertAfter)tgtIdx++;tgtIdx=Math.max(0,Math.min(tgtIdx,tgtMeasures.length));snapshotUndo();tgtMeasures.splice(tgtIdx,0,moved);dragMeasureSrc=null;render();});
 
   const topRow=document.createElement('div');topRow.style.cssText='display:flex;align-items:flex-start;gap:2px;';
   const handle=document.createElement('span');handle.className='measure-drag-handle';handle.textContent='⠿';handle.title='Glisser pour déplacer';
@@ -1182,13 +1200,13 @@ function buildChordSymbol(){
   if(bass)sym+='/'+bass;
   return sym;
 }
-function applyChord(){const{si,mi,ci}=editTarget;const symbol=buildChordSymbol(),beats=parseInt(document.getElementById('chord-beats').value)||4;const measure=chartData.sections[si].measures[mi];if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}else{const ex=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:ex?ex.annot:null};}closeModal();render();}
-function deleteChord(){const{si,mi,ci}=editTarget;if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);closeModal();render();}
+function applyChord(){snapshotUndo();const{si,mi,ci}=editTarget;const symbol=buildChordSymbol(),beats=parseInt(document.getElementById('chord-beats').value)||4;const measure=chartData.sections[si].measures[mi];if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}else{const ex=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:ex?ex.annot:null};}closeModal();render();}
+function deleteChord(){snapshotUndo();const{si,mi,ci}=editTarget;if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);closeModal();render();}
 function toggleSection(key){aShow[key]=!aShow[key];document.getElementById('toggle-'+key).classList.toggle('on',aShow[key]);}
 function selectAnnotColor(el){document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');selectedAnnotColor=el.dataset.color;}
 function openAnnotModal(si,mi,ci,chord){annotTarget={si,mi,ci};const annot=chord.annot||{};aShow={mode:!!annot.showMode,arp:!!annot.showArp,tens:!!annot.showTens,free:!!annot.showFree};aState={modeIdx:annot.modeIdx||0,invIdx:annot.invIdx||0,selTens:annot.selTens?[...annot.selTens]:[]};['mode','arp','tens','free'].forEach(k=>document.getElementById('toggle-'+k).classList.toggle('on',aShow[k]));const parsed=parseChordSym(chord.symbol);document.getElementById('annot-chord-name').textContent=fmtChord(chord.symbol);const mList=document.getElementById('modal-modes-list');mList.innerHTML='';if(parsed){const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];modes.forEach((mode,i)=>{const notes=mode.i.map(s=>tr(parsed.root,s)).join(' ');const card=document.createElement('div');card.className='mode-card'+(i===aState.modeIdx?' selected':'');card.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${mode.name}</span>${i===aState.modeIdx?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${notes}</div><div class="mode-desc">${mode.desc}</div>`;card.onclick=()=>{aState.modeIdx=i;mList.querySelectorAll('.mode-card').forEach((c,j)=>{c.classList.toggle('selected',j===i);const mn=modes[j].i.map(s=>tr(parsed.root,s)).join(' ');c.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${modes[j].name}</span>${j===i?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${mn}</div><div class="mode-desc">${modes[j].desc}</div>`;});};mList.appendChild(card);});}else mList.innerHTML=`<div style="color:#556;font-size:0.82rem;">${t('annotUnknown')}</div>`;const arpRoot=document.getElementById('modal-arp-root');arpRoot.innerHTML='';const invList=document.getElementById('modal-inv-list');invList.innerHTML='';if(parsed){const def=ARP_DEF[parsed.quality]||ARP_DEF['maj7'];def.i.forEach((iv,i)=>{const n=tr(parsed.root,iv);const p=document.createElement('div');p.className='arp-pill'+(i===0?' root':'');p.textContent=`${n} (${def.n[i]})`;arpRoot.appendChild(p);});const invs=getInversions(parsed.root,parsed.quality);invs.forEach((inv,k)=>{const card=document.createElement('div');card.className='inv-card'+(k===aState.invIdx?' selected':'');const badge=k===aState.invIdx?'<span class="inv-selected-badge">✓</span>':'';card.innerHTML=`<span class="inv-label">${inv.label}</span><span class="inv-notes">${inv.notes.join(' · ')}</span><span class="inv-intervals">(${inv.degrees.join('-')})</span>${badge}`;card.onclick=()=>{aState.invIdx=k;invList.querySelectorAll('.inv-card').forEach((c,j)=>{c.classList.toggle('selected',j===k);const b2=j===k?'<span class="inv-selected-badge">✓</span>':'';const inv2=invs[j];c.innerHTML=`<span class="inv-label">${inv2.label}</span><span class="inv-notes">${inv2.notes.join(' · ')}</span><span class="inv-intervals">(${inv2.degrees.join('-')})</span>${b2}`;});};invList.appendChild(card);});}const tensPills=document.getElementById('modal-tens-pills');tensPills.innerHTML='';const avoidPills=document.getElementById('modal-avoid-pills');avoidPills.innerHTML='';const avoidWrap=document.getElementById('modal-avoid-wrap');if(parsed){const tens=TENS_DEF[parsed.quality]||{a:[],av:[]};tens.a.forEach(t2=>{const s=TENSION_IV[t2]||0,n=tr(parsed.root,s),sel=aState.selTens.includes(t2);const p=document.createElement('div');p.className='tens-pill available'+(sel?' selected':'');p.textContent=`${t2} (${n})`;p.onclick=()=>{if(aState.selTens.includes(t2))aState.selTens=aState.selTens.filter(x=>x!==t2);else aState.selTens.push(t2);p.classList.toggle('selected',aState.selTens.includes(t2));};tensPills.appendChild(p);});if(!tens.a.length)tensPills.innerHTML=`<span style="color:#556;font-size:0.8rem;">${t('annotNone')}</span>`;if(tens.av&&tens.av.length){avoidWrap.style.display='block';tens.av.forEach(t2=>{const s=TENSION_IV[t2]||0,n=tr(parsed.root,s);const p=document.createElement('div');p.className='tens-pill avoid';p.textContent=`${t2} (${n})`;avoidPills.appendChild(p);});}else avoidWrap.style.display='none';}document.getElementById('annot-text').value=annot.freeText||'';document.getElementById('annot-bold').checked=annot.freeBold||false;document.getElementById('annot-italic').checked=annot.freeItalic!==undefined?annot.freeItalic:true;const color=annot.freeColor||'#c4b5fd';selectedAnnotColor=color;document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===color));document.getElementById('annot-overlay').classList.add('active');}
 function closeAnnotModal(){document.getElementById('annot-overlay').classList.remove('active');annotTarget=null;}
-function applyAnnotation(){const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
+function applyAnnotation(){snapshotUndo();const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
 function clearAnnotation(){const{si,mi,ci}=annotTarget;chartData.sections[si].measures[mi].chords[ci].annot=null;closeAnnotModal();render();}
 
 /* ── Popup accord alternatif ── */
@@ -1213,7 +1231,7 @@ function openAltChordPopup(e,si,mi,ci,chord){
   applyBtn.onclick=e2=>{
     e2.stopPropagation();
     const val=inp.value.trim();
-    chartData.sections[si].measures[mi].chords[ci].altChord=val||null;
+    snapshotUndo();chartData.sections[si].measures[mi].chords[ci].altChord=val||null;
     closeActivePopup();render();
   };
   inp.addEventListener('keydown',e2=>{if(e2.key==='Enter')applyBtn.click();if(e2.key==='Escape')closeActivePopup();});
@@ -1226,7 +1244,7 @@ function openAltChordPopup(e,si,mi,ci,chord){
     delBtn.style.cssText='background:none;border:none;color:#f87171;font-size:0.75rem;cursor:pointer;padding:4px 8px;width:100%;text-align:left;';
     delBtn.onclick=e2=>{
       e2.stopPropagation();
-      chartData.sections[si].measures[mi].chords[ci].altChord=null;
+      snapshotUndo();chartData.sections[si].measures[mi].chords[ci].altChord=null;
       closeActivePopup();render();
     };
     pop.appendChild(delBtn);
@@ -1267,7 +1285,7 @@ function openBarlinePopup(e,si,mi,side){
       const b=document.createElement('button');
       b.textContent=icons[type]||type;
       if(type===cur)b.classList.add('active-item');
-      b.onclick=e2=>{e2.stopPropagation();
+      b.onclick=e2=>{e2.stopPropagation();snapshotUndo();
         if(side==='left'){
           measure.barlineLeft=type;
           measure.repeatStart=(type==='repeat-start');
@@ -1288,7 +1306,7 @@ function openBarlinePopup(e,si,mi,side){
       const b=document.createElement('button');
       b.textContent=v?`[${v}.`:'✕ Supprimer volta';
       if(v===measure.volta)b.classList.add('active-item');
-      b.onclick=e2=>{e2.stopPropagation();measure.volta=v;closeActivePopup();render();};
+      b.onclick=e2=>{e2.stopPropagation();snapshotUndo();measure.volta=v;closeActivePopup();render();};
       pop.appendChild(b);
     });
   }
@@ -1319,7 +1337,7 @@ function openNavPopup(e,si,mi){
     const b=document.createElement('button');
     b.textContent=label;
     if(val===measure.navSymbol)b.classList.add('active-item');
-    b.onclick=e2=>{e2.stopPropagation();measure.navSymbol=val;closeActivePopup();render();};
+    b.onclick=e2=>{e2.stopPropagation();snapshotUndo();measure.navSymbol=val;closeActivePopup();render();};
     pop.appendChild(b);
   });
   const rect=e.target.getBoundingClientRect();
@@ -1328,11 +1346,11 @@ function openNavPopup(e,si,mi){
   setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
 }
 const LETTERS=['A','B','C','D','E','F','G','H','I','Intro','Verse','Chorus','Bridge','Outro','Coda','Tag','Vamp','Head'];
-function buildLabelModal(){const suffixVals=['',"'","''",'1','2'];const lb=document.getElementById('letter-btns');lb.innerHTML='';LETTERS.forEach(l=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=l;b.dataset.val=l;b.style.minWidth='36px';b.onclick=()=>{document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selLetter=l;updateLabelPreview();};lb.appendChild(b);});const sb=document.getElementById('suffix-btns');sb.innerHTML='';t('suffixLabels').forEach((lbl,i)=>{const val=suffixVals[i];const b=document.createElement('button');b.className='chord-btn';b.textContent=lbl;b.dataset.val=val;b.style.minWidth='60px';b.onclick=()=>{document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selSuffix=val;updateLabelPreview();};sb.appendChild(b);});}
+function buildLabelModal(){const suffixVals=['',"'","''",'1','2','3','4','5','6','7','8','9','0'];const lb=document.getElementById('letter-btns');lb.innerHTML='';LETTERS.forEach(l=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=l;b.dataset.val=l;b.style.minWidth='36px';b.onclick=()=>{document.querySelectorAll('#letter-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selLetter=l;updateLabelPreview();};lb.appendChild(b);});const sb=document.getElementById('suffix-btns');sb.innerHTML='';t('suffixLabels').forEach((lbl,i)=>{const val=suffixVals[i];const b=document.createElement('button');b.className='chord-btn';b.textContent=lbl;b.dataset.val=val;b.style.minWidth='60px';b.onclick=()=>{document.querySelectorAll('#suffix-btns .chord-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');selSuffix=val;updateLabelPreview();};sb.appendChild(b);});}
 function updateLabelPreview(){document.getElementById('label-preview').textContent=selLetter+selSuffix;}
-function openLabelModal(si){labelTarget=si;const cur=chartData.sections[si].label||'A';const suffixVals=["'","''",'1','2'];const sm=suffixVals.find(v=>v&&cur.endsWith(v));selSuffix=sm||'';selLetter=sm?cur.slice(0,-sm.length):cur;document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));updateLabelPreview();document.getElementById('label-overlay').classList.add('active');}
+function openLabelModal(si){labelTarget=si;const cur=chartData.sections[si].label||'A';const suffixVals=["'","''",'1','2','3','4','5','6','7','8','9','0'];const sm=suffixVals.find(v=>v&&cur.endsWith(v));selSuffix=sm||'';selLetter=sm?cur.slice(0,-sm.length):cur;document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));updateLabelPreview();document.getElementById('label-overlay').classList.add('active');}
 function closeLabelModal(){document.getElementById('label-overlay').classList.remove('active');labelTarget=null;}
-function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarget].label=selLetter+selSuffix;closeLabelModal();render();}
+function applyLabel(){if(labelTarget===null)return;snapshotUndo();chartData.sections[labelTarget].label=selLetter+selSuffix;closeLabelModal();render();}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — ACTIONS
@@ -1340,13 +1358,13 @@ function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarge
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
-function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();updateKeyModesPanel('C');}
-function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
-function duplicateSection(si){const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
-function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));chartData.sections.splice(si,1);render();}
-function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null});render();}
-function deleteMeasure(si,mi){chartData.sections[si].measures.splice(mi,1);render();}
-function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
+function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';undoStack=[];redoStack=[];updateUndoButtons();render();updateKeyModesPanel('C');}
+function addSection(){snapshotUndo();chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
+function duplicateSection(si){snapshotUndo();const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
+function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));snapshotUndo();chartData.sections.splice(si,1);render();}
+function addMeasure(si){snapshotUndo();const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null});render();}
+function deleteMeasure(si,mi){snapshotUndo();chartData.sections[si].measures.splice(mi,1);render();}
+function duplicateMeasure(si,mi){snapshotUndo();const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — I/O
@@ -1703,6 +1721,210 @@ function updateKeyModesPanel(key){
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — UNDO / REDO
+   Pile de 10 snapshots JSON du chartData
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const UNDO_MAX = 10;
+let undoStack = [];   // snapshots avant modification
+let redoStack = [];   // snapshots pour rétablir
+let _undoPaused = false;  // évite les snapshots récursifs
+
+function snapshotUndo() {
+  if (_undoPaused) return;
+  const snap = JSON.stringify(chartData);
+  // Pas de snapshot si identique au dernier
+  if (undoStack.length && undoStack[undoStack.length-1] === snap) return;
+  undoStack.push(snap);
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  redoStack = [];   // toute nouvelle action efface le redo
+  updateUndoButtons();
+}
+
+function undo() {
+  if (!undoStack.length) return;
+  // Sauvegarder l'état courant dans redo
+  redoStack.push(JSON.stringify(chartData));
+  if (redoStack.length > UNDO_MAX) redoStack.shift();
+  _undoPaused = true;
+  chartData = JSON.parse(undoStack.pop());
+  render();
+  _undoPaused = false;
+  updateUndoButtons();
+}
+
+function redo() {
+  if (!redoStack.length) return;
+  undoStack.push(JSON.stringify(chartData));
+  if (undoStack.length > UNDO_MAX) undoStack.shift();
+  _undoPaused = true;
+  chartData = JSON.parse(redoStack.pop());
+  render();
+  _undoPaused = false;
+  updateUndoButtons();
+}
+
+function updateUndoButtons() {
+  const bu = document.getElementById('btn-undo');
+  const br = document.getElementById('btn-redo');
+  if (bu) bu.disabled = !undoStack.length;
+  if (br) br.disabled = !redoStack.length;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — TOUCH SUPPORT
+   Drag & drop tactile (sections + mesures) + pinch-to-zoom grille
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Drag tactile générique ──────────────────────────────────────── */
+function makeTouchDraggable(handle, getEl, onDrop) {
+  let ghost = null, startX = 0, startY = 0, active = false;
+
+  handle.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY;
+    active = true;
+    // Petit délai pour distinguer tap vs drag
+    handle._touchTimer = setTimeout(() => {
+      const el = getEl();
+      if (!el) return;
+      ghost = el.cloneNode(true);
+      ghost.style.cssText = `position:fixed;opacity:0.7;pointer-events:none;z-index:9999;width:${el.offsetWidth}px;box-shadow:0 6px 24px rgba(0,0,0,0.5);border-radius:6px;`;
+      ghost.style.left = startX - el.offsetWidth/2 + 'px';
+      ghost.style.top  = startY - 30 + 'px';
+      document.body.appendChild(ghost);
+      el.style.opacity = '0.35';
+    }, 180);
+    e.stopPropagation();
+  }, {passive:true});
+
+  handle.addEventListener('touchmove', e => {
+    if (!active || !ghost) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    ghost.style.left = t.clientX - parseInt(ghost.style.width)/2 + 'px';
+    ghost.style.top  = t.clientY - 30 + 'px';
+    // Highlight drop target
+    ghost.style.display = 'none';
+    const target = document.elementFromPoint(t.clientX, t.clientY);
+    ghost.style.display = '';
+    handle._touchTarget = target;
+  }, {passive:false});
+
+  handle.addEventListener('touchend', e => {
+    clearTimeout(handle._touchTimer);
+    active = false;
+    if (ghost) {
+      ghost.remove(); ghost = null;
+      const el = getEl();
+      if (el) el.style.opacity = '';
+      if (handle._touchTarget) onDrop(handle._touchTarget);
+      handle._touchTarget = null;
+    }
+  }, {passive:true});
+
+  handle.addEventListener('touchcancel', () => {
+    clearTimeout(handle._touchTimer);
+    active = false;
+    if (ghost) { ghost.remove(); ghost = null; }
+    const el = getEl();
+    if (el) el.style.opacity = '';
+  }, {passive:true});
+}
+
+/* ── Pinch-to-zoom sur la grille ─────────────────────────────────── */
+(function initPinchZoom() {
+  const editor = document.getElementById('chart-editor');
+  if (!editor) return;
+  let scale = 1, lastDist = null;
+
+  editor.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) lastDist = null;
+  }, {passive:true});
+
+  editor.addEventListener('touchmove', e => {
+    if (e.touches.length !== 2) return;
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (lastDist !== null) {
+      const delta = dist - lastDist;
+      scale = Math.min(2, Math.max(0.5, scale + delta * 0.003));
+      editor.style.transform = `scale(${scale})`;
+      editor.style.transformOrigin = 'top center';
+    }
+    lastDist = dist;
+  }, {passive:false});
+
+  editor.addEventListener('touchend', e => {
+    if (e.touches.length < 2) lastDist = null;
+  }, {passive:true});
+})();
+
+/* ── Patch renderSection et renderMeasure pour le tactile ────────── */
+// Le patch est appliqué post-render via un MutationObserver léger
+(function patchTouchAfterRender() {
+  const cont = document.getElementById('sections-container');
+  if (!cont) return;
+  const obs = new MutationObserver(() => applyTouchPatches());
+  obs.observe(cont, {childList:true, subtree:false});
+
+  function applyTouchPatches() {
+    // Sections
+    cont.querySelectorAll('.section-drag-handle').forEach(handle => {
+      if (handle._touchPatched) return;
+      handle._touchPatched = true;
+      const section = handle.closest('.section');
+      makeTouchDraggable(
+        handle,
+        () => section,
+        target => {
+          const destSection = target.closest('.section');
+          if (!destSection || destSection === section) return;
+          const srcIdx = parseInt(section.dataset.si);
+          const dstIdx = parseInt(destSection.dataset.si);
+          if (isNaN(srcIdx) || isNaN(dstIdx)) return;
+          snapshotUndo();
+          const moved = chartData.sections.splice(srcIdx, 1)[0];
+          const finalIdx = srcIdx < dstIdx ? dstIdx - 1 : dstIdx;
+          chartData.sections.splice(finalIdx, 0, moved);
+          render();
+        }
+      );
+    });
+
+    // Mesures
+    cont.querySelectorAll('.measure-drag-handle').forEach(handle => {
+      if (handle._touchPatched) return;
+      handle._touchPatched = true;
+      const measure = handle.closest('.measure');
+      makeTouchDraggable(
+        handle,
+        () => measure,
+        target => {
+          const destMeasure = target.closest('.measure');
+          if (!destMeasure || destMeasure === measure) return;
+          const destSection = target.closest('.section');
+          const srcSection = measure.closest('.section');
+          if (!destSection || !srcSection) return;
+          const si = parseInt(srcSection.dataset.si);
+          const di = parseInt(destSection.dataset.si);
+          const mi = Array.from(srcSection.querySelectorAll('.measure')).indexOf(measure);
+          const dm = Array.from(destSection.querySelectorAll('.measure')).indexOf(destMeasure);
+          if (isNaN(si) || isNaN(di) || mi < 0 || dm < 0) return;
+          snapshotUndo();
+          const moved = chartData.sections[si].measures.splice(mi, 1)[0];
+          chartData.sections[di].measures.splice(dm, 0, moved);
+          render();
+        }
+      );
+    });
+  }
+})();
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — INIT
    Initialisation : event listeners globaux, premier render
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -1711,7 +1933,7 @@ function updateKeyModesPanel(key){
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
 document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();closeActivePopup();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();closeActivePopup();}if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}});
 buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
@@ -1719,6 +1941,7 @@ applyTranslations();
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);
+updateUndoButtons();
 
 </script>
 </body>
