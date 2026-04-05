@@ -101,11 +101,13 @@ function transposeModesvg(svgStr, root, modeName, quality) {
 
 function getModesvg(modeName) {
   const key = MODE_NAME_TO_SVG[modeName];
+  console.log('[getModesvg] modeName=', modeName, 'key=', key, 'bassStrings=', window.bassStrings);
   if(!key) return null;
-  // Préférer la version 5 cordes si disponible et sélectionnée
   if(window.bassStrings === 5) {
     const key5 = key + '_5';
-    if(MODE_SVGS[key5]) return MODE_SVGS[key5];
+    const has5 = !!MODE_SVGS[key5];
+    console.log('[getModesvg] 5str key5=', key5, 'has5=', has5);
+    if(has5) return MODE_SVGS[key5];
   }
   return MODE_SVGS[key] || null;
 }
