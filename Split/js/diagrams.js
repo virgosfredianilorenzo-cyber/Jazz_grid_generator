@@ -68,22 +68,33 @@ function transposeModesvg(svgStr, root, modeName, quality) {
     if(found) { modeIntervals = found.i; break; }
   }
   if(!modeIntervals) return svgStr;
-  // Build degree→note map
-  const degreeToNote = {};
-  modeIntervals.forEach((s, idx) => { degreeToNote[idx+1] = tr(root, s); });
+
+  // Build degree label → semitone map (supports b2, #4, b7 etc.)
+  const degreeLabels = ['1','2','b3','3','4','#4','b5','5','#5','b6','6','b7','7'];
+  const labelToSemitone = {
+    '1':0,'b2':1,'2':2,'#2':3,'b3':3,'3':4,'4':5,'#4':6,
+    'b5':6,'5':7,'#5':8,'b6':8,'6':9,'b7':10,'7':11,'bb7':9
+  };
+
   // Build set of arpeggio notes for this chord quality
   const arpDef = ARP_DEF[quality] || ARP_DEF['maj7'];
   const arpNotes = new Set(arpDef.i.map(s => tr(root, s % 12)));
-  // Root note
   const rootNote = tr(root, 0);
-  // Colors: root=red, other arp notes=amber, scale notes=blue
-  return svgStr.replace(/(<circle\b[^>]*fill=")[^"]*("[^>]*\/>)\s*(<text\b[^>]*>)(\d+)(<\/text>)/g,
+
+  // Replace circle+text pairs — degree label can be: digits, b/# prefix + digits/letters
+  return svgStr.replace(
+    /(<circle\b[^>]*fill=")[^"]*("[^>]*\/>)\s*(<text\b[^>]*>)([b#]?\d+|b[b]?\d*|#\d+)(<\/text>)/g,
     (m, pre, post, open, deg, close) => {
-      const note = degreeToNote[parseInt(deg)] || deg;
-      let color;
-      if(note === rootNote)       color = '#e63946'; // root → red
-      else if(arpNotes.has(note)) color = '#f0a500'; // arp  → amber
-      else                        color = '#4a6fa5'; // scale→ blue
+      const semitones = labelToSemitone[deg];
+      let note, color;
+      if(semitones !== undefined) {
+        note = tr(root, semitones);
+      } else {
+        note = deg; // fallback
+      }
+      if(note === rootNote)       color = '#e63946';
+      else if(arpNotes.has(note)) color = '#f0a500';
+      else                        color = '#4a6fa5';
       return pre + color + post + open + note + close;
     });
 }
@@ -92,7 +103,7 @@ function getModesvg(modeName) {
   const key = MODE_NAME_TO_SVG[modeName];
   if(!key) return null;
   // Préférer la version 5 cordes si disponible et sélectionnée
-  if(typeof bassStrings !== 'undefined' && bassStrings === 5) {
+  if(window.bassStrings === 5) {
     const key5 = key + '_5';
     if(MODE_SVGS[key5]) return MODE_SVGS[key5];
   }

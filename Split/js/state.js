@@ -7,14 +7,16 @@
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
 let currentSemitoneOffset=0,originalKey='C';
 let editTarget=null,annotTarget=null;
-let bassStrings=4; // 4 ou 5 cordes — persisté en localStorage
+window.bassStrings=4; // global — accessible depuis diagrams.js
 
 function setBassStrings(n){
-  bassStrings=n;
+  window.bassStrings=n;
   localStorage.setItem('bassStrings', n);
   document.getElementById('btn-4str').classList.toggle('active', n===4);
   document.getElementById('btn-5str').classList.toggle('active', n===5);
-  render();
+  console.log('[bassStrings] set to', n, '— re-rendering');
+  if(typeof render === 'function') render();
+  else console.warn('[bassStrings] render() not found');
 }
 // ── Barlines & navigation ──
 const BARLINE_TYPES=['normal','double','final','repeat-start','repeat-end'];
