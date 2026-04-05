@@ -12,6 +12,8 @@ buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
 applyTranslations();
+// Restaurer le choix 4/5 cordes
+(function(){const saved=localStorage.getItem('bassStrings');bassStrings=saved?parseInt(saved):4;document.getElementById('btn-4str').classList.toggle('active',bassStrings===4);document.getElementById('btn-5str').classList.toggle('active',bassStrings===5);})();
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);

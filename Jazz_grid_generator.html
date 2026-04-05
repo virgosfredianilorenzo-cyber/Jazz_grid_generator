@@ -6,7 +6,6 @@
 <title>Jazz Grid Generator</title>
 
 <style id="css-app">
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — APP
    Toolbar, layout, sections, mesures, accords, symboles
@@ -201,10 +200,16 @@ label { font-size:0.85rem; color:#aaa; }
 .modal-sym-btn.selected { border-color:#f0c060; background:rgba(240,192,96,0.18); color:#f0c060; }
 .add-section-btn { min-height:44px; width:100%; margin:8px 0; font-size:1rem; }
 .cols-select { width:60px; }
+/* Toggle basse 4/5 cordes */
+#btn-4str.active, #btn-5str.active {
+  background: #f0a500;
+  color: #1a1a2e;
+  font-weight: bold;
+}
+
 </style>
 
 <style id="css-modals">
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — MODALS
    Overlay, modales accord / annotation / section
@@ -288,7 +293,6 @@ label { font-size:0.85rem; color:#aaa; }
 </style>
 
 <style id="css-print">
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    CSS — PRINT
    @media print : thèmes, couleurs, page-break
@@ -361,6 +365,22 @@ label { font-size:0.85rem; color:#aaa; }
   .mode-diagram-wrap svg line { stroke:#333 !important; }
   /* Diagram background → white */
   .mode-diagram-wrap { background:#fff !important; }
+
+  /* Mesures multi-accords (2+ chord-slot) : police réduite, max 2 lignes */
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .chord-symbol { font-size:0.72rem !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .theory-row { font-size:0.52rem !important; line-height:1.2 !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .theory-row-label { font-size:0.48rem !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .modes-alt-row { font-size:0.48rem !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .chord-free-annot { font-size:0.48rem !important; }
+  /* Limiter la hauteur de la zone théorie à 2 lignes de texte */
+  .measure .beats-row:has(.chord-slot:nth-child(2)) .chord-theory {
+    max-height: 2.6em;
+    overflow: hidden;
+  }
+  /* 3+ accords : encore plus compact */
+  .measure .beats-row:has(.chord-slot:nth-child(3)) .chord-symbol { font-size:0.62rem !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(3)) .theory-row { font-size:0.44rem !important; line-height:1.1 !important; }
+  .measure .beats-row:has(.chord-slot:nth-child(3)) .chord-theory { max-height:2.2em; overflow:hidden; }
 }
 </style>
 
@@ -401,6 +421,12 @@ label { font-size:0.85rem; color:#aaa; }
   <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
   <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
   <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
+  <!-- Toggle basse 4/5 cordes -->
+  <div id="bass-strings-selector" style="display:flex;align-items:center;gap:4px;background:#0f3460;border:1px solid #f0a500;border-radius:6px;padding:4px 8px;">
+    <label style="color:#f0a500;font-size:0.78rem;font-weight:bold;">🎸</label>
+    <button id="btn-4str" class="semi-btn" style="font-size:0.75rem;padding:2px 6px;width:auto;" onclick="setBassStrings(4)">4</button>
+    <button id="btn-5str" class="semi-btn" style="font-size:0.75rem;padding:2px 6px;width:auto;" onclick="setBassStrings(5)">5</button>
+  </div>
   <!-- Sélecteur de langue intégré à la fin de la toolbar -->
   <div id="lang-selector">
     <label>🌐</label>
@@ -544,11 +570,7 @@ label { font-size:0.85rem; color:#aaa; }
 
 <!-- JS — LIBRAIRIES EXTERNES : JSZip -->
 
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
 <script>
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — I18N
    Dictionnaires FR / ES / IT / EN  +  applyTranslations()  +  setLang()
@@ -690,7 +712,6 @@ function applyTranslations(){
 }
 
 function setLang(lang){currentLang=lang;document.documentElement.lang=lang;applyTranslations();buildLabelModal();buildModal();}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — SVG DIAGRAMS
    Diagrammes de gammes sur manche de basse (modes)
@@ -783,9 +804,14 @@ function transposeModesvg(svgStr, root, modeName, quality) {
 
 function getModesvg(modeName) {
   const key = MODE_NAME_TO_SVG[modeName];
-  return key ? MODE_SVGS[key] : null;
+  if(!key) return null;
+  // Préférer la version 5 cordes si disponible et sélectionnée
+  if(typeof bassStrings !== 'undefined' && bassStrings === 5) {
+    const key5 = key + '_5';
+    if(MODE_SVGS[key5]) return MODE_SVGS[key5];
+  }
+  return MODE_SVGS[key] || null;
 }
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — THEORY ENGINE
    Gammes, arpèges, tensions, helpers chromatiques
@@ -892,7 +918,6 @@ function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/b
 function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 'sym-repeat2';if(sym==='N.C.')return 'sym-nc';if(sym==='/beat')return 'sym-slash';return '';}
 function getSymLabel(sym){if(sym==='%')return t('symRepeat');if(sym==='%%')return t('symRepeat2');if(sym==='N.C.')return t('symNC');if(sym==='/beat')return t('symSlash');return '';}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — STATE
    Variables globales partagées entre tous les modules
@@ -902,6 +927,15 @@ function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
 let currentSemitoneOffset=0,originalKey='C';
 let editTarget=null,annotTarget=null;
+let bassStrings=4; // 4 ou 5 cordes — persisté en localStorage
+
+function setBassStrings(n){
+  bassStrings=n;
+  localStorage.setItem('bassStrings', n);
+  document.getElementById('btn-4str').classList.toggle('active', n===4);
+  document.getElementById('btn-5str').classList.toggle('active', n===5);
+  render();
+}
 // ── Barlines & navigation ──
 const BARLINE_TYPES=['normal','double','final','repeat-start','repeat-end'];
 const BARLINE_LABELS={'normal':'| Normal','double':'‖ Double','final':'𝄂 Finale','repeat-start':'|: Répétition début','repeat-end':'⟨: Répétition fin'};
@@ -931,7 +965,6 @@ function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>not
 function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined){c.symbol=c._originalSymbol;delete c._originalSymbol;}})));chartData.key=originalKey;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('meta-key').value=originalKey;document.getElementById('transpose-key-select').value='';render();}
 function transposeBySemitone(delta){snapshotOriginalChords();applyTranspositionToChart((semitoneDiff(originalKey,chartData.key)+delta+12)%12);}
 function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords();applyTranspositionToChart(semitoneDiff(originalKey,destKeyStr));}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — RENDER
    DOM rendering : sections, mesures, accords, symboles
@@ -1113,7 +1146,6 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
     slot.appendChild(td);
   }
   if(annot.showFree&&annot.freeText){const fa=document.createElement('div');fa.className='chord-free-annot';fa.textContent=annot.freeText;fa.style.color=annot.freeColor||'#c4b5fd';fa.style.fontWeight=annot.freeBold?'bold':'normal';fa.style.fontStyle=annot.freeItalic?'italic':'normal';slot.appendChild(fa);}const icon=document.createElement('div');icon.className='chord-annot-icon';icon.textContent='✏️';icon.onclick=e=>{e.stopPropagation();openAnnotModal(si,mi,ci,chord);};slot.appendChild(icon);return slot;}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — MODALS
    Modales : édition accord, annotations, label section
@@ -1334,7 +1366,6 @@ function updateLabelPreview(){document.getElementById('label-preview').textConte
 function openLabelModal(si){labelTarget=si;const cur=chartData.sections[si].label||'A';const suffixVals=["'","''",'1','2'];const sm=suffixVals.find(v=>v&&cur.endsWith(v));selSuffix=sm||'';selLetter=sm?cur.slice(0,-sm.length):cur;document.querySelectorAll('#letter-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selLetter));document.querySelectorAll('#suffix-btns .chord-btn').forEach(b=>b.classList.toggle('active',b.dataset.val===selSuffix));updateLabelPreview();document.getElementById('label-overlay').classList.add('active');}
 function closeLabelModal(){document.getElementById('label-overlay').classList.remove('active');labelTarget=null;}
 function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarget].label=selLetter+selSuffix;closeLabelModal();render();}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — ACTIONS
    Mutations du chartData : add / delete / duplicate
@@ -1643,7 +1674,6 @@ async function loadFileAsXML(file){
     }
   });
 }
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — PRINT
    Thèmes impression, palettes couleurs, CSS dynamique
@@ -1663,7 +1693,6 @@ function updateContrastPreview(){document.getElementById('contrast-preview').tex
 function injectPrintStyle(v){removePrintStyle();const el=document.createElement('style');el.id='dps';el.media='print';el.textContent=buildSectionColorCSS(v);document.head.appendChild(el);}
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
-
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — INIT
    Initialisation : event listeners globaux, premier render
@@ -1678,10 +1707,11 @@ buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
 applyTranslations();
+// Restaurer le choix 4/5 cordes
+(function(){const saved=localStorage.getItem('bassStrings');bassStrings=saved?parseInt(saved):4;document.getElementById('btn-4str').classList.toggle('active',bassStrings===4);document.getElementById('btn-5str').classList.toggle('active',bassStrings===5);})();
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);
-
 </script>
 </body>
 </html>

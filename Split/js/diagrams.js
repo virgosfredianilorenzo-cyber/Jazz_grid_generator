@@ -90,5 +90,11 @@ function transposeModesvg(svgStr, root, modeName, quality) {
 
 function getModesvg(modeName) {
   const key = MODE_NAME_TO_SVG[modeName];
-  return key ? MODE_SVGS[key] : null;
+  if(!key) return null;
+  // Préférer la version 5 cordes si disponible et sélectionnée
+  if(typeof bassStrings !== 'undefined' && bassStrings === 5) {
+    const key5 = key + '_5';
+    if(MODE_SVGS[key5]) return MODE_SVGS[key5];
+  }
+  return MODE_SVGS[key] || null;
 }
