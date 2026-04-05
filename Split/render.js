@@ -145,14 +145,24 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
     const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];
     const idx=Math.min(annot.modeIdx||0,modes.length-1);
     const modeName=modes[idx].name;
-    const svgContent=getModesvg(modeName);
-    if(svgContent){
-      const wrap=document.createElement('div');
-      wrap.className='mode-diagram-wrap';
-      const lbl=document.createElement('div');lbl.className='mode-diagram-label';lbl.textContent=modeName;
-      wrap.appendChild(lbl);
-      wrap.innerHTML+=transposeModesvg(svgContent,parsed.root,modeName,parsed.quality);
-      slot.appendChild(wrap);
+    // showSvg : true par défaut sauf si explicitement false (mesures multi-accords)
+    const doSvg = annot.showSvg !== false;
+    if(doSvg){
+      const svgContent=getModesvg(modeName);
+      if(svgContent){
+        const wrap=document.createElement('div');
+        wrap.className='mode-diagram-wrap';
+        const lbl=document.createElement('div');lbl.className='mode-diagram-label';lbl.textContent=modeName;
+        wrap.appendChild(lbl);
+        wrap.innerHTML+=transposeModesvg(svgContent,parsed.root,modeName,parsed.quality);
+        slot.appendChild(wrap);
+      }
+    } else {
+      // Mode texte uniquement
+      const modeLabel=document.createElement('div');
+      modeLabel.className='theory-row';
+      modeLabel.innerHTML=`<span class="theory-row-label">M:</span><span class="theory-row-value mode-val">${modeName}</span>`;
+      slot.appendChild(modeLabel);
     }
   }
   if(parsed&&(annot.showArp||annot.showTens||annot.showMode)){

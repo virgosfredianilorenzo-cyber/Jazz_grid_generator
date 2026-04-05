@@ -12,6 +12,51 @@ function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0
 function deleteMeasure(si,mi){chartData.sections[si].measures.splice(mi,1);render();}
 function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
 
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AUTO-ANNOTATE
+   Annotation automatique au chargement MusicXML
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+function autoAnnotateOnImport(){
+  chartData.sections.forEach(section => {
+    section.measures.forEach(measure => {
+      const chords = (measure.chords || []).filter(c =>
+        c.symbol && !['%','%%','N.C.','/beat','–'].includes(c.symbol)
+      );
+      if(!chords.length) return;
+
+      chords.forEach((chord, ci) => {
+        // Ne pas écraser une annotation existante
+        if(chord.annot) return;
+
+        const parsed = parseChordSym(chord.symbol);
+        if(!parsed) return;
+
+        const quality  = parsed.quality;
+        const modes    = MODES_DEF[quality] || MODES_DEF['maj7'] || [];
+        const tens     = TENS_DEF[quality]  || {a:[], av:[]};
+        const allTens  = tens.a || [];
+        const isSingle = chords.length === 1;
+
+        chord.annot = {
+          showMode : true,
+          showArp  : true,
+          showTens : allTens.length > 0,
+          showFree : false,
+          modeIdx  : 0,              // premier mode par défaut
+          invIdx   : 0,              // position fondamentale
+          selTens  : [...allTens],   // toutes les tensions disponibles
+          showSvg  : isSingle,       // SVG uniquement si 1 accord
+          freeText : '',
+          freeColor: '#c4b5fd',
+          freeBold : false,
+          freeItalic: true,
+        };
+      });
+    });
+  });
+}
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — I/O
    Import/export JSON  +  import/export MusicXML
@@ -21,11 +66,11 @@ function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sec
 function syncMetaToData(){chartData.title=document.getElementById('chart-title').value;chartData.key=document.getElementById('meta-key').value;chartData.tempo=document.getElementById('meta-tempo').value;chartData.timeSig=document.getElementById('meta-time').value;chartData.style=document.getElementById('meta-style').value;}
 function exportJSON(){syncMetaToData();const clean=JSON.parse(JSON.stringify(chartData));clean.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{delete c._originalSymbol;})));const blob=new Blob([JSON.stringify(clean,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(chartData.title||'chart')+'.json';a.click();}
 document.getElementById('import-json').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=ev=>{try{chartData=JSON.parse(ev.target.result);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch{alert(t('alertBadJSON'));}};r.readAsText(file);});
-document.getElementById('file-input').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}e.target.value='';});
+document.getElementById('file-input').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';autoAnnotateOnImport();document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}e.target.value='';});
 const dz=document.getElementById('dropzone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
-dz.addEventListener('drop',async e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}});
+dz.addEventListener('drop',async e=>{e.preventDefault();dz.classList.remove('drag-over');const file=e.dataTransfer.files[0];if(!file)return;try{const xmlStr=await loadFileAsXML(file);chartData=parseMusicXML(xmlStr);originalKey=chartData.key;currentSemitoneOffset=0;autoAnnotateOnImport();document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}catch(err){console.error(err);alert(t('alertBadXML'));}});
 ['chart-title','meta-key','meta-tempo','meta-time','meta-style'].forEach(id=>{document.getElementById(id).addEventListener('change',e=>{const m={'chart-title':'title','meta-key':'key','meta-tempo':'tempo','meta-time':'timeSig','meta-style':'style'};chartData[m[id]]=e.target.value;if(id==='meta-key')originalKey=e.target.value;});});
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
