@@ -1,0 +1,73 @@
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS — PRINT
+   @media print : thèmes, couleurs, page-break
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media print {
+  body { background:white; min-height:0 !important; }
+  #toolbar,#print-contrast-bar,.section-actions,.add-measure-btn,.add-section-btn,.chord-annot-icon,.chord-edit-hint,.chord-del-btn,.add-chord-btn { display:none !important; }
+  .barline-btn,.nav-add-btn,.bl-popup { display:none !important; }
+  .alt-chord-btn { display:none !important; }
+  .alt-chord-display { color:#444 !important; background:white !important;
+    border-color:#aaa !important; top:-13px; }
+  .nav-symbol { color:#000 !important; background:white !important; border-color:#000 !important; }
+  .volta-bracket { border-color:#000 !important; color:#000 !important; }
+  #chart-editor { display:block !important; padding:8px 12px 0; }
+  #dropzone { display:none !important; }
+  /* Hide annotation input row (edit zone) — always */
+  .section-annot-row { display:none !important; }
+  /* Hide annotation display block when empty */
+  .section-annot-display[style*="display:none"] { display:none !important; }
+  /* Remove dashed underline / pointer on section label (not editable) */
+  .section-label { border-bottom:none !important; cursor:default !important; }
+  .section-label::after { content:'' !important; }
+  .sec-label-edit { display:none !important; }
+  /* Hide chord duration and measure numbers (clutter) */
+  .chord-duration { display:none !important; }
+  .measure-number { display:none !important; }
+  #chart-header { margin-bottom:6px !important; }
+  #chart-title { font-size:1.4rem !important; border-bottom:1px solid #ccc !important; padding-bottom:2px !important; }
+  #chart-meta { margin-top:4px !important; font-size:0.78rem !important; gap:10px !important; }
+  #chart-meta input { font-size:0.78rem !important; }
+  .section { border:2px solid #000; background:white;
+    page-break-inside:avoid; break-inside:avoid;
+    overflow:visible !important;
+    margin-bottom:14px; border-radius:0 !important; }
+  .section-header { background:#ddd; }
+  .section-label { color:#000; }
+  /* Passer le grid en flex-wrap à l'impression — display:grid empêche break-inside sur les enfants */
+  .measures-grid {
+    display:flex !important;
+    flex-wrap:wrap !important;
+    padding:8px !important;
+    gap:4px !important;
+    align-items:stretch;
+  }
+  /* Largeurs des mesures selon le nombre de colonnes (data-cols) */
+  .measures-grid[data-cols="1"] .measure { width:calc(100% - 4px) !important; }
+  .measures-grid[data-cols="2"] .measure { width:calc(50% - 4px) !important; }
+  .measures-grid[data-cols="3"] .measure { width:calc(33.333% - 4px) !important; }
+  .measures-grid[data-cols="4"] .measure { width:calc(25% - 4px) !important; }
+  /* Fallback si data-cols absent */
+  .measures-grid:not([data-cols]) .measure { width:calc(25% - 4px) !important; }
+  .measure {
+    background:white; border:1.5px solid #333;
+    page-break-inside:avoid; break-inside:avoid;
+    flex-shrink:0; box-sizing:border-box;
+  }
+  .chord-symbol { color:#000!important; font-size:1.1rem; }
+  .sym-display { color:#000!important; font-size:1.4rem; }
+  .sym-label { display:none; }
+  .sym-repeat, .sym-repeat2, .sym-nc, .sym-slash { background:transparent !important; }
+  .mode-val { color:#000 !important; font-weight:bold !important; font-style:normal !important; }
+  .barline-repeat-start { border-left-color:#000; }
+  .barline-repeat-end   { border-right-color:#000; }
+  /* Mode name in SVG diagram → black bold */
+  .mode-diagram-wrap svg text[text-anchor="middle"] { fill:#000 !important; font-weight:bold !important; }
+  /* String labels G D A E → black, but circle note texts → white */
+  .mode-diagram-wrap svg > text { fill:#000 !important; }
+  .mode-diagram-wrap svg g text { fill:#fff !important; }
+  /* SVG lines → dark */
+  .mode-diagram-wrap svg line { stroke:#333 !important; }
+  /* Diagram background → white */
+  .mode-diagram-wrap { background:#fff !important; }
+}

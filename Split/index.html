@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jazz Chart Editor v3</title>
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/modals.css">
+<link rel="stylesheet" href="css/print.css">
+</head>
+<body>
+
+</head>
+<body>
+
+<!-- HTML — STRUCTURE : Toolbar, dropzone, éditeur, modales, barre impression -->
+
+
+
+<div id="toolbar">
+  <h1><span id="toolbar-title">𝄢 Jazz Grid Generator</span><span id="toolbar-ts"></span></h1>
+  <input type="file" id="file-input" accept=".musicxml,.xml,.mxl">
+  <button class="btn" id="btn-open" onclick="document.getElementById('file-input').click()"></button>
+  <button class="btn secondary" id="btn-new" onclick="newChart()"></button>
+  <div id="transpose-group">
+    <label id="lbl-transpose"></label>
+    <div id="transpose-semitones">
+      <button class="semi-btn" onclick="transposeBySemitone(-1)">−</button>
+      <span id="semitone-display">0</span>
+      <button class="semi-btn" onclick="transposeBySemitone(+1)">+</button>
+    </div>
+    <label style="margin-left:6px;">→</label>
+    <select id="transpose-key-select" onchange="transposeToKey(this.value)">
+      <option value=""></option>
+    </select>
+    <button class="btn secondary" onclick="resetTranspose()" style="padding:4px 8px;font-size:0.75rem;">↺</button>
+  </div>
+  <span style="flex:1"></span>
+  <label id="lbl-cols"></label>
+  <select class="cols-select" id="global-cols" onchange="render()">
+    <option value="4" selected>4</option><option value="3">3</option>
+    <option value="2">2</option><option value="1">1</option>
+  </select>
+  <button class="btn secondary" id="btn-print" onclick="openPrintPanel()"></button>
+  <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
+  <input type="file" id="import-json" accept=".json" style="display:none">
+  <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
+  <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
+  <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
+  <!-- Sélecteur de langue intégré à la fin de la toolbar -->
+  <div id="lang-selector">
+    <label>🌐</label>
+    <select id="lang-select" onchange="setLang(this.value)">
+      <option value="fr">🇫🇷 FR</option>
+      <option value="es">🇪🇸 ES</option>
+      <option value="it">🇮🇹 IT</option>
+      <option value="en">🇬🇧 EN</option>
+    </select>
+  </div>
+  <div id="kofi-wrap">
+    <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener" id="kofi-btn" title="Soutenir ce projet sur Ko-fi">☕ Ko-fi</a>
+  </div>
+</div>
+
+<div id="dropzone" onclick="document.getElementById('file-input').click()">
+  <div class="icon">🎵</div>
+  <h2 id="dz-title"></h2>
+  <p id="dz-sub"></p>
+</div>
+
+<div id="chart-editor">
+  <div id="chart-header">
+    <input id="chart-title" type="text" value="Mon Thème Jazz">
+    <div id="print-ts"></div>
+    <div id="chart-meta">
+      <span id="meta-key-label"></span><input type="text" id="meta-key" value="C" style="width:60px">
+      <span id="meta-tempo-label"></span><input type="number" id="meta-tempo" value="120" style="width:70px"><span id="meta-bpm-label"></span>
+      <span id="meta-time-label"></span><input type="text" id="meta-time" value="4/4" style="width:60px">
+      <span id="meta-style-label"></span><input type="text" id="meta-style" value="Swing" style="width:100px">
+    </div>
+  </div>
+  <div id="sections-container"></div>
+  <button class="add-section-btn" id="btn-add-section" onclick="addSection()"></button>
+</div>
+
+<!-- Modale édition accord -->
+<div id="modal-overlay" class="overlay">
+  <div id="modal" class="modal-box">
+    <h3 id="modal-title"></h3>
+    <div id="modal-sym-panel">
+      <label id="lbl-symbols"></label>
+      <div class="modal-sym-grid" id="modal-sym-btns"></div>
+    </div>
+    <div id="modal-chord-section">
+    <div style="margin-bottom:12px;"><label id="lbl-root" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="root-btns"></div></div>
+    <div style="margin-bottom:12px;"><label id="lbl-quality" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="quality-btns"></div></div>
+    <div style="margin-bottom:12px;"><label id="lbl-ext" style="color:#f0a500;font-size:0.8rem;"></label><div class="chord-btn-grid" id="ext-btns"></div></div>
+    <div class="modal-row"><label id="lbl-bass"></label><input type="text" id="bass-input" style="width:70px"><button class="chord-btn" id="btn-clear-bass" onclick="document.getElementById('bass-input').value=''"></button></div>
+    <div class="modal-row"><label id="lbl-free-chord"></label><input type="text" id="free-chord" style="flex:1"></div>
+    </div>
+    <div class="modal-row"><label id="lbl-beats"></label><input type="number" id="chord-beats" min="1" max="8" value="4" style="width:70px"></div>
+    <div class="modal-footer">
+      <button class="btn danger" id="btn-delete-chord" onclick="deleteChord()"></button>
+      <button class="btn secondary" id="btn-cancel-chord" onclick="closeModal()"></button>
+      <button class="btn" id="btn-apply-chord" onclick="applyChord()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale annotation -->
+<div id="annot-overlay" class="overlay">
+  <div id="annot-modal-box" class="modal-box">
+    <h3>✏️ <span id="annot-modal-title-label"></span> — <span id="annot-chord-name" style="color:#f0a500"></span></h3>
+    <div class="annot-block">
+      <div class="annot-block-header"><span class="annot-block-title" id="annot-mode-title"></span><div class="toggle-btn" id="toggle-mode" onclick="toggleSection('mode')"></div></div>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:8px;" id="annot-mode-hint"></div>
+      <div class="mode-grid" id="modal-modes-list"></div>
+    </div>
+    <div class="annot-block">
+      <div class="annot-block-header"><span class="annot-block-title" id="annot-arp-title"></span><div class="toggle-btn" id="toggle-arp" onclick="toggleSection('arp')"></div></div>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;" id="annot-arp-hint"></div>
+      <div class="arp-root-row" id="modal-arp-root"></div>
+      <div style="font-size:0.72rem;color:#666;margin:8px 0 6px;" id="annot-inv-hint"></div>
+      <div class="inv-list" id="modal-inv-list"></div>
+    </div>
+    <div class="annot-block">
+      <div class="annot-block-header"><span class="annot-block-title" id="annot-tens-title"></span><div class="toggle-btn" id="toggle-tens" onclick="toggleSection('tens')"></div></div>
+      <div style="font-size:0.72rem;color:#666;margin-bottom:6px;" id="annot-tens-hint"></div>
+      <div class="tens-pills" id="modal-tens-pills"></div>
+      <div id="modal-avoid-wrap" style="margin-top:8px;display:none">
+        <div style="font-size:0.65rem;color:#666;margin-bottom:4px;" id="annot-avoid-hint"></div>
+        <div class="tens-pills" id="modal-avoid-pills"></div>
+      </div>
+    </div>
+    <div class="annot-block">
+      <div class="annot-block-header"><span class="annot-block-title" id="annot-free-title"></span><div class="toggle-btn" id="toggle-free" onclick="toggleSection('free')"></div></div>
+      <textarea id="annot-text"></textarea>
+      <div id="annot-color-row">
+        <span style="font-size:0.75rem;color:#aaa;margin-right:4px;" id="annot-color-label"></span>
+        <div class="color-swatch active" data-color="#c4b5fd" style="background:#c4b5fd" onclick="selectAnnotColor(this)"></div>
+        <div class="color-swatch" data-color="#86efac" style="background:#86efac" onclick="selectAnnotColor(this)"></div>
+        <div class="color-swatch" data-color="#fca5a5" style="background:#fca5a5" onclick="selectAnnotColor(this)"></div>
+        <div class="color-swatch" data-color="#fcd34d" style="background:#fcd34d" onclick="selectAnnotColor(this)"></div>
+        <div class="color-swatch" data-color="#7dd3fc" style="background:#7dd3fc" onclick="selectAnnotColor(this)"></div>
+        <div class="color-swatch" data-color="#f0a500" style="background:#f0a500" onclick="selectAnnotColor(this)"></div>
+      </div>
+      <div id="annot-style-row">
+        <label><input type="checkbox" id="annot-bold"> <span id="lbl-bold"></span></label>
+        <label><input type="checkbox" id="annot-italic" checked> <span id="lbl-italic"></span></label>
+      </div>
+    </div>
+    <div id="annot-footer">
+      <button class="btn danger" id="btn-clear-annot" onclick="clearAnnotation()"></button>
+      <button class="btn secondary" id="btn-cancel-annot" onclick="closeAnnotModal()"></button>
+      <button class="btn" id="btn-apply-annot" onclick="applyAnnotation()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale label section -->
+<div id="label-overlay" class="overlay">
+  <div class="modal-box" style="border:2px solid #f0a500;width:380px;">
+    <h3 id="label-modal-title" style="color:#f0a500;margin-bottom:14px;font-size:1rem;"></h3>
+    <div style="margin-bottom:12px;"><div style="font-size:0.75rem;color:#888;margin-bottom:6px;" id="lbl-letter"></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="letter-btns"></div></div>
+    <div style="margin-bottom:14px;"><div style="font-size:0.75rem;color:#888;margin-bottom:6px;" id="lbl-suffix"></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="suffix-btns"></div></div>
+    <div style="font-size:0.85rem;color:#aaa;margin-bottom:14px;"><span id="lbl-preview-label"></span> <span id="label-preview" style="color:#f0a500;font-weight:bold;font-size:1.1rem;margin-left:8px;"></span></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button class="btn secondary" id="btn-cancel-label" onclick="closeLabelModal()"></button>
+      <button class="btn" id="btn-apply-label" onclick="applyLabel()"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Barre d'impression -->
+<div id="print-contrast-bar">
+  <span id="lbl-print-theme"></span>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="toggle-btn on" id="theme-light-btn" onclick="setPrintTheme('light')"></button>
+    <button class="toggle-btn" id="theme-dark-btn" onclick="setPrintTheme('dark')"></button>
+  </div>
+  <span style="margin-left:8px;" id="lbl-contrast"></span>
+  <input type="range" id="contrast-slider" min="1" max="5" value="3" oninput="updateContrastPreview()">
+  <span id="contrast-preview"></span>
+  <span style="margin-left:8px;" id="lbl-section-colors"></span>
+  <div style="display:flex;gap:4px;align-items:center;" id="section-color-preview"></div>
+  <button class="btn" id="btn-do-print" onclick="doPrint()" style="padding:5px 14px;"></button>
+  <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
+</div>
+
+
+<!-- JS — LIBRAIRIES EXTERNES : JSZip -->
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script src="js/i18n.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/theory.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/print.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>
