@@ -1,12 +1,12 @@
-# 🎷 Jazz Grid Generator
+# 𝄢 Jazz Grid Generator
 
 > Éditeur de grilles jazz en ligne avec annotations de théorie musicale, import/export MusicXML, transposition, diagrammes de manche basse 4 et 5 cordes, et export PDF.
 
 ![Version](https://img.shields.io/badge/version-3.0-f0a500?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-86efac?style=flat-square)
+![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
-![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
-![No dependencies](https://img.shields.io/badge/dependencies-none-fca5a5?style=flat-square)
+![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
+![Sans dépendances](https://img.shields.io/badge/dépendances-aucune-fca5a5?style=flat-square)
 
 **Déployé sur** : https://www.virgos.fr/JazzGridGenerator/
 
@@ -14,28 +14,76 @@
 
 ## ✨ Fonctionnalités
 
-- 📂 **Import MusicXML** — drag & drop ou sélecteur, parse accords, sections, barres de reprise, tonalité, tempo
+- 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord
-- 🎼 **Annotations de théorie musicale** par accord : modes, arpèges, tensions, notes libres
-- 🎸 **Diagrammes de manche basse 4 et 5 cordes** — toggle 🎸 4/5 dans la toolbar, persisté en localStorage
-- 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité
-- 🗂️ **Gestion des sections** — labels, dupliquer, réordonner, annoter
-- 🖨️ **Impression/PDF avancée** — thème clair/sombre, contraste ajustable, police réduite automatiquement sur mesures multi-accords
-- 💾 **Sauvegarde/chargement JSON**
+- 🎼 **Annotations de théorie musicale** par accord :
+  - Modes compatibles (Ionien, Dorien, Mixolydien, Altéré, etc.)
+  - Arpèges à 4 sons avec toutes les inversions
+  - Tensions disponibles & notes à éviter
+  - Notes libres avec couleur et mise en forme gras/italique
+- 🎸 **Diagrammes de manche basse 4 et 5 cordes** :
+  - Toggle **🎸 4 / 5** dans la toolbar, choix persisté en `localStorage`
+  - **17 modes disponibles en version 5 cordes** (accordage BEADG)
+  - Transposition automatique des diagrammes selon la fondamentale de l'accord
+  - Couleurs : 🔴 fondamentale · 🟡 notes d'arpège · 🔵 autres degrés de la gamme
+- 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion enharmonique
+- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), dupliquer, réordonner, annoter
+- 🖨️ **Impression / PDF avancée** :
+  - Thème clair ☀️ / sombre 🌙, contraste ajustable (5 niveaux)
+  - Colorisation automatique par section
+  - Police réduite automatiquement sur les mesures multi-accords (lisibilité sur 2 lignes max)
+- 💾 **Sauvegarde / chargement JSON** — fidélité complète incluant toutes les annotations
 - 🎼 **Export MusicXML** — compatible MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- 📱 **Zéro dépendance** — fonctionne hors ligne, aucun build requis
+- 📱 **Zéro dépendance** — fichier HTML unique, fonctionne hors ligne, aucun build requis
+
+---
+
+## 🚀 Démarrage rapide
+
+### Option 1 — Directement dans le navigateur
+
+Ouvrir `Jazz_grid_generator.html` dans n'importe quel navigateur moderne. Aucun serveur requis.
+
+### Option 2 — Version splittée (développement)
+
+```
+split/
+├── index.html
+├── css/
+│   ├── app.css          ← styles UI + bouton toggle 4/5 cordes
+│   ├── modals.css       ← styles des modales
+│   └── print.css        ← styles impression, réduction police multi-accords
+└── js/
+    ├── i18n.js          ← dictionnaire de traductions (FR/ES/IT/EN)
+    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg(), getModesvg()
+    ├── theory.js        ← moteur de théorie (gammes, arpèges, tensions)
+    ├── state.js         ← variables globales, window.bassStrings, setBassStrings()
+    ├── render.js        ← rendu DOM de la grille
+    ├── modals.js        ← modales accord et annotation
+    ├── actions.js       ← mutations de la grille, auto-annotation à l'import
+    ├── print.js         ← thème impression et système de couleurs par section
+    └── init.js          ← initialisation, restauration localStorage bassStrings
+```
+
+### Option 3 — Hébergement statique
+
+Uploader les fichiers sur n'importe quel hébergeur statique (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). Aucune configuration requise.
 
 ---
 
 ## 🎸 Toggle Basse 4 / 5 cordes
 
-Le bouton **🎸 4 / 5** dans la toolbar bascule entre les diagrammes 4 cordes (GDAE) et 5 cordes (BEADG). Le choix est persisté en `localStorage`.
+Le bouton **🎸 4 / 5** dans la toolbar permet de basculer entre les diagrammes **4 cordes (GDAE)** et **5 cordes (BEADG)**.
 
-### Modes avec diagramme 5 cordes (17/17)
+- Le choix est persisté en **`localStorage`** et restauré automatiquement au rechargement
+- La variable `window.bassStrings` (valeur `4` ou `5`) est partagée entre tous les modules JS
+- Si un mode n'a pas de diagramme 5 cordes, le diagramme 4 cordes est utilisé en fallback
 
-| Mode | Clé | Mode | Clé |
-|------|-----|------|-----|
+### Modes disponibles en 5 cordes (17 / 17)
+
+| Mode | Clé `diagrams.js` | Mode | Clé `diagrams.js` |
+|------|-------------------|------|-------------------|
 | Ionien | `Ionien_5` | Lydien b7 | `LydienB7_5` |
 | Dorien | `Dorien_5` | Altéré | `Altere_5` |
 | Phrygien | `Phrygien_5` | Mélodie mineure | `MelodieMineure_5` |
@@ -43,54 +91,48 @@ Le bouton **🎸 4 / 5** dans la toolbar bascule entre les diagrammes 4 cordes (
 | Mixolydien | `Mixolydien_5` | Mixolydien b9b13 | `MixolydienB9B13_5` |
 | Éolien | `Aeolien_5` | Lydien augmenté | `LydienAugmente_5` |
 | Locrien | `Locrien_5` | Locrien #2 | `LocrienDiese2_5` |
-| — | — | Dim. demi-ton | `DimDemiTon_5` |
-| — | — | Dim. ton-demi | `DimTonDemi_5` |
-| — | — | Tons entiers | `TonsEntiers_5` |
+| Dim. demi-ton | `DimDemiTon_5` | Dim. ton-demi | `DimTonDemi_5` |
+| Tons entiers | `TonsEntiers_5` | | |
+
+### Transposition automatique des diagrammes
+
+La fonction `transposeModesvg()` dans `diagrams.js` remplace les degrés par les noms de notes réels selon la fondamentale de l'accord. Elle supporte tous les degrés altérés : `b2`, `b3`, `#4`, `b5`, `b6`, `b7`, `7`, etc.
 
 ---
 
-## 🗂️ Architecture (version splittée)
+## 🖨️ Impression / PDF — Mesures multi-accords
 
-```
-split/
-├── index.html
-├── css/
-│   ├── app.css          ← styles généraux + toggle 4/5 cordes
-│   ├── modals.css
-│   └── print.css        ← réduction police multi-accords
-└── js/
-    ├── i18n.js
-    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg, getModesvg
-    ├── theory.js
-    ├── state.js         ← window.bassStrings, setBassStrings()
-    ├── render.js
-    ├── modals.js
-    ├── actions.js
-    ├── print.js
-    └── init.js          ← restauration localStorage bassStrings
-```
+Les mesures contenant plusieurs accords bénéficient d'une réduction automatique de la taille de police (CSS `:has()`) pour éviter toute troncature et garantir la lisibilité sur 2 lignes maximum :
 
----
-
-## 🖨️ Impression multi-accords
-
-Les mesures avec plusieurs accords bénéficient d'une réduction automatique de police :
-
-| Nombre d'accords | Symbole | Théorie | Hauteur max |
-|-----------------|---------|---------|-------------|
-| 2 accords | 0.72rem | 0.52rem | 2.6em |
-| 3+ accords | 0.62rem | 0.44rem | 2.2em |
+| Nombre d'accords | Symbole d'accord | Zone théorie | Hauteur max |
+|-----------------|-----------------|--------------|-------------|
+| 2 accords | 0.72rem | 0.52rem | 2.6em (≈ 2 lignes) |
+| 3+ accords | 0.62rem | 0.44rem | 2.2em (≈ 2 lignes) |
 
 ---
 
 ## 🎼 Moteur de théorie musicale
 
-### Qualités supportées (24) — Modes suggérés
+### Qualités d'accords supportées (24)
 
-| Qualité | Modes |
-|---------|-------|
+| Symbole | Qualité | Symbole | Qualité |
+|---------|---------|---------|---------|
+| `maj7` / `Δ7` | Septième majeure | `sus2` | Suspendue seconde |
+| `7` | Dominante | `sus4` / `7sus4` | Suspendue quarte |
+| `m7` | Mineure septième | `6` | Sixte |
+| `mM7` | Mineure-majeure | `6/9` | Sixte-neuvième |
+| `dim` / `°` | Triade diminuée | `9` | Neuvième dominante |
+| `dim7` / `°7` | Septième diminuée | `11` | Onzième |
+| `m7b5` / `ø7` | Semi-diminuée | `13` | Treizième |
+| `aug` | Augmentée | `maj9`, `maj13` | Majeures étendues |
+| — | — | `m9`, `m11`, `m13` | Mineures étendues |
+
+### Modes suggérés par qualité
+
+| Qualité | Modes suggérés |
+|---------|---------------|
 | `maj7` | Ionien, Lydien, Lydien augmenté |
-| `7` | Mixolydien, Lydien b7, Altéré, Mixo b9b13 |
+| `7` | Mixolydien, Lydien b7, Altéré, Mixolydien b9b13 |
 | `m7` | Dorien, Éolien, Phrygien, Min. harmonique |
 | `m7b5` | Locrien, Locrien #2 |
 | `dim7` | Dim. ton-demi, Dim. demi-ton |
@@ -99,24 +141,57 @@ Les mesures avec plusieurs accords bénéficient d'une réduction automatique de
 
 ---
 
+## 🎵 Utilisation
+
+### Créer une grille
+
+1. Cliquer **✨ Nouveau** — une grille vierge de 8 mesures en Do majeur s'ouvre
+2. Éditer le **titre**, la **tonalité**, le **tempo**, le **chiffrage de mesure** et le **style** dans l'en-tête
+3. Cliquer sur un accord pour l'éditer, ou **+** dans une mesure pour en ajouter un
+4. Cliquer l'icône **✏️** sur un accord pour ajouter des annotations de théorie
+
+### Importer un fichier MusicXML
+
+Glisser-déposer un fichier `.musicxml` ou `.xml` sur la zone de dépôt, ou cliquer **📂 Ouvrir MusicXML**.
+
+À l'import, les annotations sont générées automatiquement :
+- 1 accord par mesure → mode avec diagramme SVG
+- 2+ accords par mesure → mode en texte + tensions + arpège
+
+### Transposer
+
+| Contrôle | Description |
+|----------|-------------|
+| Boutons **− / +** | Transposer ±1 demi-ton |
+| Menu déroulant | Transposer directement vers une tonalité cible |
+| **↺** reset | Restaurer la tonalité originale |
+
+---
+
 ## 📋 Changelog
 
-### v3.0 (en cours)
-- ✅ Diagrammes 5 cordes pour les 17 modes (BEADG)
-- ✅ Toggle 4/5 cordes dans la toolbar (localStorage)
-- ✅ Correction transposeModesvg — degrés altérés (b2, #4, b7…)
-- ✅ Réduction police automatique en PDF pour mesures multi-accords
+### v3.0 (avril 2026)
+- ✅ Diagrammes 5 cordes (BEADG) pour les 17 modes
+- ✅ Toggle 🎸 4/5 cordes dans la toolbar, persisté en `localStorage`
+- ✅ Correction `transposeModesvg()` — support des degrés altérés (`b2`, `#4`, `b6`, `b7`…)
+- ✅ Réduction automatique de police en PDF pour les mesures multi-accords (CSS `:has()`)
 - ✅ Auto-annotation à l'import MusicXML
 
 ### v2.0
 - Annotations de théorie musicale par accord
-- Import MusicXML avec auto-annotation
+- Import MusicXML avec détection des sections, barres de reprise, tempo
 - Export MusicXML et MXL
-- 4 langues
-- Version splittée (multi-fichiers)
+- 4 langues (FR, ES, IT, EN)
+- Architecture splittée multi-fichiers JS/CSS
+
+### v1.0
+- Éditeur de grilles basique
+- Transposition chromatique
+- Import/export JSON
+- Impression PDF thème clair/sombre
 
 ---
 
 ## 📄 Licence
 
-MIT — *Made with 🎸 for jazz bass players.*
+Apache 2.0 — *Made with 🎸 for jazz bass players.*
