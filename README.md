@@ -1,6 +1,6 @@
 # 𝄢 Jazz Grid Generator
 
-> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, import/export MusicXML, transposition, diagrammes de manche basse 4 et 5 cordes, et export PDF.
+> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
 
 ![Version](https://img.shields.io/badge/version-3.0-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
@@ -19,7 +19,9 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
 ## ✨ Fonctionnalités
 
 - 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo
+- 📦 **Import / Export MXL** — format MusicXML compressé (JSZip)
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord
+- 🔄 **Accord alternatif** — substitution tritoniée, suggestion automatique, export/import MusicXML
 - 🎼 **Annotations de théorie musicale** par accord :
   - Modes compatibles (Ionien, Dorien, Mixolydien, Altéré, etc.)
   - Arpèges à 4 sons avec toutes les inversions
@@ -29,13 +31,28 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
   - Toggle **🎸 4 / 5** dans la toolbar, choix persisté en `localStorage`
   - **17 modes disponibles en version 5 cordes** (accordage BEADG)
   - Transposition automatique des diagrammes selon la fondamentale de l'accord
-  - Couleurs : 🔴 fondamentale · 🟡 notes d'arpège · 🔵 autres degrés de la gamme
+  - Couleurs : 🔴 fondamentale · 🟡 notes d'arpège · 🔵 autres degrés
 - 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion enharmonique
-- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), dupliquer, réordonner, annoter
+- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), suffixes chiffrés (0–9), dupliquer, réordonner par drag & drop, annoter
+- 🔀 **Drag & drop** — réordonner les sections et les mesures à la souris et au toucher (tablette)
+- 🎵 **Symboles de mesure** — `%` (répétition), `𝄎` (double répétition), `N.C.` (no chord), `/` (slash), `(w)` (basse seule sans harmonie)
+- 🔢 **Barres de mesure enrichies** — normale, double, finale, début/fin de reprise, export/import MusicXML
+- 🎼 **Voltas et symboles de navigation** — 1ère / 2ème / 3ème fois, Segno, Coda, D.C., D.S., Fine, export/import MusicXML
+- ↩️ **Annuler / Rétablir (Undo/Redo)** :
+  - Pile de 10 snapshots JSON
+  - Raccourcis Ctrl+Z / Ctrl+Y (⌘Z / ⌘Y sur Mac)
+  - Boutons ↩ ↪ dans la toolbar
+  - Couverture complète : accords, annotations, sections, mesures, barlines, voltas, navigation, accord alternatif, drag & drop
+- 📱 **Support tactile tablette** :
+  - Drag & drop sections et mesures via Touch Events
+  - MutationObserver pour patcher dynamiquement les éléments post-render
+  - Pinch-to-zoom sur la grille
+  - Cibles agrandies via `@media (pointer: coarse)`
 - 🖨️ **Impression / PDF avancée** :
   - Thème clair ☀️ / sombre 🌙, contraste ajustable (5 niveaux)
   - Colorisation automatique par section
   - Police réduite automatiquement sur les mesures multi-accords (lisibilité sur 2 lignes max)
+  - Menus barline / navigation positionnés intelligemment (ne débordent plus en bord d'écran)
 - 💾 **Sauvegarde / chargement JSON** — fidélité complète incluant toutes les annotations
 - 🎼 **Export MusicXML** — compatible MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
@@ -55,7 +72,7 @@ Ouvrir `Jazz_grid_generator.html` dans n'importe quel navigateur moderne. Aucun 
 split/
 ├── index.html
 ├── css/
-│   ├── app.css          ← styles UI + bouton toggle 4/5 cordes
+│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo
 │   ├── modals.css       ← styles des modales
 │   └── print.css        ← styles impression, réduction police multi-accords
 └── js/
@@ -67,7 +84,7 @@ split/
     ├── modals.js        ← modales accord et annotation
     ├── actions.js       ← mutations de la grille, auto-annotation à l'import
     ├── print.js         ← thème impression et système de couleurs par section
-    └── init.js          ← initialisation, restauration localStorage bassStrings
+    └── init.js          ← initialisation, restauration localStorage
 ```
 
 ### Option 3 — Hébergement statique
@@ -98,38 +115,53 @@ Le bouton **🎸 4 / 5** dans la toolbar permet de basculer entre les diagrammes
 | Dim. demi-ton | `DimDemiTon_5` | Dim. ton-demi | `DimTonDemi_5` |
 | Tons entiers | `TonsEntiers_5` | | |
 
-### Transposition automatique des diagrammes
+---
 
-La fonction `transposeModesvg()` dans `diagrams.js` remplace les degrés par les noms de notes réels selon la fondamentale de l'accord. Elle supporte tous les degrés altérés : `b2`, `b3`, `#4`, `b5`, `b6`, `b7`, `7`, etc.
+## ↩️ Annuler / Rétablir
+
+L'historique couvre **toutes les mutations** de la grille :
+
+| Action | Couverte |
+|--------|----------|
+| Ajout / suppression / duplication d'accord | ✅ |
+| Modification d'annotation | ✅ |
+| Ajout / suppression / duplication de mesure | ✅ |
+| Ajout / suppression de section | ✅ |
+| Drag & drop section ou mesure | ✅ |
+| Modification de barline | ✅ |
+| Volta (1ère / 2ème / 3ème) | ✅ |
+| Symbole de navigation | ✅ |
+| Accord alternatif | ✅ |
+
+La profondeur est de **10 niveaux**. Au-delà, le snapshot le plus ancien est supprimé.
 
 ---
 
-## 🖨️ Impression / PDF — Mesures multi-accords
+## 📱 Support tablette
 
-Les mesures contenant plusieurs accords bénéficient d'une réduction automatique de la taille de police (CSS `:has()`) pour éviter toute troncature et garantir la lisibilité sur 2 lignes maximum :
+- **Drag & drop tactile** — sections et mesures déplaçables au doigt
+- **Pinch-to-zoom** — pincer la grille pour zoomer (0.5× à 2×)
+- **Cibles agrandies** — `@media (pointer: coarse)` augmente la taille des boutons barline, nav, accord
+- **MutationObserver** — les éléments ajoutés dynamiquement après un render sont automatiquement patchés
 
-| Nombre d'accords | Symbole d'accord | Zone théorie | Hauteur max |
-|-----------------|-----------------|--------------|-------------|
+---
+
+## 🖨️ Impression / PDF
+
+### Mesures multi-accords
+
+| Nombre d'accords | Symbole | Zone théorie | Hauteur max |
+|-----------------|---------|--------------|-------------|
 | 2 accords | 0.72rem | 0.52rem | 2.6em (≈ 2 lignes) |
 | 3+ accords | 0.62rem | 0.44rem | 2.2em (≈ 2 lignes) |
+
+### Menus popup
+
+Les menus de sélection de barres de mesure, de voltas et de symboles de navigation se positionnent automatiquement pour rester dans l'écran, même en bord droit ou en bas de page.
 
 ---
 
 ## 🎼 Moteur de théorie musicale
-
-### Qualités d'accords supportées (24)
-
-| Symbole | Qualité | Symbole | Qualité |
-|---------|---------|---------|---------|
-| `maj7` / `Δ7` | Septième majeure | `sus2` | Suspendue seconde |
-| `7` | Dominante | `sus4` / `7sus4` | Suspendue quarte |
-| `m7` | Mineure septième | `6` | Sixte |
-| `mM7` | Mineure-majeure | `6/9` | Sixte-neuvième |
-| `dim` / `°` | Triade diminuée | `9` | Neuvième dominante |
-| `dim7` / `°7` | Septième diminuée | `11` | Onzième |
-| `m7b5` / `ø7` | Semi-diminuée | `13` | Treizième |
-| `aug` | Augmentée | `maj9`, `maj13` | Majeures étendues |
-| — | — | `m9`, `m11`, `m13` | Mineures étendues |
 
 ### Modes suggérés par qualité
 
@@ -145,57 +177,45 @@ Les mesures contenant plusieurs accords bénéficient d'une réduction automatiq
 
 ---
 
-## 🎵 Utilisation
-
-### Créer une grille
-
-1. Cliquer **✨ Nouveau** — une grille vierge de 8 mesures en Do majeur s'ouvre
-2. Éditer le **titre**, la **tonalité**, le **tempo**, le **chiffrage de mesure** et le **style** dans l'en-tête
-3. Cliquer sur un accord pour l'éditer, ou **+** dans une mesure pour en ajouter un
-4. Cliquer l'icône **✏️** sur un accord pour ajouter des annotations de théorie
-
-### Importer un fichier MusicXML
-
-Glisser-déposer un fichier `.musicxml` ou `.xml` sur la zone de dépôt, ou cliquer **📂 Ouvrir MusicXML**.
-
-À l'import, les annotations sont générées automatiquement :
-- 1 accord par mesure → mode avec diagramme SVG
-- 2+ accords par mesure → mode en texte + tensions + arpège
-
-### Transposer
-
-| Contrôle | Description |
-|----------|-------------|
-| Boutons **− / +** | Transposer ±1 demi-ton |
-| Menu déroulant | Transposer directement vers une tonalité cible |
-| **↺** reset | Restaurer la tonalité originale |
-
----
-
 ## 📋 Changelog
 
 ### v3.0 (avril 2026)
 - ✅ Diagrammes 5 cordes (BEADG) pour les 17 modes
 - ✅ Toggle 🎸 4/5 cordes dans la toolbar, persisté en `localStorage`
 - ✅ Correction `transposeModesvg()` — support des degrés altérés (`b2`, `#4`, `b6`, `b7`…)
-- ✅ Réduction automatique de police en PDF pour les mesures multi-accords (CSS `:has()`)
+- ✅ Réduction automatique de police en PDF pour les mesures multi-accords
 - ✅ Auto-annotation à l'import MusicXML
+- ✅ Menus popup (barlines, navigation) repositionnés en bord d'écran
 
 ### v2.0
-- Annotations de théorie musicale par accord
-- Import MusicXML avec détection des sections, barres de reprise, tempo
-- Export MusicXML et MXL
-- 4 langues (FR, ES, IT, EN)
-- Architecture splittée multi-fichiers JS/CSS
+- ✅ Historique Annuler / Rétablir (10 niveaux, Ctrl+Z/Y, boutons toolbar)
+- ✅ Support tactile tablette — drag & drop Touch Events, pinch-to-zoom, MutationObserver
+- ✅ Symbole `(w)` basse seule
+- ✅ Accord alternatif (substitution tritoniée)
+- ✅ Barres de mesure enrichies, Voltas, Symboles de navigation
+- ✅ Symboles iReal Pro (`%`, `𝄎`, `N.C.`, `/`)
+- ✅ Drag & drop sections et mesures
+- ✅ Import/Export MXL (JSZip)
+- ✅ 4 langues (FR, ES, IT, EN)
 
 ### v1.0
-- Éditeur de grilles basique
-- Transposition chromatique
-- Import/export JSON
-- Impression PDF thème clair/sombre
+- ✅ Éditeur de grilles basique
+- ✅ Annotations de théorie musicale
+- ✅ Import MusicXML
+- ✅ Transposition chromatique
+- ✅ Import/export JSON
+- ✅ Impression PDF thème clair/sombre
+
+---
+
+## 📋 Feuille de route
+
+- [ ] Lecture MIDI des notes fondamentales
+- [ ] Sélecteur de couleur personnalisé par section
+- [ ] Import iReal Pro `.irealbook`
 
 ---
 
 ## 📄 Licence
 
-Apache 2.0 — *Made with 🎸 for jazz bass players.*
+Apache 2.0 — *𝄢 Made with love for musicians, by a bass player.*

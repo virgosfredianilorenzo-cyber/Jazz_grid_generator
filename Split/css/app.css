@@ -198,3 +198,18 @@ label { font-size:0.85rem; color:#aaa; }
   color: #1a1a2e;
   font-weight: bold;
 }
+
+/* ── Undo / Redo ── */
+#btn-undo:disabled, #btn-redo:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+/* ── Touch / tablette ── */
+@media (pointer: coarse) {
+  .chord-slot { min-height:54px; }
+  .chord-del-btn { opacity:0.7 !important; font-size:0.75rem; }
+  .barline-btn { opacity:0.5 !important; width:22px; }
+  .nav-add-btn { opacity:0.6 !important; width:20px; height:20px; }
+  .measure-drag-handle, .section-drag-handle { font-size:1.3rem; padding:4px 8px; }
+  .alt-chord-btn { opacity:0.7 !important; }
+  .modal-sym-btn { padding:10px 16px; font-size:0.95rem; }
+  .chord-btn { padding:8px; font-size:0.8rem; }
+  #btn-undo, #btn-redo { padding:8px 14px; font-size:1.1rem; }
+}

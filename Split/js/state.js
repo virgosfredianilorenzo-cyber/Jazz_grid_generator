@@ -47,3 +47,47 @@ function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>not
 function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined){c.symbol=c._originalSymbol;delete c._originalSymbol;}})));chartData.key=originalKey;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('meta-key').value=originalKey;document.getElementById('transpose-key-select').value='';render();}
 function transposeBySemitone(delta){snapshotOriginalChords();applyTranspositionToChart((semitoneDiff(originalKey,chartData.key)+delta+12)%12);}
 function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords();applyTranspositionToChart(semitoneDiff(originalKey,destKeyStr));}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — UNDO / REDO
+   Pile de 10 snapshots JSON du chartData
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const UNDO_MAX=10;
+let undoStack=[],redoStack=[],_undoPaused=false;
+
+function snapshotUndo(){
+  if(_undoPaused)return;
+  const snap=JSON.stringify(chartData);
+  if(undoStack.length&&undoStack[undoStack.length-1]===snap)return;
+  undoStack.push(snap);
+  if(undoStack.length>UNDO_MAX)undoStack.shift();
+  redoStack=[];
+  updateUndoButtons();
+}
+
+function undo(){
+  if(!undoStack.length)return;
+  redoStack.push(JSON.stringify(chartData));
+  if(redoStack.length>UNDO_MAX)redoStack.shift();
+  _undoPaused=true;
+  chartData=JSON.parse(undoStack.pop());
+  render();_undoPaused=false;updateUndoButtons();
+}
+
+function redo(){
+  if(!redoStack.length)return;
+  undoStack.push(JSON.stringify(chartData));
+  if(undoStack.length>UNDO_MAX)undoStack.shift();
+  _undoPaused=true;
+  chartData=JSON.parse(redoStack.pop());
+  render();_undoPaused=false;updateUndoButtons();
+}
+
+function updateUndoButtons(){
+  const bu=document.getElementById('btn-undo');
+  const br=document.getElementById('btn-redo');
+  if(bu)bu.disabled=!undoStack.length;
+  if(br)br.disabled=!redoStack.length;
+}
+
+

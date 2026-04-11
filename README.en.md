@@ -1,6 +1,6 @@
 # 𝄢 Jazz Grid Generator
 
-> A web-based jazz chord chart editor with music theory annotations, MusicXML import/export, transposition, 4- and 5-string bass fretboard diagrams, and PDF export.
+> A web-based jazz chord chart editor with music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export, and optimized PDF output.
 
 ![Version](https://img.shields.io/badge/version-3.0-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
@@ -19,7 +19,9 @@ This application lets you build chord charts from scratch or by importing MusicX
 ## ✨ Features
 
 - 📂 **MusicXML import** — drag & drop or file picker, parses chords, sections, repeat barlines, key signature, tempo
+- 📦 **MXL import/export** — compressed MusicXML format (JSZip)
 - ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord beat duration
+- 🔄 **Alternate chord** — tritone substitution, automatic suggestion, MusicXML export/import
 - 🎼 **Music theory annotations** per chord:
   - Compatible modes (Ionian, Dorian, Mixolydian, Altered, etc.)
   - 4-note arpeggios with all inversions
@@ -31,11 +33,26 @@ This application lets you build chord charts from scratch or by importing MusicX
   - Automatic diagram transposition based on chord root
   - Colors: 🔴 root · 🟡 arpeggio notes · 🔵 other scale degrees
 - 🎵 **Transposition** — by semitone (±) or direct key selection, with enharmonic awareness
-- 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), duplicate, reorder, annotate
+- 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), numeric suffixes (0–9), duplicate, reorder via drag & drop, annotate
+- 🔀 **Drag & drop** — reorder sections and measures with mouse or touch (tablet)
+- 🎵 **Measure symbols** — `%` (repeat), `𝄎` (double repeat), `N.C.` (no chord), `/` (slash), `(w)` (bass only, no written harmony)
+- 🔢 **Enhanced barlines** — normal, double, final, repeat start/end, MusicXML export/import
+- 🎼 **Voltas and navigation symbols** — 1st / 2nd / 3rd endings, Segno, Coda, D.C., D.S., Fine, MusicXML export/import
+- ↩️ **Undo / Redo**:
+  - 10-level JSON snapshot history
+  - Ctrl+Z / Ctrl+Y shortcuts (⌘Z / ⌘Y on Mac)
+  - ↩ ↪ buttons in the toolbar
+  - Full coverage: chords, annotations, sections, measures, barlines, voltas, navigation, alternate chord, drag & drop
+- 📱 **Tablet touch support**:
+  - Touch Events drag & drop for sections and measures
+  - MutationObserver to dynamically patch post-render elements
+  - Pinch-to-zoom on the chart grid
+  - Enlarged touch targets via `@media (pointer: coarse)`
 - 🖨️ **Advanced print/PDF**:
   - Light ☀️ / dark 🌙 theme, adjustable contrast (5 levels)
   - Automatic per-section color coding
   - Automatic font scaling on multi-chord measures (max 2 lines, no truncation)
+  - Popup menus (barlines, navigation) smart-positioned to stay within the screen
 - 💾 **JSON save/load** — full fidelity including all annotations
 - 🎼 **MusicXML export** — compatible with MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
@@ -55,7 +72,7 @@ Open `Jazz_grid_generator.html` in any modern browser. No server required.
 split/
 ├── index.html
 ├── css/
-│   ├── app.css          ← UI styles + 4/5-string toggle button
+│   ├── app.css          ← UI styles + 4/5-string toggle + undo/redo buttons
 │   ├── modals.css       ← modal styles
 │   └── print.css        ← print styles, multi-chord font scaling
 └── js/
@@ -67,7 +84,7 @@ split/
     ├── modals.js        ← chord and annotation dialogs
     ├── actions.js       ← chart mutations, auto-annotation on import
     ├── print.js         ← print theming and section color system
-    └── init.js          ← initialization, localStorage bassStrings restore
+    └── init.js          ← initialization, localStorage restore
 ```
 
 ### Option 3 — Any static host
@@ -98,38 +115,53 @@ The **🎸 4 / 5** button in the toolbar switches between **4-string (GDAE)** an
 | Half-whole dim. | `DimDemiTon_5` | Whole-half dim. | `DimTonDemi_5` |
 | Whole tone | `TonsEntiers_5` | | |
 
-### Automatic diagram transposition
+---
 
-The `transposeModesvg()` function in `diagrams.js` replaces scale degree labels with actual note names based on the chord root. It supports all altered degrees: `b2`, `b3`, `#4`, `b5`, `b6`, `b7`, `7`, etc.
+## ↩️ Undo / Redo
+
+The history covers **all chart mutations**:
+
+| Action | Covered |
+|--------|---------|
+| Add / delete / duplicate chord | ✅ |
+| Annotation edit | ✅ |
+| Add / delete / duplicate measure | ✅ |
+| Add / delete section | ✅ |
+| Drag & drop section or measure | ✅ |
+| Barline change | ✅ |
+| Volta (1st / 2nd / 3rd ending) | ✅ |
+| Navigation symbol | ✅ |
+| Alternate chord | ✅ |
+
+History depth: **10 levels**. When the limit is reached, the oldest snapshot is discarded.
 
 ---
 
-## 🖨️ Print / PDF — Multi-chord measures
+## 📱 Tablet Support
 
-Measures containing multiple chords benefit from automatic font size reduction (CSS `:has()`) to prevent truncation and maintain readability on a maximum of 2 lines:
+- **Touch drag & drop** — sections and measures can be dragged with a finger
+- **Pinch-to-zoom** — pinch the chart grid to zoom in/out (0.5× to 2×)
+- **Enlarged targets** — `@media (pointer: coarse)` increases the size of barline, nav, and chord buttons
+- **MutationObserver** — elements added dynamically after a render are automatically patched for touch support
+
+---
+
+## 🖨️ Print / PDF
+
+### Multi-chord measures
 
 | Number of chords | Chord symbol | Theory area | Max height |
 |-----------------|-------------|-------------|------------|
 | 2 chords | 0.72rem | 0.52rem | 2.6em (≈ 2 lines) |
 | 3+ chords | 0.62rem | 0.44rem | 2.2em (≈ 2 lines) |
 
+### Popup menus
+
+Barline, volta, and navigation symbol popup menus automatically reposition to stay within the screen, even when triggered from the right edge or bottom of the page.
+
 ---
 
 ## 🎼 Music Theory Engine
-
-### Supported chord qualities (24)
-
-| Symbol | Quality | Symbol | Quality |
-|--------|---------|--------|---------|
-| `maj7` / `Δ7` | Major seventh | `sus2` | Suspended 2nd |
-| `7` | Dominant seventh | `sus4` / `7sus4` | Suspended 4th |
-| `m7` | Minor seventh | `6` | Sixth |
-| `mM7` | Minor-major seventh | `6/9` | Six-nine |
-| `dim` / `°` | Diminished triad | `9` | Dominant ninth |
-| `dim7` / `°7` | Diminished seventh | `11` | Eleventh |
-| `m7b5` / `ø7` | Half-diminished | `13` | Thirteenth |
-| `aug` | Augmented | `maj9`, `maj13` | Extended major |
-| — | — | `m9`, `m11`, `m13` | Extended minor |
 
 ### Suggested modes per chord quality
 
@@ -145,77 +177,45 @@ Measures containing multiple chords benefit from automatic font size reduction (
 
 ---
 
-## 🎵 Usage
-
-### Creating a chart
-
-1. Click **✨ New** — a blank 8-measure chart in C major opens
-2. Edit the **title**, **key**, **tempo**, **time signature** and **style** in the header
-3. Click any chord to edit it, or click **+** inside a measure to add a chord
-4. Click the **✏️** icon on a chord to add theory annotations
-
-### Importing a MusicXML file
-
-Drag & drop a `.musicxml` or `.xml` file onto the drop zone, or click **📂 Open MusicXML**.
-
-On import, annotations are generated automatically:
-- 1 chord per measure → mode with SVG fretboard diagram
-- 2+ chords per measure → mode as text + tensions + arpeggio
-
-### Transposing
-
-| Control | Description |
-|---------|-------------|
-| **− / +** buttons | Transpose ±1 semitone |
-| Key dropdown | Transpose directly to a target key |
-| **↺** reset | Restore the original key |
-
-Enharmonic spellings are automatically chosen based on the target key (e.g. F# in a flat key → G♭).
-
----
-
 ## 📋 Changelog
 
 ### v3.0 (April 2026)
 - ✅ 5-string fretboard diagrams (BEADG) for all 17 modes
 - ✅ 🎸 4/5-string toggle in toolbar, persisted in `localStorage`
 - ✅ Fixed `transposeModesvg()` — support for altered degrees (`b2`, `#4`, `b6`, `b7`…)
-- ✅ Automatic font scaling in PDF for multi-chord measures (CSS `:has()`)
+- ✅ Automatic font scaling in PDF for multi-chord measures
 - ✅ Auto-annotation on MusicXML import
+- ✅ Popup menus (barlines, navigation) smart-positioned to stay within the screen
 
 ### v2.0
-- Music theory annotations per chord
-- MusicXML import with section detection, repeat barlines, tempo
-- MusicXML and MXL export
-- 4 languages (FR, ES, IT, EN)
-- Split multi-file JS/CSS architecture
+- ✅ Undo / Redo history (10 levels, Ctrl+Z/Y, toolbar buttons)
+- ✅ Tablet touch support — drag & drop Touch Events, pinch-to-zoom, MutationObserver
+- ✅ `(w)` bass-only symbol
+- ✅ Alternate chord (tritone substitution)
+- ✅ Enhanced barlines, Voltas, Navigation symbols
+- ✅ iReal Pro symbols (`%`, `𝄎`, `N.C.`, `/`)
+- ✅ Drag & drop sections and measures
+- ✅ MXL import/export (JSZip)
+- ✅ 4 languages (FR, ES, IT, EN)
 
 ### v1.0
-- Basic chord chart editor
-- Chromatic transposition
-- JSON import/export
-- Light/dark PDF print theme
+- ✅ Basic chord chart editor
+- ✅ Music theory annotations
+- ✅ MusicXML import
+- ✅ Chromatic transposition
+- ✅ JSON import/export
+- ✅ Light/dark PDF print theme
 
 ---
 
-## 🛠️ Customization
+## 📋 Roadmap
 
-### Adding a 5-string fretboard diagram
-
-1. Create the SVG (width=510, height=270, 5 frets, strings GDAEB from top)
-2. Add it to `MODE_SVGS` in `diagrams.js` with the key `ModeName_5`
-3. `getModesvg()` will automatically select it when `window.bassStrings === 5`
-
-### Adding a chord quality
-
-Add an entry to:
-- `QUALITIES` array (chord modal buttons)
-- `ARP_DEF` object (arpeggio definition)
-- `MODES_DEF` object (compatible modes)
-- `TENS_DEF` object (available tensions)
+- [ ] MIDI playback of root notes
+- [ ] Custom color picker per section
+- [ ] iReal Pro `.irealbook` import
 
 ---
 
 ## 📄 License
 
-Apache 2.0 — *Made with 🎸 for jazz bass players.*
+Apache 2.0 — *𝄢 Made with love for musicians, by a bass player.*

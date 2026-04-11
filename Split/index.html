@@ -41,6 +41,8 @@
     <option value="4" selected>4</option><option value="3">3</option>
     <option value="2">2</option><option value="1">1</option>
   </select>
+  <button class="btn secondary" id="btn-undo" onclick="undo()" disabled title="Annuler (Ctrl+Z)">↩</button>
+  <button class="btn secondary" id="btn-redo" onclick="redo()" disabled title="Rétablir (Ctrl+Y)">↪</button>
   <button class="btn secondary" id="btn-print" onclick="openPrintPanel()"></button>
   <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
   <input type="file" id="import-json" accept=".json" style="display:none">
@@ -204,6 +206,7 @@
 <script src="js/modals.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/print.js"></script>
+<script src="js/touch.js"></script>
 <script src="js/init.js"></script>
 </body>
 </html>

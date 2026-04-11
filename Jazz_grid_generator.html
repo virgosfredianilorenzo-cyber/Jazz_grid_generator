@@ -23,6 +23,20 @@ body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-heig
 .btn.secondary { background:#2d4a7a; color:#eee; }
 .btn.secondary:hover { background:#3a5f9a; }
 .btn.danger { background:#c0392b; color:#fff; }
+/* ── Undo / Redo ── */
+#btn-undo:disabled, #btn-redo:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+/* ── Touch / tablette ── */
+@media (pointer: coarse) {
+  .chord-slot { min-height:54px; }
+  .chord-del-btn { opacity:0.7 !important; font-size:0.75rem; }
+  .barline-btn { opacity:0.5 !important; width:22px; }
+  .nav-add-btn { opacity:0.6 !important; width:20px; height:20px; }
+  .measure-drag-handle, .section-drag-handle { font-size:1.3rem; padding:4px 8px; }
+  .alt-chord-btn { opacity:0.7 !important; }
+  .modal-sym-btn { padding:10px 16px; font-size:0.95rem; }
+  .chord-btn { padding:8px; font-size:0.8rem; }
+  #btn-undo, #btn-redo { padding:8px 14px; font-size:1.1rem; }
+}
 select, input[type="text"], input[type="number"] { background:#2d4a7a; color:#eee; border:1px solid #f0a500; padding:6px 10px; border-radius:4px; font-size:0.85rem; }
 label { font-size:0.85rem; color:#aaa; }
 
@@ -415,6 +429,8 @@ label { font-size:0.85rem; color:#aaa; }
     <option value="4" selected>4</option><option value="3">3</option>
     <option value="2">2</option><option value="1">1</option>
   </select>
+  <button class="btn secondary" id="btn-undo" onclick="undo()" disabled title="Annuler (Ctrl+Z)">↩</button>
+  <button class="btn secondary" id="btn-redo" onclick="redo()" disabled title="Rétablir (Ctrl+Y)">↪</button>
   <button class="btn secondary" id="btn-print" onclick="openPrintPanel()"></button>
   <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
   <input type="file" id="import-json" accept=".json" style="display:none">
@@ -930,7 +946,7 @@ function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,
 }
 function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
 function fmtChord(sym){if(!sym||sym==='%')return '–';if(sym==='%%')return '𝄎';if(sym==='N.C.')return 'N.C.';if(sym==='/beat')return '/';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
-function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat';}
+function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat'||sym==='(w)';}
 function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 'sym-repeat2';if(sym==='N.C.')return 'sym-nc';if(sym==='/beat')return 'sym-slash';return '';}
 function getSymLabel(sym){if(sym==='%')return t('symRepeat');if(sym==='%%')return t('symRepeat2');if(sym==='N.C.')return t('symNC');if(sym==='/beat')return t('symSlash');return '';}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -983,6 +999,51 @@ function applyTranspositionToChart(semitones){const destKey=ALL_KEYS.find(k=>not
 function resetTranspose(){chartData.sections.forEach(s=>s.measures.forEach(m=>m.chords.forEach(c=>{if(c._originalSymbol!==undefined){c.symbol=c._originalSymbol;delete c._originalSymbol;}})));chartData.key=originalKey;currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('meta-key').value=originalKey;document.getElementById('transpose-key-select').value='';render();}
 function transposeBySemitone(delta){snapshotOriginalChords();applyTranspositionToChart((semitoneDiff(originalKey,chartData.key)+delta+12)%12);}
 function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords();applyTranspositionToChart(semitoneDiff(originalKey,destKeyStr));}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — UNDO / REDO
+   Pile de 10 snapshots JSON du chartData
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const UNDO_MAX=10;
+let undoStack=[],redoStack=[],_undoPaused=false;
+
+function snapshotUndo(){
+  if(_undoPaused)return;
+  const snap=JSON.stringify(chartData);
+  if(undoStack.length&&undoStack[undoStack.length-1]===snap)return;
+  undoStack.push(snap);
+  if(undoStack.length>UNDO_MAX)undoStack.shift();
+  redoStack=[];
+  updateUndoButtons();
+}
+
+function undo(){
+  if(!undoStack.length)return;
+  redoStack.push(JSON.stringify(chartData));
+  if(redoStack.length>UNDO_MAX)redoStack.shift();
+  _undoPaused=true;
+  chartData=JSON.parse(undoStack.pop());
+  render();_undoPaused=false;updateUndoButtons();
+}
+
+function redo(){
+  if(!redoStack.length)return;
+  undoStack.push(JSON.stringify(chartData));
+  if(undoStack.length>UNDO_MAX)undoStack.shift();
+  _undoPaused=true;
+  chartData=JSON.parse(redoStack.pop());
+  render();_undoPaused=false;updateUndoButtons();
+}
+
+function updateUndoButtons(){
+  const bu=document.getElementById('btn-undo');
+  const br=document.getElementById('btn-redo');
+  if(bu)bu.disabled=!undoStack.length;
+  if(br)br.disabled=!redoStack.length;
+}
+
+
+
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — RENDER
    DOM rendering : sections, mesures, accords, symboles
@@ -1233,13 +1294,13 @@ function buildChordSymbol(){
   if(bass)sym+='/'+bass;
   return sym;
 }
-function applyChord(){const{si,mi,ci}=editTarget;const symbol=buildChordSymbol(),beats=parseInt(document.getElementById('chord-beats').value)||4;const measure=chartData.sections[si].measures[mi];if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}else{const ex=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:ex?ex.annot:null};}closeModal();render();}
-function deleteChord(){const{si,mi,ci}=editTarget;if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);closeModal();render();}
+function applyChord(){snapshotUndo();const{si,mi,ci}=editTarget;const symbol=buildChordSymbol(),beats=parseInt(document.getElementById('chord-beats').value)||4;const measure=chartData.sections[si].measures[mi];if(ci===-1){if(!measure.chords)measure.chords=[];measure.chords.push({symbol,beats,annot:null});}else{const ex=measure.chords[ci];measure.chords[ci]={symbol,beats,annot:ex?ex.annot:null};}closeModal();render();}
+function deleteChord(){snapshotUndo();const{si,mi,ci}=editTarget;if(ci!==-1)chartData.sections[si].measures[mi].chords.splice(ci,1);closeModal();render();}
 function toggleSection(key){aShow[key]=!aShow[key];document.getElementById('toggle-'+key).classList.toggle('on',aShow[key]);}
 function selectAnnotColor(el){document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));el.classList.add('active');selectedAnnotColor=el.dataset.color;}
 function openAnnotModal(si,mi,ci,chord){annotTarget={si,mi,ci};const annot=chord.annot||{};aShow={mode:!!annot.showMode,arp:!!annot.showArp,tens:!!annot.showTens,free:!!annot.showFree};aState={modeIdx:annot.modeIdx||0,invIdx:annot.invIdx||0,selTens:annot.selTens?[...annot.selTens]:[]};['mode','arp','tens','free'].forEach(k=>document.getElementById('toggle-'+k).classList.toggle('on',aShow[k]));const parsed=parseChordSym(chord.symbol);document.getElementById('annot-chord-name').textContent=fmtChord(chord.symbol);const mList=document.getElementById('modal-modes-list');mList.innerHTML='';if(parsed){const modes=MODES_DEF[parsed.quality]||MODES_DEF['maj7'];modes.forEach((mode,i)=>{const notes=mode.i.map(s=>tr(parsed.root,s)).join(' ');const card=document.createElement('div');card.className='mode-card'+(i===aState.modeIdx?' selected':'');card.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${mode.name}</span>${i===aState.modeIdx?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${notes}</div><div class="mode-desc">${mode.desc}</div>`;card.onclick=()=>{aState.modeIdx=i;mList.querySelectorAll('.mode-card').forEach((c,j)=>{c.classList.toggle('selected',j===i);const mn=modes[j].i.map(s=>tr(parsed.root,s)).join(' ');c.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between"><span class="mode-name">${modes[j].name}</span>${j===i?'<span class="mode-selected-badge">✓</span>':''}</div><div class="mode-notes">${mn}</div><div class="mode-desc">${modes[j].desc}</div>`;});};mList.appendChild(card);});}else mList.innerHTML=`<div style="color:#556;font-size:0.82rem;">${t('annotUnknown')}</div>`;const arpRoot=document.getElementById('modal-arp-root');arpRoot.innerHTML='';const invList=document.getElementById('modal-inv-list');invList.innerHTML='';if(parsed){const def=ARP_DEF[parsed.quality]||ARP_DEF['maj7'];def.i.forEach((iv,i)=>{const n=tr(parsed.root,iv);const p=document.createElement('div');p.className='arp-pill'+(i===0?' root':'');p.textContent=`${n} (${def.n[i]})`;arpRoot.appendChild(p);});const invs=getInversions(parsed.root,parsed.quality);invs.forEach((inv,k)=>{const card=document.createElement('div');card.className='inv-card'+(k===aState.invIdx?' selected':'');const badge=k===aState.invIdx?'<span class="inv-selected-badge">✓</span>':'';card.innerHTML=`<span class="inv-label">${inv.label}</span><span class="inv-notes">${inv.notes.join(' · ')}</span><span class="inv-intervals">(${inv.degrees.join('-')})</span>${badge}`;card.onclick=()=>{aState.invIdx=k;invList.querySelectorAll('.inv-card').forEach((c,j)=>{c.classList.toggle('selected',j===k);const b2=j===k?'<span class="inv-selected-badge">✓</span>':'';const inv2=invs[j];c.innerHTML=`<span class="inv-label">${inv2.label}</span><span class="inv-notes">${inv2.notes.join(' · ')}</span><span class="inv-intervals">(${inv2.degrees.join('-')})</span>${b2}`;});};invList.appendChild(card);});}const tensPills=document.getElementById('modal-tens-pills');tensPills.innerHTML='';const avoidPills=document.getElementById('modal-avoid-pills');avoidPills.innerHTML='';const avoidWrap=document.getElementById('modal-avoid-wrap');if(parsed){const tens=TENS_DEF[parsed.quality]||{a:[],av:[]};tens.a.forEach(t2=>{const s=TENSION_IV[t2]||0,n=tr(parsed.root,s),sel=aState.selTens.includes(t2);const p=document.createElement('div');p.className='tens-pill available'+(sel?' selected':'');p.textContent=`${t2} (${n})`;p.onclick=()=>{if(aState.selTens.includes(t2))aState.selTens=aState.selTens.filter(x=>x!==t2);else aState.selTens.push(t2);p.classList.toggle('selected',aState.selTens.includes(t2));};tensPills.appendChild(p);});if(!tens.a.length)tensPills.innerHTML=`<span style="color:#556;font-size:0.8rem;">${t('annotNone')}</span>`;if(tens.av&&tens.av.length){avoidWrap.style.display='block';tens.av.forEach(t2=>{const s=TENSION_IV[t2]||0,n=tr(parsed.root,s);const p=document.createElement('div');p.className='tens-pill avoid';p.textContent=`${t2} (${n})`;avoidPills.appendChild(p);});}else avoidWrap.style.display='none';}document.getElementById('annot-text').value=annot.freeText||'';document.getElementById('annot-bold').checked=annot.freeBold||false;document.getElementById('annot-italic').checked=annot.freeItalic!==undefined?annot.freeItalic:true;const color=annot.freeColor||'#c4b5fd';selectedAnnotColor=color;document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===color));document.getElementById('annot-overlay').classList.add('active');}
 function closeAnnotModal(){document.getElementById('annot-overlay').classList.remove('active');annotTarget=null;}
-function applyAnnotation(){const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
+function applyAnnotation(){snapshotUndo();const{si,mi,ci}=annotTarget;const freeText=document.getElementById('annot-text').value.trim();const hasAny=aShow.mode||aShow.arp||aShow.tens||(aShow.free&&freeText);chartData.sections[si].measures[mi].chords[ci].annot=hasAny?{showMode:aShow.mode,showArp:aShow.arp,showTens:aShow.tens,showFree:aShow.free&&!!freeText,modeIdx:aState.modeIdx,invIdx:aState.invIdx,selTens:[...aState.selTens],freeText,freeColor:selectedAnnotColor,freeBold:document.getElementById('annot-bold').checked,freeItalic:document.getElementById('annot-italic').checked}:null;closeAnnotModal();render();}
 function clearAnnotation(){const{si,mi,ci}=annotTarget;chartData.sections[si].measures[mi].chords[ci].annot=null;closeAnnotModal();render();}
 
 /* ── Popup accord alternatif ── */
@@ -1345,7 +1406,9 @@ function openBarlinePopup(e,si,mi,side){
   }
   // Positionner
   const rect=e.target.getBoundingClientRect();
-  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;`;
+  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;visibility:hidden;`;
+  document.body.appendChild(pop);
+  {const _pw=pop.offsetWidth,_ph=pop.offsetHeight;let _px=Math.min(rect.left-30,window.innerWidth-_pw-8),_py=rect.bottom+4;if(_py+_ph>window.innerHeight-8)_py=rect.top-_ph-4;pop.style.left=Math.max(0,_px)+'px';pop.style.top=Math.max(0,_py)+'px';pop.style.visibility='';}
   document.body.appendChild(pop);
   setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
 }
@@ -1374,7 +1437,9 @@ function openNavPopup(e,si,mi){
     pop.appendChild(b);
   });
   const rect=e.target.getBoundingClientRect();
-  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;`;
+  pop.style.cssText=`position:fixed;top:${rect.bottom+4}px;left:${rect.left}px;visibility:hidden;`;
+  document.body.appendChild(pop);
+  {const _pw=pop.offsetWidth,_ph=pop.offsetHeight;let _px=Math.min(rect.left-30,window.innerWidth-_pw-8),_py=rect.bottom+4;if(_py+_ph>window.innerHeight-8)_py=rect.top-_ph-4;pop.style.left=Math.max(0,_px)+'px';pop.style.top=Math.max(0,_py)+'px';pop.style.visibility='';}
   document.body.appendChild(pop);
   setTimeout(()=>document.addEventListener('click',closeActivePopup,{once:true}),10);
 }
@@ -1391,12 +1456,12 @@ function applyLabel(){if(labelTarget===null)return;chartData.sections[labelTarge
 
 
 function newChart(){chartData={title:t('defaultTitle'),key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[{label:'A',annotation:'',measures:Array.from({length:8},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))}]};originalKey='C';currentSemitoneOffset=0;document.getElementById('semitone-display').textContent='0';document.getElementById('transpose-key-select').value='';document.getElementById('dropzone').style.display='none';document.getElementById('chart-editor').style.display='block';render();}
-function addSection(){chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
-function duplicateSection(si){const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
-function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));chartData.sections.splice(si,1);render();}
-function addMeasure(si){const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null});render();}
-function deleteMeasure(si,mi){chartData.sections[si].measures.splice(mi,1);render();}
-function duplicateMeasure(si,mi){const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
+function addSection(){snapshotUndo();chartData.sections.push({label:t('sectionDefault'),annotation:'',measures:Array.from({length:4},(_,i)=>({number:i+1,chords:[{symbol:'Cmaj7',beats:4,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null}))});render();}
+function duplicateSection(si){snapshotUndo();const c=JSON.parse(JSON.stringify(chartData.sections[si]));c.label+=' (bis)';chartData.sections.splice(si+1,0,c);render();}
+function deleteSection(si){if(chartData.sections.length<=1)return alert(t('alertLastSection'));snapshotUndo();chartData.sections.splice(si,1);render();}
+function addMeasure(si){snapshotUndo();const b=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;chartData.sections[si].measures.push({chords:[{symbol:'%',beats:b,annot:null}],repeatStart:false,repeatEnd:false,barlineLeft:'normal',barlineRight:'normal',volta:null,navSymbol:null});render();}
+function deleteMeasure(si,mi){snapshotUndo();chartData.sections[si].measures.splice(mi,1);render();}
+function duplicateMeasure(si,mi){snapshotUndo();const c=JSON.parse(JSON.stringify(chartData.sections[si].measures[mi]));chartData.sections[si].measures.splice(mi+1,0,c);render();}
 
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1712,6 +1777,105 @@ function injectPrintStyle(v){removePrintStyle();const el=document.createElement(
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — TOUCH SUPPORT
+   Drag & drop tactile (sections + mesures) + pinch-to-zoom grille
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Drag tactile générique ── */
+function makeTouchDraggable(handle, getEl, onDrop){
+  let ghost=null,active=false,startX=0,startY=0;
+  handle.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    const t=e.touches[0]; startX=t.clientX; startY=t.clientY; active=true;
+    handle._touchTimer=setTimeout(()=>{
+      const el=getEl(); if(!el)return;
+      ghost=el.cloneNode(true);
+      ghost.style.cssText=`position:fixed;opacity:0.7;pointer-events:none;z-index:9999;width:${el.offsetWidth}px;box-shadow:0 6px 24px rgba(0,0,0,0.5);border-radius:6px;`;
+      ghost.style.left=startX-el.offsetWidth/2+'px'; ghost.style.top=startY-30+'px';
+      document.body.appendChild(ghost); el.style.opacity='0.35';
+    },180);
+    e.stopPropagation();
+  },{passive:true});
+  handle.addEventListener('touchmove',e=>{
+    if(!active||!ghost)return; e.preventDefault();
+    const t=e.touches[0];
+    ghost.style.left=t.clientX-parseInt(ghost.style.width)/2+'px';
+    ghost.style.top=t.clientY-30+'px';
+    ghost.style.display='none';
+    handle._touchTarget=document.elementFromPoint(t.clientX,t.clientY);
+    ghost.style.display='';
+  },{passive:false});
+  handle.addEventListener('touchend',e=>{
+    clearTimeout(handle._touchTimer); active=false;
+    if(ghost){ghost.remove();ghost=null;const el=getEl();if(el)el.style.opacity='';if(handle._touchTarget)onDrop(handle._touchTarget);handle._touchTarget=null;}
+  },{passive:true});
+  handle.addEventListener('touchcancel',()=>{
+    clearTimeout(handle._touchTimer); active=false;
+    if(ghost){ghost.remove();ghost=null;const el=getEl();if(el)el.style.opacity='';}
+  },{passive:true});
+}
+
+/* ── Pinch-to-zoom sur la grille ── */
+(function initPinchZoom(){
+  const editor=document.getElementById('chart-editor');
+  if(!editor)return;
+  let scale=1,lastDist=null;
+  editor.addEventListener('touchstart',e=>{if(e.touches.length===2)lastDist=null;},{passive:true});
+  editor.addEventListener('touchmove',e=>{
+    if(e.touches.length!==2)return; e.preventDefault();
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(lastDist!==null){const delta=dist-lastDist;scale=Math.min(2,Math.max(0.5,scale+delta*0.003));editor.style.transform=`scale(${scale})`;editor.style.transformOrigin='top center';}
+    lastDist=dist;
+  },{passive:false});
+  editor.addEventListener('touchend',e=>{if(e.touches.length<2)lastDist=null;},{passive:true});
+})();
+
+/* ── MutationObserver — patch tactile post-render ── */
+(function patchTouchAfterRender(){
+  const cont=document.getElementById('sections-container');
+  if(!cont)return;
+  const obs=new MutationObserver(()=>applyTouchPatches());
+  obs.observe(cont,{childList:true,subtree:false});
+  function applyTouchPatches(){
+    // Sections
+    cont.querySelectorAll('.section-drag-handle').forEach(handle=>{
+      if(handle._touchPatched)return; handle._touchPatched=true;
+      const section=handle.closest('.section');
+      makeTouchDraggable(handle,()=>section,target=>{
+        const destSection=target.closest('.section');
+        if(!destSection||destSection===section)return;
+        const srcIdx=parseInt(section.dataset.si);
+        const dstIdx=parseInt(destSection.dataset.si);
+        if(isNaN(srcIdx)||isNaN(dstIdx))return;
+        snapshotUndo();
+        const moved=chartData.sections.splice(srcIdx,1)[0];
+        chartData.sections.splice(srcIdx<dstIdx?dstIdx-1:dstIdx,0,moved);
+        render();
+      });
+    });
+    // Mesures
+    cont.querySelectorAll('.measure-drag-handle').forEach(handle=>{
+      if(handle._touchPatched)return; handle._touchPatched=true;
+      const measure=handle.closest('.measure');
+      makeTouchDraggable(handle,()=>measure,target=>{
+        const destMeasure=target.closest('.measure');
+        if(!destMeasure||destMeasure===measure)return;
+        const si=parseInt(measure.dataset.si), mi=parseInt(measure.dataset.mi);
+        const dsi=parseInt(destMeasure.dataset.si), dmi=parseInt(destMeasure.dataset.mi);
+        if(isNaN(si)||isNaN(mi)||isNaN(dsi)||isNaN(dmi))return;
+        snapshotUndo();
+        if(si===dsi){const ms=chartData.sections[si].measures;const moved=ms.splice(mi,1)[0];ms.splice(mi<dmi?dmi-1:dmi,0,moved);}
+        else{const moved=chartData.sections[si].measures.splice(mi,1)[0];chartData.sections[dsi].measures.splice(dmi,0,moved);}
+        render();
+      });
+    });
+  }
+})();
+
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — INIT
    Initialisation : event listeners globaux, premier render
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
@@ -1720,7 +1884,7 @@ function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-s
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});
 document.getElementById('label-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('label-overlay'))closeLabelModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();closeActivePopup();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeAnnotModal();closeLabelModal();closeActivePopup();}if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();}if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();}});
 buildModal();
 buildLabelModal();
 buildTransposeKeySelect();
@@ -1730,6 +1894,8 @@ applyTranslations();
 function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,'0');const ts=String(n.getFullYear()).slice(2)+pad(n.getMonth()+1)+pad(n.getDate())+pad(n.getHours())+pad(n.getMinutes())+pad(n.getSeconds());document.getElementById('toolbar-ts').textContent=ts;document.getElementById('print-ts').textContent=ts;}
 updateTimestamp();
 setInterval(updateTimestamp,1000);
+updateUndoButtons();
+
 </script>
 </body>
 </html>
