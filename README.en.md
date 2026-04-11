@@ -12,7 +12,7 @@
 
 ---
 
-Cette application permet de créer des grilles à partir d'un document vierge. L'import de fichiers au format MusicXML issus de iReal Pro, Musescore ou tout autre logiciel supportant ce format est fonctionnel. Les grilles une fois importées sont modifiables. L'impression au format PDF de la grille finalisée peut être par exemple uploadée dans une application de type SongBook Pro et utilisée sur tablette lors de jam sessions ou de concerts.
+This application lets you build chord charts from scratch or by importing MusicXML files exported from iReal Pro, MuseScore, or any other software that supports the format. Imported charts are fully editable. The finished chart can be printed to PDF and uploaded to an app such as SongBook Pro, ready to use on a tablet during jam sessions or live performances.
 
 ---
 
