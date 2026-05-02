@@ -1,185 +1,306 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   JS — AI PANEL
-   Interface langage naturel via Claude API (Anthropic)
+   JS — ASSISTANT LANGAGE NATUREL (pattern matching local)
+   Pas de dépendance externe, fonctionne hors ligne.
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 (function () {
+'use strict';
 
-// ── Clé API ─────────────────────────────────────────────────────────
-function getApiKey() { return localStorage.getItem('jgg_anthropic_key') || ''; }
-function saveApiKey(k) { localStorage.setItem('jgg_anthropic_key', k.trim()); }
+// ──────────────────────────────────────────────────────────────────
+//  HELPERS
+// ──────────────────────────────────────────────────────────────────
 
-// ── Prompt système ───────────────────────────────────────────────────
-function buildSystemPrompt() {
-  return `You are an assistant for Jazz Grid Generator, a jazz chord chart editor.
-Help users modify their chart through natural language instructions.
+function sectionByLabel(label) {
+  const l = (label || '').trim().toLowerCase();
+  return chartData.sections.findIndex(s => s.label.toLowerCase() === l);
+}
 
-The chart state (chartData) has this structure:
-{
-  title, key, tempo, timeSig, style,
-  sections: [
-    {
-      index: number,
-      label: string,        // e.g. "A", "B", "Intro", "Verse"
-      annotation: string,
-      measures: [
-        {
-          index: number,
-          barlineLeft: "normal"|"repeat-start"|"double"|"final",
-          barlineRight: "normal"|"repeat-end"|"double"|"final",
-          volta: null|"1"|"2"|"3",
-          chords: [ { index, symbol, beats } ]
-        }
-      ]
+// Noms de tonalités FR/IT/EN → notation standard
+const KEY_MAP = {
+  do:'C', ré:'D', re:'D', mi:'E', fa:'F', sol:'G', la:'A', si:'B',
+  'do#':'C#', 'réb':'Db', 'reb':'Db', 'dob':'Cb',
+  'ré#':'D#', 'mib':'Eb', 'fa#':'F#', 'solb':'Gb',
+  'lab':'Ab', 'la#':'A#', 'sib':'Bb',
+  c:'C', d:'D', e:'E', f:'F', g:'G', a:'A', b:'B',
+  'c#':'C#', 'db':'Db', 'd#':'D#', 'eb':'Eb', 'f#':'F#',
+  'gb':'Gb', 'g#':'G#', 'ab':'Ab', 'a#':'A#', 'bb':'Bb',
+};
+
+function normalizeKey(str) {
+  if (!str) return null;
+  const k = str.toLowerCase().trim().replace(/♭/g,'b').replace(/♯/g,'#');
+  if (KEY_MAP[k]) return KEY_MAP[k];
+  // Maj + dièse/bémol explicite
+  const m = k.match(/^([a-gsdo]{1,3})\s*(?:dièse|diese|#)$/);
+  if (m && KEY_MAP[m[1]]) return KEY_MAP[m[1]] + '#';
+  const m2 = k.match(/^([a-gsdo]{1,3})\s*(?:bémol|bemol|b)$/);
+  if (m2 && KEY_MAP[m2[1]]) return KEY_MAP[m2[1]] + 'b';
+  return null;
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  PARSEUR DE SÉQUENCE DE SECTIONS
+//  Entrées acceptées :
+//    "AABA"                         → [{A,1},{A,1},{B,1},{A,1}]
+//    "A puis A puis B puis A"        → idem
+//    "A 2 fois avec B"               → [{A,2},{B,1}]
+//    "A × 2 | B | A"                 → [{A,2},{B,1},{A,1}]
+//    "jouer A deux fois puis B"      → [{A,2},{B,1}]
+// ──────────────────────────────────────────────────────────────────
+function parseFormSequence(input) {
+  let s = input
+    .replace(/[,;]/g, ' ')
+    // Chiffres de répétition en mots → notation ×N
+    .replace(/\b(?:quatre|4)\s*fois\b/gi,  '×4')
+    .replace(/\b(?:trois|3)\s*fois\b/gi,   '×3')
+    .replace(/\b(?:deux|2)\s*fois\b/gi,    '×2')
+    .replace(/\b(?:une|1)\s*fois\b/gi,     '×1')
+    .replace(/\b[×x]\s*(\d)\b/gi,          '×$1')
+    // Supprimer verbes et articles parasites
+    .replace(/\b(?:est\s+)?(?:jou[eé]e?|répét[eé]e?|play(?:ed)?)\s*/gi, '')
+    .replace(/\b(?:la\s+)?(?:section|partie|part)\s+/gi, '')
+    .replace(/\b(?:puis|then|ensuite|après|after|et|and|avec|with|followed\s+by)\b/gi, '|')
+    .trim();
+
+  // Cas compact : "AABA", "A'BA", "AAB" (pas d'espace, que des lettres + ' ou '')
+  const compact = s.replace(/\s/g, '');
+  if (/^[A-H](?:'|'')?(?:[A-H](?:'|'')?){1,}$/.test(compact)) {
+    const letters = compact.match(/[A-H](?:''|')?/gi) || [];
+    if (letters.length >= 2) return letters.map(l => ({ label: l.toUpperCase(), count: 1 }));
+  }
+
+  // Cas segmenté par "|" (après normalisation)
+  const parts = s.split('|').map(p => p.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+
+  const result = [];
+  for (const part of parts) {
+    const m = part.match(/([A-H](?:''|')?)\s*(?:×\s*(\d+))?/i);
+    if (!m) return null;
+    result.push({ label: m[1].toUpperCase(), count: parseInt(m[2] || '1') });
+  }
+  return result;
+}
+
+// ──────────────────────────────────────────────────────────────────
+//  RÈGLES (traitées dans l'ordre, s'arrête à la 1ère correspondance)
+// ──────────────────────────────────────────────────────────────────
+
+const RULES = [
+
+  // ── 0. Aide ────────────────────────────────────────────────────
+  s => {
+    if (!/^\?$|^aide$|^help$/i.test(s.trim()) && !/\b(?:aide|help|commandes?)\b/i.test(s)) return null;
+    return { help: true, message:
+`Commandes disponibles :
+• AABA  /  A puis A puis B  /  A 2 fois avec B  → forme
+• transpose en Bb  /  +2 demi-tons
+• tempo 140  /  140 bpm
+• style Bossa Nova
+• remplace Dm7 par Fm7
+• annote A : play twice
+• reprise sur A  (barlines |: A :|)
+• duplique la section A
+• supprime la section A
+• titre : Mon Thème
+• ajoute une section` };
+  },
+
+  // ── 1. Forme / séquence de sections ───────────────────────────
+  s => {
+    // Garde : ressemble à une description de forme ?
+    const looksLikeForm =
+      /(?:form|ordre|order|jouer?|joue|play|puis|then|avec|with)/i.test(s) ||
+      /^[A-H](?:'?[A-H])+$/i.test(s.trim()) ||
+      /[A-H]\s*[×x]\s*\d/i.test(s) ||
+      /[A-H](?:'|'')?\s+[A-H](?:'|'')?/i.test(s);
+    if (!looksLikeForm) return null;
+
+    const seq = parseFormSequence(s);
+    if (!seq) return null;
+
+    const missing = [...new Set(seq.filter(({ label }) => sectionByLabel(label) === -1).map(x => x.label))];
+    if (missing.length) return { error: `Section(s) introuvable(s) : ${missing.join(', ')}` };
+
+    // Construire le tableau d'indices (en répétant si count > 1)
+    const indices = [];
+    for (const { label, count } of seq)
+      for (let i = 0; i < count; i++) indices.push(sectionByLabel(label));
+
+    const form = seq.map(({ label, count }) => count > 1 ? `${label}×${count}` : label).join(' ');
+    return { actions: [{ type: 'reorder_sections', indices }], message: `Forme appliquée : ${form}.` };
+  },
+
+  // ── 2. Répétition seule : "la partie A est jouée 2 fois" ───────
+  s => {
+    const m =
+      s.match(/(?:la\s+)?(?:section|partie|part)\s+([A-H](?:'|'')?)\s+(?:(?:est\s+)?(?:jou[eé]e?|répét[eé]e?|play(?:ed)?))\s+(\d+|deux|two|trois|three)\s+fois/i) ||
+      s.match(/(?:jouer?|play|repeat)\s+([A-H](?:'|'')?)\s+(\d+|deux|two)\s+(?:fois|times)/i) ||
+      s.match(/([A-H](?:'|'')?)\s*[×x]\s*(\d+)/i);
+    if (!m) return null;
+    const label = m[1].toUpperCase();
+    const si = sectionByLabel(label);
+    if (si === -1) return { error: `Section "${label}" introuvable.` };
+    const countStr = m[2].toLowerCase();
+    const count = { deux:2, two:2, trois:3, three:3 }[countStr] ?? parseInt(countStr);
+    if (count === 2) {
+      return { actions: [{ type: 'set_section_repeat', si }], message: `Barlines de reprise sur la section ${label} (joué 2 fois).` };
     }
-  ]
-}
+    // >2 : duplication physique dans la séquence existante
+    const indices = [];
+    chartData.sections.forEach((_, i) => { if (i === si) for (let j = 0; j < count; j++) indices.push(i); else indices.push(i); });
+    return { actions: [{ type: 'reorder_sections', indices }], message: `Section ${label} répétée ${count} fois.` };
+  },
 
-Respond ONLY with valid JSON (no markdown), this exact shape:
-{ "actions": [ ...commands... ], "message": "brief explanation in user's language" }
+  // ── 3. Transposition vers une tonalité ────────────────────────
+  s => {
+    // Garde : doit mentionner une intention de transposition ou tonalité
+    if (!/(?:transpos|tonalité|tonalite|clé\s+de|key\s+of|en\s+[A-Gdo]|to\s+[A-G])/i.test(s)) return null;
+    const m = s.match(/(?:transpos[ae]r?\s+)?(?:en|to|in|vers?)\s+([A-Gsdo][b#♭♯]?(?:\s*(?:bémol|bemol|dièse|diese))?)/i) ||
+              s.match(/(?:tonalité|clé)\s+(?:de\s+)?([A-Gsdo][b#♭♯]?)/i);
+    if (!m) return null;
+    const key = normalizeKey(m[1]);
+    if (!key) return null;
+    return { actions: [{ type: 'transpose_to_key', key }], message: `Transposé en ${key}.` };
+  },
 
-AVAILABLE COMMANDS:
+  // ── 4. Transposition par demi-tons ────────────────────────────
+  s => {
+    const m = s.match(/([+-]?\d+)\s*(?:demi[- ]?ton|semitone|half[- ]?step)/i) ||
+              s.match(/(?:monte[rz]?|hausse[rz]?|raise|up)\s+(?:de\s+)?(\d+)\s*(?:demi[- ]?ton|semitone)/i) ||
+              s.match(/(?:baisse[rz]?|descend[rz]?|lower|down)\s+(?:de\s+)?(\d+)\s*(?:demi[- ]?ton|semitone)/i);
+    if (!m) return null;
+    let n = parseInt(m[1] ?? m[2] ?? '0');
+    if (/baisse|descend|lower|down/i.test(s)) n = -Math.abs(n);
+    return { actions: [{ type: 'transpose', semitones: n }], message: `Transposé de ${n >= 0 ? '+' : ''}${n} demi-ton(s).` };
+  },
 
-Chart metadata:
-{ "type": "set_title", "value": string }
-{ "type": "set_key", "value": string }
-{ "type": "set_tempo", "value": number }
-{ "type": "set_style", "value": string }
-{ "type": "set_time_sig", "value": string }
+  // ── 5. Tempo ──────────────────────────────────────────────────
+  s => {
+    const m = s.match(/(?:tempo|bpm)\s*[=:àa]?\s*(\d+)/i) ||
+              s.match(/(\d{2,3})\s*(?:bpm|tempo)/i) ||
+              s.match(/(?:mettre?|régler?|set|mets?)\s+(?:le\s+)?tempo\s+(?:à|a|to|at|=)\s*(\d+)/i);
+    if (!m) return null;
+    const bpm = parseInt(m[1]);
+    if (bpm < 20 || bpm > 400) return { error: `Tempo ${bpm} invalide (20–400 BPM).` };
+    return { actions: [{ type: 'set_tempo', value: bpm }], message: `Tempo : ${bpm} BPM.` };
+  },
 
-Sections (si = 0-based index):
-{ "type": "add_section" }
-{ "type": "delete_section", "si": number }
-{ "type": "duplicate_section", "si": number }
-{ "type": "move_section", "si": number, "dir": 1|-1 }
-{ "type": "set_section_label", "si": number, "label": string }
-{ "type": "set_section_annotation", "si": number, "annotation": string }
-{ "type": "reorder_sections", "indices": number[] }
-  // Rebuilds sections array from given indices (may repeat).
-  // Use for form descriptions: AABA = [0,0,1,0], AAB = [0,0,1]
+  // ── 6. Style ──────────────────────────────────────────────────
+  s => {
+    const m = s.match(/(?:style|feel)\s*[=:àa]?\s*([^,.!?]+)/i) ||
+              s.match(/(?:jouer?\s+en\s+style|jouer?\s+en|playing?\s+in)\s+(.+)/i);
+    if (!m) return null;
+    const style = m[1].trim();
+    if (/^[A-G][b#]?$/.test(style)) return null; // évite de capturer une tonalité
+    return { actions: [{ type: 'set_style', value: style }], message: `Style : ${style}.` };
+  },
 
-Repeat barlines:
-{ "type": "set_section_repeat", "si": number }   // adds |: ... :| around section
-{ "type": "clear_section_repeat", "si": number } // removes repeat barlines
+  // ── 7. Remplacement d'accord ──────────────────────────────────
+  s => {
+    const m = s.match(/(?:remplace[rz]?|change[rz]?|replace)\s+(?:tous\s+les\s+)?([A-G][b#]?\S*)\s+(?:par|by|avec|with|→|->|en)\s+([A-G][b#]?\S*)/i);
+    if (!m) return null;
+    return { actions: [{ type: 'replace_chord_all', from: m[1], to: m[2] }], message: `Tous les ${m[1]} → ${m[2]}.` };
+  },
 
-Measures (si, mi = 0-based):
-{ "type": "add_measure", "si": number }
-{ "type": "delete_measure", "si": number, "mi": number }
-{ "type": "duplicate_measure", "si": number, "mi": number }
-{ "type": "set_barline", "si": number, "mi": number, "side": "left"|"right", "barline": string }
-{ "type": "set_volta", "si": number, "mi": number, "volta": null|"1"|"2"|"3" }
+  // ── 8. Annotation de section ──────────────────────────────────
+  s => {
+    const m = s.match(/(?:annot[ae]r?|note[rz]?|comment[ae]r?)\s+(?:la\s+)?(?:section|partie)?\s*([A-H](?:'|'')?)\s*[=:]\s*(.+)/i);
+    if (!m) return null;
+    const si = sectionByLabel(m[1]);
+    if (si === -1) return { error: `Section "${m[1].toUpperCase()}" introuvable.` };
+    return { actions: [{ type: 'set_section_annotation', si, annotation: m[2].trim() }], message: `Annotation sur ${m[1].toUpperCase()} : "${m[2].trim()}".` };
+  },
 
-Chords (si, mi, ci = 0-based):
-{ "type": "set_chord", "si": number, "mi": number, "ci": number, "symbol": string, "beats": number }
-{ "type": "replace_chord_all", "from": string, "to": string }
+  // ── 9. Titre ──────────────────────────────────────────────────
+  s => {
+    const m = s.match(/(?:titre?|title)\s*[=:]\s*(.+)/i);
+    if (!m) return null;
+    const title = m[1].trim().replace(/^["']|["']$/g, '');
+    return { actions: [{ type: 'set_title', value: title }], message: `Titre : "${title}".` };
+  },
 
-Transposition:
-{ "type": "transpose", "semitones": number }
-{ "type": "transpose_to_key", "key": string }
+  // ── 10. Dupliquer une section ─────────────────────────────────
+  s => {
+    const m = s.match(/(?:dupliqu[ae]r?|copier?|clone[rz]?)\s+(?:la\s+)?(?:section|partie)?\s*([A-H](?:'|'')?)/i);
+    if (!m) return null;
+    const si = sectionByLabel(m[1]);
+    if (si === -1) return { error: `Section "${m[1].toUpperCase()}" introuvable.` };
+    return { actions: [{ type: 'duplicate_section', si }], message: `Section ${m[1].toUpperCase()} dupliquée.` };
+  },
 
-DECISION GUIDE:
-- "section A played 2 times" → use set_section_repeat on that section
-- "play A twice then B once" with PHYSICAL sections → use reorder_sections [0,0,1]
-- "AABA form" → reorder_sections [0,0,1,0]
-- "replace all Dm7 with Fm7" → replace_chord_all
-- "transpose to Bb" → transpose_to_key
-- Chord symbols: use jazz notation, e.g. "Cmaj7", "F7", "Gm7", "Bb7", "Ebmaj7", "Am7b5"
+  // ── 11. Barlines de reprise ───────────────────────────────────
+  s => {
+    const m = s.match(/(?:ajouter?\s+)?(?:barlines?\s+de\s+)?reprise\s+(?:sur\s+|à\s+)?(?:la\s+)?(?:section|partie)?\s*([A-H](?:'|'')?)/i) ||
+              s.match(/(?:la\s+)?(?:section|partie)\s+([A-H](?:'|'')?)\s+en\s+répétition/i) ||
+              s.match(/repeat\s+(?:bars?\s+)?(?:on\s+)?(?:section\s+)?([A-H](?:'|'')?)/i);
+    if (!m) return null;
+    const si = sectionByLabel(m[1]);
+    if (si === -1) return { error: `Section "${m[1].toUpperCase()}" introuvable.` };
+    return { actions: [{ type: 'set_section_repeat', si }], message: `Barlines de reprise sur la section ${m[1].toUpperCase()}.` };
+  },
 
-All indices are 0-based. Keep message concise and in the user's language.`;
-}
+  // ── 12. Supprimer une section ─────────────────────────────────
+  s => {
+    const m = s.match(/(?:supprim[ae]r?|efface[rz]?|delete|remove)\s+(?:la\s+)?(?:section|partie)?\s*([A-H](?:'|'')?)/i);
+    if (!m) return null;
+    const si = sectionByLabel(m[1]);
+    if (si === -1) return { error: `Section "${m[1].toUpperCase()}" introuvable.` };
+    if (chartData.sections.length <= 1) return { error: 'Impossible : c\'est la dernière section.' };
+    return { actions: [{ type: 'delete_section', si }], message: `Section ${m[1].toUpperCase()} supprimée.` };
+  },
 
-// ── Message utilisateur avec état courant ────────────────────────────
-function buildUserMessage(instruction) {
-  const state = {
-    title: chartData.title,
-    key: chartData.key,
-    tempo: chartData.tempo,
-    timeSig: chartData.timeSig,
-    style: chartData.style,
-    sections: chartData.sections.map((s, si) => ({
-      index: si,
-      label: s.label,
-      annotation: s.annotation || '',
-      measures: s.measures.map((m, mi) => ({
-        index: mi,
-        barlineLeft: m.barlineLeft || 'normal',
-        barlineRight: m.barlineRight || 'normal',
-        volta: m.volta || null,
-        chords: m.chords.map((c, ci) => ({
-          index: ci,
-          symbol: c.symbol,
-          beats: c.beats
-        }))
-      }))
-    }))
-  };
-  return `Current chart:\n${JSON.stringify(state, null, 2)}\n\nInstruction: ${instruction}`;
-}
+  // ── 13. Ajouter une section ───────────────────────────────────
+  s => {
+    if (!/(?:ajoute[rz]?|add|crée[rz]?|create|new)\s+(?:une\s+)?(?:nouvelle\s+)?(?:section|partie)/i.test(s)) return null;
+    return { actions: [{ type: 'add_section' }], message: 'Nouvelle section ajoutée.' };
+  },
+];
 
-// ── Exécution des commandes ──────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────
+//  EXÉCUTION DES COMMANDES
+// ──────────────────────────────────────────────────────────────────
 function executeCommands(actions) {
   let needsRender = false;
-
   for (const a of actions) {
     switch (a.type) {
-
-      // ── Métadonnées ──
       case 'set_title':
         document.getElementById('chart-title').value = a.value;
-        chartData.title = a.value;
-        needsRender = true; break;
+        chartData.title = a.value; needsRender = true; break;
       case 'set_key':
         document.getElementById('meta-key').value = a.value;
-        chartData.key = a.value;
-        needsRender = true; break;
+        chartData.key = a.value; needsRender = true; break;
       case 'set_tempo':
         document.getElementById('meta-tempo').value = a.value;
-        chartData.tempo = Number(a.value);
-        needsRender = true; break;
+        chartData.tempo = Number(a.value); needsRender = true; break;
       case 'set_style':
         document.getElementById('meta-style').value = a.value;
-        chartData.style = a.value;
-        needsRender = true; break;
+        chartData.style = a.value; needsRender = true; break;
       case 'set_time_sig':
         document.getElementById('meta-time').value = a.value;
-        chartData.timeSig = a.value;
-        needsRender = true; break;
+        chartData.timeSig = a.value; needsRender = true; break;
 
-      // ── Sections ──
-      case 'add_section':
-        snapshotUndo(); addSection(); break;
-      case 'delete_section':
-        snapshotUndo(); deleteSection(a.si); break;
-      case 'duplicate_section':
-        snapshotUndo(); duplicateSection(a.si); break;
-      case 'move_section':
-        snapshotUndo(); moveSection(a.si, a.dir); break;
+      case 'add_section':        snapshotUndo(); addSection(); break;
+      case 'delete_section':     snapshotUndo(); deleteSection(a.si); break;
+      case 'duplicate_section':  snapshotUndo(); duplicateSection(a.si); break;
+      case 'move_section':       snapshotUndo(); moveSection(a.si, a.dir); break;
+
       case 'set_section_label':
-        if (chartData.sections[a.si]) {
-          snapshotUndo();
-          chartData.sections[a.si].label = a.label;
-          needsRender = true;
-        } break;
+        if (chartData.sections[a.si]) { snapshotUndo(); chartData.sections[a.si].label = a.label; needsRender = true; } break;
       case 'set_section_annotation':
-        if (chartData.sections[a.si]) {
-          snapshotUndo();
-          chartData.sections[a.si].annotation = a.annotation;
-          needsRender = true;
-        } break;
+        if (chartData.sections[a.si]) { snapshotUndo(); chartData.sections[a.si].annotation = a.annotation; needsRender = true; } break;
+
       case 'reorder_sections': {
         snapshotUndo();
         const orig = chartData.sections;
         const valid = a.indices.filter(i => i >= 0 && i < orig.length);
-        if (valid.length > 0) {
-          chartData.sections = valid.map(i => JSON.parse(JSON.stringify(orig[i])));
-          needsRender = true;
-        } break;
+        if (valid.length) { chartData.sections = valid.map(i => JSON.parse(JSON.stringify(orig[i]))); needsRender = true; }
+        break;
       }
 
-      // ── Barlines de reprise ──
       case 'set_section_repeat': {
         snapshotUndo();
         const sec = chartData.sections[a.si];
-        if (sec && sec.measures.length > 0) {
+        if (sec?.measures.length) {
           sec.measures[0].barlineLeft = 'repeat-start';
           sec.measures[sec.measures.length - 1].barlineRight = 'repeat-end';
           needsRender = true;
@@ -188,101 +309,63 @@ function executeCommands(actions) {
       case 'clear_section_repeat': {
         snapshotUndo();
         const sec = chartData.sections[a.si];
-        if (sec && sec.measures.length > 0) {
+        if (sec?.measures.length) {
           sec.measures[0].barlineLeft = 'normal';
           sec.measures[sec.measures.length - 1].barlineRight = 'normal';
           needsRender = true;
         } break;
       }
 
-      // ── Mesures ──
-      case 'add_measure':
-        snapshotUndo(); addMeasure(a.si); break;
-      case 'delete_measure':
-        snapshotUndo(); deleteMeasure(a.si, a.mi); break;
-      case 'duplicate_measure':
-        snapshotUndo(); duplicateMeasure(a.si, a.mi); break;
+      case 'add_measure':       snapshotUndo(); addMeasure(a.si); break;
+      case 'delete_measure':    snapshotUndo(); deleteMeasure(a.si, a.mi); break;
+      case 'duplicate_measure': snapshotUndo(); duplicateMeasure(a.si, a.mi); break;
+
       case 'set_barline': {
         snapshotUndo();
         const m = chartData.sections[a.si]?.measures[a.mi];
-        if (m) {
-          if (a.side === 'left') m.barlineLeft = a.barline;
-          else m.barlineRight = a.barline;
-          needsRender = true;
-        } break;
-      }
-      case 'set_volta': {
-        snapshotUndo();
-        const m = chartData.sections[a.si]?.measures[a.mi];
-        if (m) { m.volta = a.volta; needsRender = true; }
+        if (m) { m[a.side === 'left' ? 'barlineLeft' : 'barlineRight'] = a.barline; needsRender = true; }
         break;
       }
-
-      // ── Accords ──
       case 'set_chord': {
         snapshotUndo();
         const ch = chartData.sections[a.si]?.measures[a.mi]?.chords[a.ci];
         if (ch) {
           if (a.symbol !== undefined) ch.symbol = a.symbol;
-          if (a.beats !== undefined) ch.beats = Number(a.beats);
+          if (a.beats  !== undefined) ch.beats  = Number(a.beats);
           needsRender = true;
         } break;
       }
       case 'replace_chord_all': {
         snapshotUndo();
-        chartData.sections.forEach(sec =>
-          sec.measures.forEach(meas =>
-            meas.chords.forEach(ch => { if (ch.symbol === a.from) ch.symbol = a.to; })
-          )
-        );
+        chartData.sections.forEach(sec => sec.measures.forEach(m => m.chords.forEach(ch => { if (ch.symbol === a.from) ch.symbol = a.to; })));
         needsRender = true; break;
       }
-
-      // ── Transposition ──
-      case 'transpose':
-        snapshotUndo(); transposeBySemitone(Number(a.semitones)); break;
-      case 'transpose_to_key':
-        snapshotUndo(); transposeToKey(a.key); break;
+      case 'transpose':         snapshotUndo(); transposeBySemitone(Number(a.semitones)); break;
+      case 'transpose_to_key':  snapshotUndo(); transposeToKey(a.key); break;
     }
   }
-
   if (needsRender) render();
 }
 
-// ── Appel à l'API Claude ─────────────────────────────────────────────
-async function callClaude(instruction) {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error('Clé API non configurée — clique sur 🔑');
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-calls': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: buildSystemPrompt(),
-      messages: [{ role: 'user', content: buildUserMessage(instruction) }]
-    })
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
+// ──────────────────────────────────────────────────────────────────
+//  POINT D'ENTRÉE DU PARSEUR
+// ──────────────────────────────────────────────────────────────────
+function processInstruction(instruction) {
+  const s = instruction.trim();
+  for (const rule of RULES) {
+    try {
+      const result = rule(s);
+      if (result !== null) return result;
+    } catch (e) {
+      console.warn('[AI] Rule error:', e);
+    }
   }
-
-  const data = await res.json();
-  const text = data.content?.[0]?.text || '';
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Réponse invalide du modèle');
-  return JSON.parse(match[0]);
+  return { error: 'Instruction non reconnue. Tape "aide" pour la liste des commandes.' };
 }
 
-// ── UI ───────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────
+//  UI
+// ──────────────────────────────────────────────────────────────────
 function appendMessage(role, text, isError) {
   const log = document.getElementById('ai-log');
   const div = document.createElement('div');
@@ -292,26 +375,24 @@ function appendMessage(role, text, isError) {
   log.scrollTop = log.scrollHeight;
 }
 
-async function sendAiInstruction() {
+function sendAiInstruction() {
   const input = document.getElementById('ai-input');
-  const btn = document.getElementById('ai-send');
   const instruction = input.value.trim();
   if (!instruction) return;
-
   input.value = '';
   appendMessage('user', instruction);
-  btn.disabled = true;
-  btn.textContent = '…';
-
-  try {
-    const result = await callClaude(instruction);
-    executeCommands(result.actions || []);
-    appendMessage('assistant', result.message || 'Fait.');
-  } catch (err) {
-    appendMessage('assistant', 'Erreur : ' + err.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '↵';
+  const result = processInstruction(instruction);
+  if (result.error) {
+    appendMessage('assistant', result.error, true);
+  } else if (result.help) {
+    appendMessage('assistant', result.message);
+  } else {
+    try {
+      executeCommands(result.actions || []);
+      appendMessage('assistant', '✓ ' + result.message);
+    } catch (e) {
+      appendMessage('assistant', 'Erreur : ' + e.message, true);
+    }
   }
 }
 
@@ -322,33 +403,28 @@ function toggleAiPanel() {
     document.getElementById('ai-input').focus();
 }
 
-function openApiKeyPrompt() {
-  const key = prompt('Clé API Anthropic (stockée dans localStorage) :', getApiKey());
-  if (key !== null) saveApiKey(key);
-}
-
 function handleAiKeydown(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiInstruction(); }
 }
 
-// ── Initialisation ───────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────
+//  INIT
+// ──────────────────────────────────────────────────────────────────
 function initAiPanel() {
   const panel = document.createElement('div');
   panel.id = 'ai-panel';
   panel.innerHTML = `
-    <div id="ai-tab" onclick="toggleAiPanel()" title="Assistant IA">✦ AI</div>
+    <div id="ai-tab" onclick="toggleAiPanel()" title="Assistant langage naturel">✦ AI</div>
     <div id="ai-body">
       <div id="ai-header">
-        <span>✦ Jazz AI</span>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <button class="ai-icon-btn" onclick="openApiKeyPrompt()" title="Configurer la clé API">🔑</button>
-          <button class="ai-icon-btn" onclick="toggleAiPanel()" title="Fermer">✕</button>
-        </div>
+        <span>✦ Assistant</span>
+        <button class="ai-icon-btn" onclick="appendMessage('assistant',processInstruction('aide').message)" title="Aide">?</button>
+        <button class="ai-icon-btn" onclick="toggleAiPanel()" title="Fermer">✕</button>
       </div>
       <div id="ai-log"></div>
       <div id="ai-input-row">
         <textarea id="ai-input" rows="2"
-          placeholder="Ex : la partie A est jouée 2 fois, puis B…"
+          placeholder='Ex : "A puis A puis B" ou "transpose en Bb"'
           onkeydown="handleAiKeydown(event)"></textarea>
         <button id="ai-send" onclick="sendAiInstruction()" title="Envoyer (Entrée)">↵</button>
       </div>
@@ -356,11 +432,11 @@ function initAiPanel() {
   document.body.appendChild(panel);
 }
 
-// Exposition globale
-window.toggleAiPanel = toggleAiPanel;
-window.openApiKeyPrompt = openApiKeyPrompt;
-window.sendAiInstruction = sendAiInstruction;
-window.handleAiKeydown = handleAiKeydown;
+window.toggleAiPanel      = toggleAiPanel;
+window.sendAiInstruction  = sendAiInstruction;
+window.handleAiKeydown    = handleAiKeydown;
+window.appendMessage      = appendMessage;
+window.processInstruction = processInstruction;
 
 document.addEventListener('DOMContentLoaded', initAiPanel);
 
