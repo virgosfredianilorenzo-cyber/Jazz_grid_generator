@@ -1,8 +1,8 @@
 # 𝄢 Jazz Grid Generator
 
-> A web-based jazz chord chart editor with music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export, and optimized PDF output.
+> A web-based jazz chord chart editor with a conversational AI assistant, music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export, and optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-3.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.0-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -18,6 +18,15 @@ This application lets you build chord charts from scratch or by importing MusicX
 
 ## ✨ Features
 
+- 🤖 **Conversational AI assistant** — bottom panel, driven by natural language:
+  - Creates, edits, and deletes sections, measures, chords, and annotations
+  - Duplicates sections and measures with full content copy
+  - Edits metadata (title, key, tempo, style)
+  - Transposes the entire chart
+  - Preview before applying: list of changes, Apply / Cancel buttons
+  - Compatible with **Claude** (claude-sonnet-4-6, claude-opus-4-7) and **OpenAI** (gpt-4o, gpt-4o-mini)
+  - API key entered in the app, stored in `localStorage`, never sent anywhere else
+  - Responds in the active language of the application
 - 📂 **MusicXML import** — drag & drop or file picker, parses chords, sections, repeat barlines, key signature, tempo
 - 📦 **MXL import/export** — compressed MusicXML format (JSZip)
 - ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord beat duration
@@ -69,27 +78,63 @@ Open `Jazz_grid_generator.html` in any modern browser. No server required.
 ### Option 2 — Split version (development)
 
 ```
-split/
+Split/
 ├── index.html
 ├── css/
-│   ├── app.css          ← UI styles + 4/5-string toggle + undo/redo buttons
+│   ├── app.css          ← UI styles + 4/5-string toggle + undo/redo + AI panel
 │   ├── modals.css       ← modal styles
 │   └── print.css        ← print styles, multi-chord font scaling
 └── js/
     ├── i18n.js          ← translation dictionary (FR/ES/IT/EN)
     ├── diagrams.js      ← 4 and 5-string SVGs, transposeModesvg(), getModesvg()
-    ├── theory.js        ← music engine (scales, arpeggios, tensions)
+    ├── theory.js        ← music theory engine (scales, arpeggios, tensions)
     ├── state.js         ← global state, window.bassStrings, setBassStrings()
     ├── render.js        ← DOM rendering
     ├── modals.js        ← chord and annotation dialogs
     ├── actions.js       ← chart mutations, auto-annotation on import
     ├── print.js         ← print theming and section color system
-    └── init.js          ← initialization, localStorage restore
+    ├── init.js          ← initialization, localStorage restore
+    └── ai.js            ← AI assistant (providers, tools, draft, chat, settings)
 ```
 
 ### Option 3 — Any static host
 
 Upload the files to any static hosting service (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). No configuration needed.
+
+---
+
+## 🤖 AI Assistant
+
+The AI panel opens via the **✦ AI** tab at the bottom right of the page. It slides up across the full width of the screen.
+
+### Configuration
+
+Click **⚙** in the panel header:
+
+| Setting | Values |
+|---------|--------|
+| Provider | Claude (Anthropic) · OpenAI |
+| Claude model | `claude-sonnet-4-6`, `claude-opus-4-7` |
+| OpenAI model | `gpt-4o`, `gpt-4o-mini` |
+| API key | Entered in the app, stored in `localStorage` |
+
+### Available tools
+
+| Category | Tools |
+|----------|-------|
+| Chart | `set_chart_metadata`, `transpose_chart`, `set_columns`, `set_bass_strings` |
+| Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
+| Measures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
+| Chords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |
+| Annotations | `set_annotation` |
+
+### Workflow
+
+1. The user types a natural-language instruction
+2. The AI summarizes what it is about to do, then calls the necessary tools
+3. A preview lists the changes (e.g. *"Section B added"*, *"Dm7 → D7 bar 3"*)
+4. **Apply** → `chartData` updated, undo snapshot pushed, re-render
+5. **Cancel** → draft discarded, nothing changes
 
 ---
 
@@ -132,6 +177,7 @@ The history covers **all chart mutations**:
 | Volta (1st / 2nd / 3rd ending) | ✅ |
 | Navigation symbol | ✅ |
 | Alternate chord | ✅ |
+| Apply AI draft | ✅ |
 
 History depth: **10 levels**. When the limit is reached, the oldest snapshot is discarded.
 
@@ -178,6 +224,13 @@ Barline, volta, and navigation symbol popup menus automatically reposition to st
 ---
 
 ## 📋 Changelog
+
+### v4.0 (May 2026)
+- ✅ **Conversational AI assistant** — Claude (Sonnet / Opus) and OpenAI (GPT-4o)
+- ✅ 15 AI tools: sections, measures, chords, annotations, metadata, transposition
+- ✅ `duplicate_section` and `duplicate_bar` — full content copy (chords, annotations)
+- ✅ Draft-preview-apply workflow with change list and integrated undo
+- ✅ AI panel as full-width bottom bar, slide-up animation
 
 ### v3.0 (April 2026)
 - ✅ 5-string fretboard diagrams (BEADG) for all 17 modes

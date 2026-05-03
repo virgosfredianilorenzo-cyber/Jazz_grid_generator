@@ -1,8 +1,8 @@
 # 𝄢 Jazz Grid Generator
 
-> Éditeur de grilles jazz en ligne avec annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
+> Éditeur de grilles jazz en ligne avec assistant IA conversationnel, annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
 
-![Version](https://img.shields.io/badge/version-3.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.0-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -18,6 +18,15 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
 
 ## ✨ Fonctionnalités
 
+- 🤖 **Assistant IA conversationnel** — panneau en bas de page, piloté en langage naturel :
+  - Crée, modifie et supprime sections, mesures, accords et annotations
+  - Duplique sections et mesures avec copie complète du contenu
+  - Modifie les métadonnées (titre, tonalité, tempo, style)
+  - Transpose tout le chart
+  - Aperçu avant application : liste des changements, boutons Appliquer / Annuler
+  - Compatible **Claude** (claude-sonnet-4-6, claude-opus-4-7) et **OpenAI** (gpt-4o, gpt-4o-mini)
+  - Clé API saisie dans l'app, stockée en `localStorage`, jamais transmise ailleurs
+  - Réponses dans la langue active de l'application
 - 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo
 - 📦 **Import / Export MXL** — format MusicXML compressé (JSZip)
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord
@@ -69,10 +78,10 @@ Ouvrir `Jazz_grid_generator.html` dans n'importe quel navigateur moderne. Aucun 
 ### Option 2 — Version splittée (développement)
 
 ```
-split/
+Split/
 ├── index.html
 ├── css/
-│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo
+│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo + panneau IA
 │   ├── modals.css       ← styles des modales
 │   └── print.css        ← styles impression, réduction police multi-accords
 └── js/
@@ -84,12 +93,48 @@ split/
     ├── modals.js        ← modales accord et annotation
     ├── actions.js       ← mutations de la grille, auto-annotation à l'import
     ├── print.js         ← thème impression et système de couleurs par section
-    └── init.js          ← initialisation, restauration localStorage
+    ├── init.js          ← initialisation, restauration localStorage
+    └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)
 ```
 
 ### Option 3 — Hébergement statique
 
 Uploader les fichiers sur n'importe quel hébergeur statique (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). Aucune configuration requise.
+
+---
+
+## 🤖 Assistant IA
+
+Le panneau IA s'ouvre via l'onglet **✦ IA** en bas à droite de la page. Il remonte sur toute la largeur de l'écran.
+
+### Configuration
+
+Cliquer **⚙** dans l'en-tête du panneau :
+
+| Paramètre | Valeurs |
+|-----------|---------|
+| Provider | Claude (Anthropic) · OpenAI |
+| Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-7` |
+| Modèle OpenAI | `gpt-4o`, `gpt-4o-mini` |
+| Clé API | Saisie dans l'app, stockée en `localStorage` |
+
+### Outils disponibles
+
+| Catégorie | Outils |
+|-----------|--------|
+| Chart | `set_chart_metadata`, `transpose_chart`, `set_columns`, `set_bass_strings` |
+| Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
+| Mesures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
+| Accords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |
+| Annotations | `set_annotation` |
+
+### Flux de travail
+
+1. L'utilisateur écrit une instruction en langage naturel
+2. L'IA résume ce qu'elle va faire, puis appelle les outils nécessaires
+3. Un aperçu liste les changements (ex. : *"Section B ajoutée"*, *"Dm7 → D7 mes. 3"*)
+4. **Appliquer** → `chartData` mis à jour, snapshot undo, re-render
+5. **Annuler** → draft supprimé, rien ne change
 
 ---
 
@@ -132,6 +177,7 @@ L'historique couvre **toutes les mutations** de la grille :
 | Volta (1ère / 2ème / 3ème) | ✅ |
 | Symbole de navigation | ✅ |
 | Accord alternatif | ✅ |
+| Application d'un draft IA | ✅ |
 
 La profondeur est de **10 niveaux**. Au-delà, le snapshot le plus ancien est supprimé.
 
@@ -178,6 +224,13 @@ Les menus de sélection de barres de mesure, de voltas et de symboles de navigat
 ---
 
 ## 📋 Changelog
+
+### v4.0 (mai 2026)
+- ✅ **Assistant IA conversationnel** — Claude (Sonnet / Opus) et OpenAI (GPT-4o)
+- ✅ 15 outils IA : sections, mesures, accords, annotations, métadonnées, transposition
+- ✅ `duplicate_section` et `duplicate_bar` — copie complète du contenu (accords, annotations)
+- ✅ Flux draft-preview-apply avec liste des changements et undo intégré
+- ✅ Panneau IA en barre du bas, pleine largeur, animation slide-up
 
 ### v3.0 (avril 2026)
 - ✅ Diagrammes 5 cordes (BEADG) pour les 17 modes
