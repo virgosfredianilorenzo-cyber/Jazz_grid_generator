@@ -201,50 +201,47 @@ label { font-size:0.85rem; color:#aaa; }
 
 /* ── Undo / Redo ── */
 #btn-undo:disabled, #btn-redo:disabled { opacity:0.3; cursor:default; pointer-events:none; }
-/* ── AI Drawer ── */
+/* ── AI Panel — barre du bas ── */
 #ai-panel {
   position: fixed;
-  top: 0; right: 0; bottom: 0;
-  width: 0;
+  left: 0; right: 0; bottom: 0;
+  height: 0;
   z-index: 500;
   overflow: visible;
   pointer-events: none;
 }
 #ai-tab {
   position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 0;
+  right: 20px;
   background: #f0a500;
   color: #1a1a2e;
   font-weight: bold;
   font-size: 0.82rem;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  padding: 14px 6px;
+  padding: 6px 16px;
   cursor: pointer;
   user-select: none;
-  border-radius: 8px 0 0 8px;
+  border-radius: 8px 8px 0 0;
   pointer-events: all;
   transition: background 0.2s;
-  letter-spacing: 1px;
+  white-space: nowrap;
 }
 #ai-tab:hover { background: #ffc107; }
 #ai-body {
   position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 380px;
+  left: 0; right: 0; bottom: 0;
+  height: 420px;
   display: flex;
   flex-direction: column;
   background: #16213e;
-  border-left: 2px solid #f0a500;
+  border-top: 2px solid #f0a500;
   overflow: hidden;
-  transform: translateX(100%);
+  transform: translateY(100%);
   transition: transform 0.25s ease;
   pointer-events: none;
 }
 #ai-panel.ai-open #ai-tab { display: none; }
-#ai-panel.ai-open #ai-body { transform: translateX(0); pointer-events: all; }
+#ai-panel.ai-open #ai-body { transform: translateY(0); pointer-events: all; }
 #ai-header {
   background: #0f3460;
   padding: 8px 12px;
@@ -305,7 +302,7 @@ label { font-size:0.85rem; color:#aaa; }
 #ai-send { background: #f0a500; color: #1a1a2e; border: none; border-radius: 4px; padding: 6px 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; align-self: flex-end; }
 #ai-send:hover { background: #ffc107; }
 #ai-send:disabled { opacity: 0.5; cursor: default; }
-@media (max-width: 600px) { #ai-body { width: calc(100vw - 32px); } }
+@media (max-width: 600px) { #ai-body { height: 80vh; } }
 @media print { #ai-panel { display: none; } }
 
 /* ── Touch / tablette ── */
