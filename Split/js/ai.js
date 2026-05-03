@@ -137,7 +137,7 @@ const AI_TOOLS = [
   },
   {
     name: 'add_section',
-    description: 'Ajoute une nouvelle section vide (défaut 4 mesures).',
+    description: 'Ajoute une nouvelle section VIDE (sans accords). Pour copier une section existante avec ses accords, utiliser duplicate_section.',
     inputSchema: { type: 'object', properties: {
       label: { type: 'string', description: 'Nom de section ex: A, B, Intro, Verse, Chorus' },
       suffix: { type: 'string', description: "Suffixe optionnel : ', '', 1, 2" },
@@ -170,7 +170,7 @@ const AI_TOOLS = [
   },
   {
     name: 'add_bar',
-    description: 'Ajoute une mesure vide dans une section.',
+    description: 'Ajoute une mesure VIDE (sans accords) dans une section. Pour copier une mesure existante avec ses accords, utiliser duplicate_bar.',
     inputSchema: { type: 'object', properties: {
       sectionIndex: { type: 'number' },
       position: { type: 'number', description: 'Index d\'insertion. Omis = fin de section.' }
@@ -499,10 +499,10 @@ function _aiSystemPrompt() {
   const lang = (typeof currentLang !== 'undefined' ? currentLang : null)
     || document.getElementById('lang-select')?.value || 'fr';
   const prompts = {
-    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\n\nÉtat actuel de la grille :\n",
-    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\n\nCurrent chart state:\n",
-    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\n\nEstado actual:\n",
-    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\n\nGriglia attuale:\n"
+    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\nRègle importante : pour dupliquer/copier une section → duplicate_section ; pour dupliquer/copier une mesure → duplicate_bar. N'utilise jamais add_section ou add_bar pour dupliquer.\n\nÉtat actuel de la grille :\n",
+    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\nImportant rule: to duplicate/copy a section → duplicate_section; to duplicate/copy a bar → duplicate_bar. Never use add_section or add_bar to duplicate.\n\nCurrent chart state:\n",
+    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\nRegla importante: para duplicar una sección → duplicate_section; para duplicar un compás → duplicate_bar.\n\nEstado actual:\n",
+    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\nRegola importante: per duplicare una sezione → duplicate_section; per duplicare una misura → duplicate_bar.\n\nGriglia attuale:\n"
   };
   return (prompts[lang] || prompts.en) + JSON.stringify(chartData);
 }
