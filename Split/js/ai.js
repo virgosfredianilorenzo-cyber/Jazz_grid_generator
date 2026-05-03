@@ -487,11 +487,10 @@ async function aiChatSend(text) {
       _aiHistory.slice(-_AI_MAX_HISTORY),
       AI_TOOLS, settings
     );
-    loadEl.remove();
     _aiHistory.push({ role: 'assistant', content: resp.message });
-    if (_aiHistory.length > _AI_MAX_HISTORY) _aiHistory.splice(0, _aiHistory.length - _AI_MAX_HISTORY);
 
     if (resp.toolCalls && resp.toolCalls.length > 0) {
+      if (_aiDraft) aiDraftDiscard();
       aiDraftCreate();
       const errors = [];
       for (const tc of resp.toolCalls) {
@@ -503,9 +502,9 @@ async function aiChatSend(text) {
       _aiMsg('assistant', resp.message);
     }
   } catch (err) {
-    loadEl.remove();
     _aiMsg('error', 'Erreur : ' + err.message);
   } finally {
+    loadEl.remove();
     document.getElementById('ai-send').disabled = false;
   }
 }
