@@ -356,7 +356,7 @@ const _AI_TOOL_EXECUTORS = {
   set_chord_alt(draft, a) {
     const chord = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)]?.chords[parseInt(a.chordIndex)];
     if (!chord) throw new Error('Chord not found');
-    if (a.altSymbol) chord.altChord = a.altSymbol;
+    if (a.altSymbol != null && a.altSymbol !== '') chord.altChord = a.altSymbol;
     else delete chord.altChord;
   },
 
