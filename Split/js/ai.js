@@ -441,3 +441,141 @@ function aiDraftApply() {
 }
 
 function aiDraftDiscard() { _aiDraft = null; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : CHAT
+   Orchestration, historique, rendu messages + preview
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+let _aiHistory = [];
+const _AI_MAX_HISTORY = 20;
+
+function aiChatToggle() {
+  document.getElementById('ai-panel').classList.toggle('ai-open');
+  if (document.getElementById('ai-panel').classList.contains('ai-open'))
+    document.getElementById('ai-input').focus();
+}
+
+function _aiSystemPrompt() {
+  const lang = (typeof currentLang !== 'undefined' ? currentLang : null)
+    || document.getElementById('lang-select')?.value || 'fr';
+  const prompts = {
+    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\n\nÉtat actuel de la grille :\n",
+    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\n\nCurrent chart state:\n",
+    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\n\nEstado actual:\n",
+    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\n\nGriglia attuale:\n"
+  };
+  return (prompts[lang] || prompts.en) + JSON.stringify(chartData);
+}
+
+async function aiChatSend(text) {
+  text = (text || '').trim();
+  if (!text) return;
+  const settings = aiSettingsLoad();
+  const key = settings.provider === 'openai' ? settings.openaiKey : settings.claudeKey;
+  if (!key) { _aiMsg('error', 'Clé API non configurée — cliquer ⚙'); return; }
+
+  document.getElementById('ai-input').value = '';
+  _aiMsg('user', text);
+  _aiHistory.push({ role: 'user', content: text });
+  const loadEl = _aiMsg('loading', '…');
+  document.getElementById('ai-send').disabled = true;
+
+  try {
+    const resp = await aiProviderChat(
+      _aiSystemPrompt(),
+      _aiHistory.slice(-_AI_MAX_HISTORY),
+      AI_TOOLS, settings
+    );
+    loadEl.remove();
+    _aiHistory.push({ role: 'assistant', content: resp.message });
+    if (_aiHistory.length > _AI_MAX_HISTORY) _aiHistory.splice(0, _aiHistory.length - _AI_MAX_HISTORY);
+
+    if (resp.toolCalls && resp.toolCalls.length > 0) {
+      aiDraftCreate();
+      const errors = [];
+      for (const tc of resp.toolCalls) {
+        try { aiDraftApplyTool(tc.name, tc.args); }
+        catch (e) { errors.push(tc.name + ': ' + e.message); }
+      }
+      _aiRenderPreview(resp.message, aiDraftDiff(), errors);
+    } else {
+      _aiMsg('assistant', resp.message);
+    }
+  } catch (err) {
+    loadEl.remove();
+    _aiMsg('error', 'Erreur : ' + err.message);
+  } finally {
+    document.getElementById('ai-send').disabled = false;
+  }
+}
+
+function _aiMsg(role, text) {
+  const log = document.getElementById('ai-log');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai-msg-' + role;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
+}
+
+function _aiRenderPreview(message, diff, errors) {
+  const log = document.getElementById('ai-log');
+  const card = document.createElement('div');
+  card.className = 'ai-preview-card';
+  let html = '';
+  if (message) html += '<p class="ai-preview-msg">' + escHtml(message) + '</p>';
+  if (diff.length) html += '<ul class="ai-preview-diff">' + diff.map(l => '<li>' + escHtml(l) + '</li>').join('') + '</ul>';
+  if (errors.length) html += '<p class="ai-preview-err">⚠ ' + escHtml(errors.join(', ')) + '</p>';
+  html += '<div class="ai-preview-btns"><button class="ai-btn-apply" onclick="aiChatApply(this)">✅ Appliquer</button><button class="ai-btn-cancel" onclick="aiChatCancel(this)">✕ Annuler</button></div>';
+  card.innerHTML = html;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
+
+function aiChatApply(btn) {
+  aiDraftApply();
+  btn.closest('.ai-preview-btns').innerHTML = '<span class="ai-preview-status">✅ Appliqué</span>';
+}
+
+function aiChatCancel(btn) {
+  aiDraftDiscard();
+  btn.closest('.ai-preview-btns').innerHTML = '<span class="ai-preview-status">✕ Annulé</span>';
+}
+
+function aiChatHandleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiChatSend(document.getElementById('ai-input').value); }
+}
+
+function aiConfigToggle() {
+  const panel = document.getElementById('ai-config');
+  panel.classList.toggle('ai-config-open');
+  if (panel.classList.contains('ai-config-open')) _aiConfigRender();
+}
+
+function _aiConfigRender() {
+  const s = aiSettingsLoad();
+  document.getElementById('ai-cfg-provider').value = s.provider;
+  document.getElementById('ai-cfg-claude-model').value = s.claudeModel;
+  document.getElementById('ai-cfg-openai-model').value = s.openaiModel;
+  document.getElementById('ai-cfg-claude-key').value = s.claudeKey;
+  document.getElementById('ai-cfg-openai-key').value = s.openaiKey;
+  aiConfigUpdateRows(s.provider);
+}
+
+function aiConfigUpdateRows(provider) {
+  document.getElementById('ai-cfg-row-claude').style.display = provider === 'claude' ? '' : 'none';
+  document.getElementById('ai-cfg-row-openai').style.display = provider === 'openai' ? '' : 'none';
+}
+
+function aiConfigSave() {
+  aiSettingsSave({
+    provider: document.getElementById('ai-cfg-provider').value,
+    claudeModel: document.getElementById('ai-cfg-claude-model').value,
+    openaiModel: document.getElementById('ai-cfg-openai-model').value,
+    claudeKey: document.getElementById('ai-cfg-claude-key').value,
+    openaiKey: document.getElementById('ai-cfg-openai-key').value
+  });
+  document.getElementById('ai-config').classList.remove('ai-config-open');
+}
