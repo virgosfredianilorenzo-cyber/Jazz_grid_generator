@@ -1,367 +1,587 @@
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   JS — AI PANEL
-   Interface langage naturel via Claude API (Anthropic)
+   JS — AI : SETTINGS
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-(function () {
 
-// ── Clé API ─────────────────────────────────────────────────────────
-function getApiKey() { return localStorage.getItem('jgg_anthropic_key') || ''; }
-function saveApiKey(k) { localStorage.setItem('jgg_anthropic_key', k.trim()); }
+const _AI_STORAGE_KEY = 'jgg_ai_settings';
+const _AI_DEFAULTS = {
+  provider: 'claude',
+  claudeModel: 'claude-sonnet-4-6',
+  openaiModel: 'gpt-4o',
+  claudeKey: '',
+  openaiKey: ''
+};
 
-// ── Prompt système ───────────────────────────────────────────────────
-function buildSystemPrompt() {
-  return `You are an assistant for Jazz Grid Generator, a jazz chord chart editor.
-Help users modify their chart through natural language instructions.
-
-The chart state (chartData) has this structure:
-{
-  title, key, tempo, timeSig, style,
-  sections: [
-    {
-      index: number,
-      label: string,        // e.g. "A", "B", "Intro", "Verse"
-      annotation: string,
-      measures: [
-        {
-          index: number,
-          barlineLeft: "normal"|"repeat-start"|"double"|"final",
-          barlineRight: "normal"|"repeat-end"|"double"|"final",
-          volta: null|"1"|"2"|"3",
-          chords: [ { index, symbol, beats } ]
-        }
-      ]
-    }
-  ]
+function aiSettingsLoad() {
+  try {
+    const raw = localStorage.getItem(_AI_STORAGE_KEY);
+    return raw ? Object.assign({}, _AI_DEFAULTS, JSON.parse(raw)) : Object.assign({}, _AI_DEFAULTS);
+  } catch (e) { console.warn('[AI] settings parse error, using defaults', e); return Object.assign({}, _AI_DEFAULTS); }
 }
 
-Respond ONLY with valid JSON (no markdown), this exact shape:
-{ "actions": [ ...commands... ], "message": "brief explanation in user's language" }
-
-AVAILABLE COMMANDS:
-
-Chart metadata:
-{ "type": "set_title", "value": string }
-{ "type": "set_key", "value": string }
-{ "type": "set_tempo", "value": number }
-{ "type": "set_style", "value": string }
-{ "type": "set_time_sig", "value": string }
-
-Sections (si = 0-based index):
-{ "type": "add_section" }
-{ "type": "delete_section", "si": number }
-{ "type": "duplicate_section", "si": number }
-{ "type": "move_section", "si": number, "dir": 1|-1 }
-{ "type": "set_section_label", "si": number, "label": string }
-{ "type": "set_section_annotation", "si": number, "annotation": string }
-{ "type": "reorder_sections", "indices": number[] }
-  // Rebuilds sections array from given indices (may repeat).
-  // Use for form descriptions: AABA = [0,0,1,0], AAB = [0,0,1]
-
-Repeat barlines:
-{ "type": "set_section_repeat", "si": number }   // adds |: ... :| around section
-{ "type": "clear_section_repeat", "si": number } // removes repeat barlines
-
-Measures (si, mi = 0-based):
-{ "type": "add_measure", "si": number }
-{ "type": "delete_measure", "si": number, "mi": number }
-{ "type": "duplicate_measure", "si": number, "mi": number }
-{ "type": "set_barline", "si": number, "mi": number, "side": "left"|"right", "barline": string }
-{ "type": "set_volta", "si": number, "mi": number, "volta": null|"1"|"2"|"3" }
-
-Chords (si, mi, ci = 0-based):
-{ "type": "set_chord", "si": number, "mi": number, "ci": number, "symbol": string, "beats": number }
-{ "type": "replace_chord_all", "from": string, "to": string }
-
-Transposition:
-{ "type": "transpose", "semitones": number }
-{ "type": "transpose_to_key", "key": string }
-
-DECISION GUIDE:
-- "section A played 2 times" → use set_section_repeat on that section
-- "play A twice then B once" with PHYSICAL sections → use reorder_sections [0,0,1]
-- "AABA form" → reorder_sections [0,0,1,0]
-- "replace all Dm7 with Fm7" → replace_chord_all
-- "transpose to Bb" → transpose_to_key
-- Chord symbols: use jazz notation, e.g. "Cmaj7", "F7", "Gm7", "Bb7", "Ebmaj7", "Am7b5"
-
-All indices are 0-based. Keep message concise and in the user's language.`;
+function aiSettingsSave(patch) {
+  localStorage.setItem(_AI_STORAGE_KEY,
+    JSON.stringify(Object.assign(aiSettingsLoad(), patch)));
 }
 
-// ── Message utilisateur avec état courant ────────────────────────────
-function buildUserMessage(instruction) {
-  const state = {
-    title: chartData.title,
-    key: chartData.key,
-    tempo: chartData.tempo,
-    timeSig: chartData.timeSig,
-    style: chartData.style,
-    sections: chartData.sections.map((s, si) => ({
-      index: si,
-      label: s.label,
-      annotation: s.annotation || '',
-      measures: s.measures.map((m, mi) => ({
-        index: mi,
-        barlineLeft: m.barlineLeft || 'normal',
-        barlineRight: m.barlineRight || 'normal',
-        volta: m.volta || null,
-        chords: m.chords.map((c, ci) => ({
-          index: ci,
-          symbol: c.symbol,
-          beats: c.beats
-        }))
-      }))
-    }))
-  };
-  return `Current chart:\n${JSON.stringify(state, null, 2)}\n\nInstruction: ${instruction}`;
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : PROVIDERS
+   Interface commune : aiProviderChat(systemPrompt, messages, tools, settings)
+   → Promise<{ message: string, toolCalls: [{id, name, args}] }>
+   messages format : [{role:'user'|'assistant', content:string}]
+   tools format    : [{name, description, inputSchema:{type,properties,required}}]
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+async function aiProviderChat(systemPrompt, messages, tools, settings) {
+  if (settings.provider === 'openai') return _aiCallOpenAI(systemPrompt, messages, tools, settings);
+  return _aiCallClaude(systemPrompt, messages, tools, settings);
 }
 
-// ── Exécution des commandes ──────────────────────────────────────────
-function executeCommands(actions) {
-  let needsRender = false;
-
-  for (const a of actions) {
-    switch (a.type) {
-
-      // ── Métadonnées ──
-      case 'set_title':
-        document.getElementById('chart-title').value = a.value;
-        chartData.title = a.value;
-        needsRender = true; break;
-      case 'set_key':
-        document.getElementById('meta-key').value = a.value;
-        chartData.key = a.value;
-        needsRender = true; break;
-      case 'set_tempo':
-        document.getElementById('meta-tempo').value = a.value;
-        chartData.tempo = Number(a.value);
-        needsRender = true; break;
-      case 'set_style':
-        document.getElementById('meta-style').value = a.value;
-        chartData.style = a.value;
-        needsRender = true; break;
-      case 'set_time_sig':
-        document.getElementById('meta-time').value = a.value;
-        chartData.timeSig = a.value;
-        needsRender = true; break;
-
-      // ── Sections ──
-      case 'add_section':
-        snapshotUndo(); addSection(); break;
-      case 'delete_section':
-        snapshotUndo(); deleteSection(a.si); break;
-      case 'duplicate_section':
-        snapshotUndo(); duplicateSection(a.si); break;
-      case 'move_section':
-        snapshotUndo(); moveSection(a.si, a.dir); break;
-      case 'set_section_label':
-        if (chartData.sections[a.si]) {
-          snapshotUndo();
-          chartData.sections[a.si].label = a.label;
-          needsRender = true;
-        } break;
-      case 'set_section_annotation':
-        if (chartData.sections[a.si]) {
-          snapshotUndo();
-          chartData.sections[a.si].annotation = a.annotation;
-          needsRender = true;
-        } break;
-      case 'reorder_sections': {
-        snapshotUndo();
-        const orig = chartData.sections;
-        const valid = a.indices.filter(i => i >= 0 && i < orig.length);
-        if (valid.length > 0) {
-          chartData.sections = valid.map(i => JSON.parse(JSON.stringify(orig[i])));
-          needsRender = true;
-        } break;
-      }
-
-      // ── Barlines de reprise ──
-      case 'set_section_repeat': {
-        snapshotUndo();
-        const sec = chartData.sections[a.si];
-        if (sec && sec.measures.length > 0) {
-          sec.measures[0].barlineLeft = 'repeat-start';
-          sec.measures[sec.measures.length - 1].barlineRight = 'repeat-end';
-          needsRender = true;
-        } break;
-      }
-      case 'clear_section_repeat': {
-        snapshotUndo();
-        const sec = chartData.sections[a.si];
-        if (sec && sec.measures.length > 0) {
-          sec.measures[0].barlineLeft = 'normal';
-          sec.measures[sec.measures.length - 1].barlineRight = 'normal';
-          needsRender = true;
-        } break;
-      }
-
-      // ── Mesures ──
-      case 'add_measure':
-        snapshotUndo(); addMeasure(a.si); break;
-      case 'delete_measure':
-        snapshotUndo(); deleteMeasure(a.si, a.mi); break;
-      case 'duplicate_measure':
-        snapshotUndo(); duplicateMeasure(a.si, a.mi); break;
-      case 'set_barline': {
-        snapshotUndo();
-        const m = chartData.sections[a.si]?.measures[a.mi];
-        if (m) {
-          if (a.side === 'left') m.barlineLeft = a.barline;
-          else m.barlineRight = a.barline;
-          needsRender = true;
-        } break;
-      }
-      case 'set_volta': {
-        snapshotUndo();
-        const m = chartData.sections[a.si]?.measures[a.mi];
-        if (m) { m.volta = a.volta; needsRender = true; }
-        break;
-      }
-
-      // ── Accords ──
-      case 'set_chord': {
-        snapshotUndo();
-        const ch = chartData.sections[a.si]?.measures[a.mi]?.chords[a.ci];
-        if (ch) {
-          if (a.symbol !== undefined) ch.symbol = a.symbol;
-          if (a.beats !== undefined) ch.beats = Number(a.beats);
-          needsRender = true;
-        } break;
-      }
-      case 'replace_chord_all': {
-        snapshotUndo();
-        chartData.sections.forEach(sec =>
-          sec.measures.forEach(meas =>
-            meas.chords.forEach(ch => { if (ch.symbol === a.from) ch.symbol = a.to; })
-          )
-        );
-        needsRender = true; break;
-      }
-
-      // ── Transposition ──
-      case 'transpose':
-        snapshotUndo(); transposeBySemitone(Number(a.semitones)); break;
-      case 'transpose_to_key':
-        snapshotUndo(); transposeToKey(a.key); break;
-    }
-  }
-
-  if (needsRender) render();
-}
-
-// ── Appel à l'API Claude ─────────────────────────────────────────────
-async function callClaude(instruction) {
-  const apiKey = getApiKey();
-  if (!apiKey) throw new Error('Clé API non configurée — clique sur 🔑');
-
+async function _aiCallClaude(systemPrompt, messages, tools, settings) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
+      'x-api-key': settings.claudeKey,
       'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-calls': 'true'
+      'content-type': 'application/json',
+      'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1024,
-      system: buildSystemPrompt(),
-      messages: [{ role: 'user', content: buildUserMessage(instruction) }]
+      model: settings.claudeModel || 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: systemPrompt,
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      tools: tools.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema }))
     })
   });
-
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${res.status}`);
+    throw new Error('Claude ' + res.status + ': ' + (err.error?.message || res.statusText));
   }
-
   const data = await res.json();
-  const text = data.content?.[0]?.text || '';
-  const match = text.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error('Réponse invalide du modèle');
-  return JSON.parse(match[0]);
-}
-
-// ── UI ───────────────────────────────────────────────────────────────
-function appendMessage(role, text, isError) {
-  const log = document.getElementById('ai-log');
-  const div = document.createElement('div');
-  div.className = 'ai-msg ai-msg-' + role + (isError ? ' ai-msg-error' : '');
-  div.textContent = text;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-
-async function sendAiInstruction() {
-  const input = document.getElementById('ai-input');
-  const btn = document.getElementById('ai-send');
-  const instruction = input.value.trim();
-  if (!instruction) return;
-
-  input.value = '';
-  appendMessage('user', instruction);
-  btn.disabled = true;
-  btn.textContent = '…';
-
-  try {
-    const result = await callClaude(instruction);
-    executeCommands(result.actions || []);
-    appendMessage('assistant', result.message || 'Fait.');
-  } catch (err) {
-    appendMessage('assistant', 'Erreur : ' + err.message, true);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '↵';
+  let message = '';
+  const toolCalls = [];
+  for (const block of data.content || []) {
+    if (block.type === 'text') message += block.text;
+    else if (block.type === 'tool_use') toolCalls.push({ id: block.id, name: block.name, args: block.input });
   }
+  return { message, toolCalls };
 }
 
-function toggleAiPanel() {
-  const panel = document.getElementById('ai-panel');
-  panel.classList.toggle('ai-open');
-  if (panel.classList.contains('ai-open'))
+async function _aiCallOpenAI(systemPrompt, messages, tools, settings) {
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + settings.openaiKey,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: settings.openaiModel || 'gpt-4o',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.map(m => ({ role: m.role, content: m.content }))
+      ],
+      tools: tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.inputSchema } }))
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error('OpenAI ' + res.status + ': ' + (err.error?.message || res.statusText));
+  }
+  const data = await res.json();
+  const msg = data.choices?.[0]?.message || {};
+  return {
+    message: msg.content || '',
+    toolCalls: (msg.tool_calls || []).map(tc => ({
+      id: tc.id, name: tc.function.name,
+      args: JSON.parse(tc.function.arguments || '{}')
+    }))
+  };
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : TOOLS — schémas (envoyés à l'API)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const AI_TOOLS = [
+  {
+    name: 'set_chart_metadata',
+    description: 'Modifie les métadonnées du chart : titre, tonalité, tempo, mesure (timeSig), style. Tous les paramètres sont optionnels.',
+    inputSchema: { type: 'object', properties: {
+      title: { type: 'string', description: 'Titre du morceau' },
+      key: { type: 'string', description: 'Tonalité ex: C, Bb, F#m' },
+      tempo: { type: 'number', description: 'Tempo en BPM' },
+      timeSignature: { type: 'string', description: 'Mesure ex: 4/4, 3/4' },
+      style: { type: 'string', description: 'Style ex: Swing, Bossa Nova' }
+    }, required: [] }
+  },
+  {
+    name: 'transpose_chart',
+    description: 'Transpose tout le chart d\'un nombre de demi-tons (positif = monte, négatif = descend).',
+    inputSchema: { type: 'object', properties: {
+      semitones: { type: 'number', description: 'Nombre de demi-tons, ex: 2 ou -3' }
+    }, required: ['semitones'] }
+  },
+  {
+    name: 'set_columns',
+    description: 'Change le nombre de colonnes par ligne dans la grille (1 à 4).',
+    inputSchema: { type: 'object', properties: {
+      count: { type: 'number', description: '1, 2, 3 ou 4' }
+    }, required: ['count'] }
+  },
+  {
+    name: 'set_bass_strings',
+    description: 'Bascule entre basse 4 cordes (EADG) et 5 cordes (BEADG) pour les diagrammes SVG.',
+    inputSchema: { type: 'object', properties: {
+      count: { type: 'number', description: '4 pour EADG, 5 pour BEADG' }
+    }, required: ['count'] }
+  },
+  {
+    name: 'add_section',
+    description: 'Ajoute une nouvelle section vide (défaut 4 mesures).',
+    inputSchema: { type: 'object', properties: {
+      label: { type: 'string', description: 'Nom de section ex: A, B, Intro, Verse, Chorus' },
+      suffix: { type: 'string', description: "Suffixe optionnel : ', '', 1, 2" },
+      position: { type: 'number', description: 'Index d\'insertion 0-based. Omis = fin.' },
+      barCount: { type: 'number', description: 'Nombre de mesures. Défaut : 4.' }
+    }, required: ['label'] }
+  },
+  {
+    name: 'remove_section',
+    description: 'Supprime une section (index 0-based). Impossible si c\'est la dernière.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' }
+    }, required: ['sectionIndex'] }
+  },
+  {
+    name: 'rename_section',
+    description: 'Renomme une section.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      label: { type: 'string', description: 'Nouveau nom' },
+      suffix: { type: 'string', description: "Suffixe optionnel : ', '', 1, 2" }
+    }, required: ['sectionIndex', 'label'] }
+  },
+  {
+    name: 'add_bar',
+    description: 'Ajoute une mesure vide dans une section.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      position: { type: 'number', description: 'Index d\'insertion. Omis = fin de section.' }
+    }, required: ['sectionIndex'] }
+  },
+  {
+    name: 'remove_bar',
+    description: 'Supprime une mesure d\'une section.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number', description: 'Index 0-based de la mesure' }
+    }, required: ['sectionIndex', 'barIndex'] }
+  },
+  {
+    name: 'set_barline',
+    description: 'Change le type de barre d\'une mesure (gauche ou droite).',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      side: { type: 'string', description: '"left" ou "right"' },
+      type: { type: 'string', description: '"normal", "double", "final", "repeat-start", "repeat-end"' }
+    }, required: ['sectionIndex', 'barIndex', 'side', 'type'] }
+  },
+  {
+    name: 'add_chord',
+    description: 'Ajoute un accord dans une mesure existante.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      symbol: { type: 'string', description: 'Symbole complet ex: Cmaj7, Dm7, G7, Bb7, Am7b5/G' },
+      beats: { type: 'number', description: 'Durée en temps. Défaut : 2.' },
+      position: { type: 'number', description: 'Index d\'insertion. Omis = fin de mesure.' }
+    }, required: ['sectionIndex', 'barIndex', 'symbol'] }
+  },
+  {
+    name: 'edit_chord',
+    description: 'Modifie symbole et/ou durée d\'un accord existant.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      chordIndex: { type: 'number' },
+      symbol: { type: 'string', description: 'Nouveau symbole. Omis = inchangé.' },
+      beats: { type: 'number', description: 'Nouvelle durée. Omis = inchangée.' }
+    }, required: ['sectionIndex', 'barIndex', 'chordIndex'] }
+  },
+  {
+    name: 'remove_chord',
+    description: 'Supprime un accord. Impossible si c\'est le seul accord de la mesure.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      chordIndex: { type: 'number' }
+    }, required: ['sectionIndex', 'barIndex', 'chordIndex'] }
+  },
+  {
+    name: 'set_chord_alt',
+    description: 'Définit ou efface l\'accord alternatif (substitution) d\'un accord.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      chordIndex: { type: 'number' },
+      altSymbol: { type: 'string', description: 'Symbole alternatif ex: Db7. null pour effacer.' }
+    }, required: ['sectionIndex', 'barIndex', 'chordIndex'] }
+  },
+  {
+    name: 'set_annotation',
+    description: 'Ajoute/modifie l\'annotation théorique d\'un accord (mode, arpège, tensions, note libre).',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number' },
+      barIndex: { type: 'number' },
+      chordIndex: { type: 'number' },
+      showMode: { type: 'boolean', description: 'Afficher le mode compatible' },
+      showArp: { type: 'boolean', description: 'Afficher l\'arpège 4 sons' },
+      showTens: { type: 'boolean', description: 'Afficher les tensions' },
+      tensions: { type: 'array', items: { type: 'string' }, description: 'Tensions sélectionnées ex: ["b9","#11"]' },
+      freeText: { type: 'string', description: 'Note libre' }
+    }, required: ['sectionIndex', 'barIndex', 'chordIndex'] }
+  }
+];
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : TOOLS — exécuteurs (opèrent sur le draft JSON)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+const _AI_TOOL_EXECUTORS = {
+
+  set_chart_metadata(draft, a) {
+    if (a.title !== undefined) draft.title = a.title;
+    if (a.key !== undefined) draft.key = a.key;
+    if (a.tempo !== undefined) draft.tempo = parseInt(a.tempo);
+    if (a.timeSignature !== undefined) draft.timeSig = a.timeSignature;
+    if (a.style !== undefined) draft.style = a.style;
+  },
+
+  transpose_chart(draft, a) {
+    const s = parseInt(a.semitones);
+    if (!s) return;
+    const origKey = draft.key;
+    const destKey = ALL_KEYS.find(k => noteIdx(k) === (noteIdx(origKey) + s + 120) % 12) || origKey;
+    draft.sections.forEach(sec => sec.measures.forEach(m => m.chords.forEach(c => {
+      if (c.symbol && !['%', '%%', 'N.C.', '/', '–', '/beat'].includes(c.symbol))
+        c.symbol = transposeChordSymbol(c.symbol, s, destKey);
+    })));
+    draft.key = destKey;
+  },
+
+  set_columns(draft, a) { draft._uiColumns = Math.max(1, Math.min(4, parseInt(a.count))); },
+
+  set_bass_strings(draft, a) {
+    const n = parseInt(a.count);
+    if (n === 4 || n === 5) draft._uiBassStrings = n;
+  },
+
+  add_section(draft, a) {
+    const beats = parseInt((draft.timeSig || '4/4').split('/')[0]) || 4;
+    const barCount = Math.max(1, parseInt(a.barCount) || 4);
+    const newSection = {
+      label: (a.label || 'A') + (a.suffix || ''),
+      annotation: '',
+      measures: Array.from({ length: barCount }, () => ({
+        chords: [{ symbol: '%', beats, annot: null }],
+        barlineLeft: 'normal', barlineRight: 'normal',
+        repeatStart: false, repeatEnd: false, volta: null, navSymbol: null
+      }))
+    };
+    const pos = a.position !== undefined ? parseInt(a.position) : draft.sections.length;
+    draft.sections.splice(Math.max(0, Math.min(pos, draft.sections.length)), 0, newSection);
+  },
+
+  remove_section(draft, a) {
+    if (draft.sections.length <= 1) throw new Error('Cannot remove the last section');
+    const idx = parseInt(a.sectionIndex);
+    if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
+    draft.sections.splice(idx, 1);
+  },
+
+  rename_section(draft, a) {
+    const s = draft.sections[parseInt(a.sectionIndex)];
+    if (!s) throw new Error('Section not found');
+    s.label = a.label + (a.suffix || '');
+  },
+
+  add_bar(draft, a) {
+    const sec = draft.sections[parseInt(a.sectionIndex)];
+    if (!sec) throw new Error('Section not found');
+    const beats = parseInt((draft.timeSig || '4/4').split('/')[0]) || 4;
+    const bar = {
+      chords: [{ symbol: '%', beats, annot: null }],
+      barlineLeft: 'normal', barlineRight: 'normal',
+      repeatStart: false, repeatEnd: false, volta: null, navSymbol: null
+    };
+    const pos = a.position !== undefined ? parseInt(a.position) : sec.measures.length;
+    sec.measures.splice(Math.max(0, Math.min(pos, sec.measures.length)), 0, bar);
+  },
+
+  remove_bar(draft, a) {
+    const sec = draft.sections[parseInt(a.sectionIndex)];
+    if (!sec) throw new Error('Section not found');
+    if (sec.measures.length <= 1) throw new Error('Cannot remove the last measure');
+    const idx = parseInt(a.barIndex);
+    if (idx < 0 || idx >= sec.measures.length) throw new Error('barIndex out of range');
+    sec.measures.splice(idx, 1);
+  },
+
+  set_barline(draft, a) {
+    const m = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)];
+    if (!m) throw new Error('Measure not found');
+    if (a.side === 'left') m.barlineLeft = a.type;
+    else m.barlineRight = a.type;
+  },
+
+  add_chord(draft, a) {
+    const bar = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)];
+    if (!bar) throw new Error('Measure not found');
+    const chord = { symbol: a.symbol, beats: parseInt(a.beats) || 2, annot: null };
+    const pos = a.position !== undefined ? parseInt(a.position) : bar.chords.length;
+    bar.chords.splice(Math.max(0, Math.min(pos, bar.chords.length)), 0, chord);
+  },
+
+  edit_chord(draft, a) {
+    const chord = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)]?.chords[parseInt(a.chordIndex)];
+    if (!chord) throw new Error('Chord not found');
+    if (a.symbol !== undefined) chord.symbol = a.symbol;
+    if (a.beats !== undefined) chord.beats = parseInt(a.beats);
+  },
+
+  remove_chord(draft, a) {
+    const bar = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)];
+    if (!bar) throw new Error('Measure not found');
+    if (bar.chords.length <= 1) throw new Error('Cannot remove the last chord');
+    const idx = parseInt(a.chordIndex);
+    if (idx < 0 || idx >= bar.chords.length) throw new Error('chordIndex out of range');
+    bar.chords.splice(idx, 1);
+  },
+
+  set_chord_alt(draft, a) {
+    const chord = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)]?.chords[parseInt(a.chordIndex)];
+    if (!chord) throw new Error('Chord not found');
+    if (a.altSymbol != null && a.altSymbol !== '') chord.altChord = a.altSymbol;
+    else delete chord.altChord;
+  },
+
+  set_annotation(draft, a) {
+    const chord = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)]?.chords[parseInt(a.chordIndex)];
+    if (!chord) throw new Error('Chord not found');
+    chord.annot = {
+      showMode: !!a.showMode, showArp: !!a.showArp,
+      showTens: !!(a.showTens && a.tensions?.length),
+      showFree: !!(a.freeText),
+      modeIdx: 0, invIdx: 0,
+      selTens: a.tensions || [], showSvg: true,
+      freeText: a.freeText || '',
+      freeColor: '#c4b5fd', freeBold: false, freeItalic: true
+    };
+  }
+};
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : DRAFT
+   Copie profonde du chartData pour preview avant application
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+let _aiDraft = null;
+
+function aiDraftCreate() {
+  _aiDraft = JSON.parse(JSON.stringify(chartData));
+  return _aiDraft;
+}
+
+function aiDraftApplyTool(name, args) {
+  if (!_aiDraft) throw new Error('No draft active');
+  const exec = _AI_TOOL_EXECUTORS[name];
+  if (!exec) throw new Error('Unknown tool: ' + name);
+  exec(_aiDraft, args);
+}
+
+function aiDraftDiff() {
+  if (!_aiDraft) return [];
+  const c = chartData, d = _aiDraft;
+  const lines = [];
+  if (d.title !== c.title) lines.push('Titre : "' + c.title + '" → "' + d.title + '"');
+  if (d.key !== c.key) lines.push('Tonalité : ' + c.key + ' → ' + d.key);
+  if (String(d.tempo) !== String(c.tempo)) lines.push('Tempo : ' + c.tempo + ' → ' + d.tempo);
+  if (d.timeSig !== c.timeSig) lines.push('Mesure : ' + c.timeSig + ' → ' + d.timeSig);
+  if (d.style !== c.style) lines.push('Style : ' + c.style + ' → ' + d.style);
+  if (d.sections.length !== c.sections.length)
+    lines.push('Sections : ' + c.sections.length + ' → ' + d.sections.length);
+  const minS = Math.min(d.sections.length, c.sections.length);
+  for (let si = 0; si < minS; si++) {
+    const ds = d.sections[si], cs = c.sections[si];
+    if (ds.label !== cs.label) lines.push('Section ' + (si+1) + ' : "' + cs.label + '" → "' + ds.label + '"');
+    if (ds.measures.length !== cs.measures.length)
+      lines.push(ds.label + ' : ' + cs.measures.length + ' → ' + ds.measures.length + ' mesure(s)');
+    const minM = Math.min(ds.measures.length, cs.measures.length);
+    for (let mi = 0; mi < minM; mi++) {
+      const dc = ds.measures[mi].chords.map(ch => ch.symbol).join(' | ');
+      const cc = cs.measures[mi].chords.map(ch => ch.symbol).join(' | ');
+      if (dc !== cc) lines.push(ds.label + ' mes.' + (mi+1) + ' : ' + cc + ' → ' + dc);
+    }
+  }
+  if (d._uiBassStrings && d._uiBassStrings !== window.bassStrings)
+    lines.push('Cordes basse : ' + window.bassStrings + ' → ' + d._uiBassStrings);
+  if (d._uiColumns) {
+    const cur = parseInt(document.getElementById('global-cols')?.value) || 4;
+    if (d._uiColumns !== cur) lines.push('Colonnes : ' + cur + ' → ' + d._uiColumns);
+  }
+  return lines;
+}
+
+function aiDraftApply() {
+  if (!_aiDraft) return;
+  snapshotUndo();
+  if (_aiDraft._uiBassStrings) { setBassStrings(_aiDraft._uiBassStrings); delete _aiDraft._uiBassStrings; }
+  if (_aiDraft._uiColumns) {
+    const sel = document.getElementById('global-cols');
+    if (sel) sel.value = _aiDraft._uiColumns;
+    delete _aiDraft._uiColumns;
+  }
+  chartData = _aiDraft;
+  _aiDraft = null;
+  render();
+}
+
+function aiDraftDiscard() { _aiDraft = null; }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : CHAT
+   Orchestration, historique, rendu messages + preview
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+let _aiHistory = [];
+const _AI_MAX_HISTORY = 20;
+
+function aiChatToggle() {
+  document.getElementById('ai-panel').classList.toggle('ai-open');
+  if (document.getElementById('ai-panel').classList.contains('ai-open'))
     document.getElementById('ai-input').focus();
 }
 
-function openApiKeyPrompt() {
-  const key = prompt('Clé API Anthropic (stockée dans localStorage) :', getApiKey());
-  if (key !== null) saveApiKey(key);
+function _aiSystemPrompt() {
+  const lang = (typeof currentLang !== 'undefined' ? currentLang : null)
+    || document.getElementById('lang-select')?.value || 'fr';
+  const prompts = {
+    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\n\nÉtat actuel de la grille :\n",
+    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\n\nCurrent chart state:\n",
+    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\n\nEstado actual:\n",
+    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\n\nGriglia attuale:\n"
+  };
+  return (prompts[lang] || prompts.en) + JSON.stringify(chartData);
 }
 
-function handleAiKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiInstruction(); }
+async function aiChatSend(text) {
+  text = (text || '').trim();
+  if (!text) return;
+  const settings = aiSettingsLoad();
+  const key = settings.provider === 'openai' ? settings.openaiKey : settings.claudeKey;
+  if (!key) { _aiMsg('error', 'Clé API non configurée — cliquer ⚙'); return; }
+
+  document.getElementById('ai-input').value = '';
+  _aiMsg('user', text);
+  _aiHistory.push({ role: 'user', content: text });
+  const loadEl = _aiMsg('loading', '…');
+  document.getElementById('ai-send').disabled = true;
+
+  try {
+    const resp = await aiProviderChat(
+      _aiSystemPrompt(),
+      _aiHistory.slice(-_AI_MAX_HISTORY),
+      AI_TOOLS, settings
+    );
+    _aiHistory.push({ role: 'assistant', content: resp.message });
+
+    if (resp.toolCalls && resp.toolCalls.length > 0) {
+      if (_aiDraft) aiDraftDiscard();
+      aiDraftCreate();
+      const errors = [];
+      for (const tc of resp.toolCalls) {
+        try { aiDraftApplyTool(tc.name, tc.args); }
+        catch (e) { errors.push(tc.name + ': ' + e.message); }
+      }
+      _aiRenderPreview(resp.message, aiDraftDiff(), errors);
+    } else {
+      if (resp.message) _aiMsg('assistant', resp.message);
+    }
+  } catch (err) {
+    _aiMsg('error', 'Erreur : ' + err.message);
+  } finally {
+    loadEl.remove();
+    document.getElementById('ai-send').disabled = false;
+  }
 }
 
-// ── Initialisation ───────────────────────────────────────────────────
-function initAiPanel() {
-  const panel = document.createElement('div');
-  panel.id = 'ai-panel';
-  panel.innerHTML = `
-    <div id="ai-tab" onclick="toggleAiPanel()" title="Assistant IA">✦ AI</div>
-    <div id="ai-body">
-      <div id="ai-header">
-        <span>✦ Jazz AI</span>
-        <div style="display:flex;gap:4px;align-items:center;">
-          <button class="ai-icon-btn" onclick="openApiKeyPrompt()" title="Configurer la clé API">🔑</button>
-          <button class="ai-icon-btn" onclick="toggleAiPanel()" title="Fermer">✕</button>
-        </div>
-      </div>
-      <div id="ai-log"></div>
-      <div id="ai-input-row">
-        <textarea id="ai-input" rows="2"
-          placeholder="Ex : la partie A est jouée 2 fois, puis B…"
-          onkeydown="handleAiKeydown(event)"></textarea>
-        <button id="ai-send" onclick="sendAiInstruction()" title="Envoyer (Entrée)">↵</button>
-      </div>
-    </div>`;
-  document.body.appendChild(panel);
+function _aiMsg(role, text) {
+  const log = document.getElementById('ai-log');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai-msg-' + role;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+  return div;
 }
 
-// Exposition globale
-window.toggleAiPanel = toggleAiPanel;
-window.openApiKeyPrompt = openApiKeyPrompt;
-window.sendAiInstruction = sendAiInstruction;
-window.handleAiKeydown = handleAiKeydown;
+function _aiRenderPreview(message, diff, errors) {
+  const log = document.getElementById('ai-log');
+  const card = document.createElement('div');
+  card.className = 'ai-preview-card';
+  let html = '';
+  if (message) html += '<p class="ai-preview-msg">' + escHtml(message) + '</p>';
+  if (diff.length) html += '<ul class="ai-preview-diff">' + diff.map(l => '<li>' + escHtml(l) + '</li>').join('') + '</ul>';
+  if (errors.length) html += '<p class="ai-preview-err">⚠ ' + escHtml(errors.join(', ')) + '</p>';
+  html += '<div class="ai-preview-btns"><button class="ai-btn-apply" onclick="aiChatApply(this)">✅ Appliquer</button><button class="ai-btn-cancel" onclick="aiChatCancel(this)">✕ Annuler</button></div>';
+  card.innerHTML = html;
+  log.appendChild(card);
+  log.scrollTop = log.scrollHeight;
+}
 
-document.addEventListener('DOMContentLoaded', initAiPanel);
+function aiChatApply(btn) {
+  aiDraftApply();
+  btn.closest('.ai-preview-btns').innerHTML = '<span class="ai-preview-status">✅ Appliqué</span>';
+}
 
-})();
+function aiChatCancel(btn) {
+  aiDraftDiscard();
+  btn.closest('.ai-preview-btns').innerHTML = '<span class="ai-preview-status">✕ Annulé</span>';
+}
+
+function aiChatHandleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); aiChatSend(document.getElementById('ai-input').value); }
+}
+
+function aiConfigToggle() {
+  const panel = document.getElementById('ai-config');
+  panel.classList.toggle('ai-config-open');
+  if (panel.classList.contains('ai-config-open')) _aiConfigRender();
+}
+
+function _aiConfigRender() {
+  const s = aiSettingsLoad();
+  document.getElementById('ai-cfg-provider').value = s.provider;
+  document.getElementById('ai-cfg-claude-model').value = s.claudeModel;
+  document.getElementById('ai-cfg-openai-model').value = s.openaiModel;
+  document.getElementById('ai-cfg-claude-key').value = s.claudeKey;
+  document.getElementById('ai-cfg-openai-key').value = s.openaiKey;
+  aiConfigUpdateRows(s.provider);
+}
+
+function aiConfigUpdateRows(provider) {
+  document.getElementById('ai-cfg-row-claude').style.display = provider === 'claude' ? '' : 'none';
+  document.getElementById('ai-cfg-row-openai').style.display = provider === 'openai' ? '' : 'none';
+}
+
+function aiConfigSave() {
+  aiSettingsSave({
+    provider: document.getElementById('ai-cfg-provider').value,
+    claudeModel: document.getElementById('ai-cfg-claude-model').value,
+    openaiModel: document.getElementById('ai-cfg-openai-model').value,
+    claudeKey: document.getElementById('ai-cfg-claude-key').value,
+    openaiKey: document.getElementById('ai-cfg-openai-key').value
+  });
+  document.getElementById('ai-config').classList.remove('ai-config-open');
+}
