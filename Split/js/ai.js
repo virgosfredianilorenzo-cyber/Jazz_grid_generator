@@ -374,3 +374,70 @@ const _AI_TOOL_EXECUTORS = {
     };
   }
 };
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   JS — AI : DRAFT
+   Copie profonde du chartData pour preview avant application
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+let _aiDraft = null;
+
+function aiDraftCreate() {
+  _aiDraft = JSON.parse(JSON.stringify(chartData));
+  return _aiDraft;
+}
+
+function aiDraftApplyTool(name, args) {
+  if (!_aiDraft) throw new Error('No draft active');
+  const exec = _AI_TOOL_EXECUTORS[name];
+  if (!exec) throw new Error('Unknown tool: ' + name);
+  exec(_aiDraft, args);
+}
+
+function aiDraftDiff() {
+  if (!_aiDraft) return [];
+  const c = chartData, d = _aiDraft;
+  const lines = [];
+  if (d.title !== c.title) lines.push('Titre : "' + c.title + '" → "' + d.title + '"');
+  if (d.key !== c.key) lines.push('Tonalité : ' + c.key + ' → ' + d.key);
+  if (String(d.tempo) !== String(c.tempo)) lines.push('Tempo : ' + c.tempo + ' → ' + d.tempo);
+  if (d.timeSig !== c.timeSig) lines.push('Mesure : ' + c.timeSig + ' → ' + d.timeSig);
+  if (d.style !== c.style) lines.push('Style : ' + c.style + ' → ' + d.style);
+  if (d.sections.length !== c.sections.length)
+    lines.push('Sections : ' + c.sections.length + ' → ' + d.sections.length);
+  const minS = Math.min(d.sections.length, c.sections.length);
+  for (let si = 0; si < minS; si++) {
+    const ds = d.sections[si], cs = c.sections[si];
+    if (ds.label !== cs.label) lines.push('Section ' + (si+1) + ' : "' + cs.label + '" → "' + ds.label + '"');
+    if (ds.measures.length !== cs.measures.length)
+      lines.push(ds.label + ' : ' + cs.measures.length + ' → ' + ds.measures.length + ' mesure(s)');
+    const minM = Math.min(ds.measures.length, cs.measures.length);
+    for (let mi = 0; mi < minM; mi++) {
+      const dc = ds.measures[mi].chords.map(ch => ch.symbol).join(' | ');
+      const cc = cs.measures[mi].chords.map(ch => ch.symbol).join(' | ');
+      if (dc !== cc) lines.push(ds.label + ' mes.' + (mi+1) + ' : ' + cc + ' → ' + dc);
+    }
+  }
+  if (d._uiBassStrings && d._uiBassStrings !== window.bassStrings)
+    lines.push('Cordes basse : ' + window.bassStrings + ' → ' + d._uiBassStrings);
+  if (d._uiColumns) {
+    const cur = parseInt(document.getElementById('global-cols')?.value) || 4;
+    if (d._uiColumns !== cur) lines.push('Colonnes : ' + cur + ' → ' + d._uiColumns);
+  }
+  return lines;
+}
+
+function aiDraftApply() {
+  if (!_aiDraft) return;
+  snapshotUndo();
+  if (_aiDraft._uiBassStrings) { setBassStrings(_aiDraft._uiBassStrings); delete _aiDraft._uiBassStrings; }
+  if (_aiDraft._uiColumns) {
+    const sel = document.getElementById('global-cols');
+    if (sel) { sel.value = _aiDraft._uiColumns; } delete _aiDraft._uiColumns;
+  }
+  chartData = _aiDraft;
+  _aiDraft = null;
+  render();
+}
+
+function aiDraftDiscard() { _aiDraft = null; }
