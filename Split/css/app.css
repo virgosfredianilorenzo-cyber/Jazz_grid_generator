@@ -208,7 +208,7 @@ label { font-size:0.85rem; color:#aaa; }
   width: auto;
   z-index: 500;
   display: flex;
-  flex-direction: row;
+  flex-direction: row-reverse;
   align-items: stretch;
   pointer-events: none;
 }
@@ -234,7 +234,7 @@ label { font-size:0.85rem; color:#aaa; }
   flex-direction: column;
   width: 380px;
   background: #16213e;
-  border-left: 2px solid #f0a500;
+  border-right: 2px solid #f0a500;
   pointer-events: all;
   overflow: hidden;
 }
