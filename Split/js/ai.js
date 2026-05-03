@@ -146,6 +146,13 @@ const AI_TOOLS = [
     }, required: ['label'] }
   },
   {
+    name: 'duplicate_section',
+    description: 'Duplique une section entière (accords, annotations, barres) juste après la section originale. Le label reçoit le suffixe " (bis)".',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number', description: 'Index de la section à dupliquer (0-based).' }
+    }, required: ['sectionIndex'] }
+  },
+  {
     name: 'remove_section',
     description: 'Supprime une section (index 0-based). Impossible si c\'est la dernière.',
     inputSchema: { type: 'object', properties: {
@@ -168,6 +175,14 @@ const AI_TOOLS = [
       sectionIndex: { type: 'number' },
       position: { type: 'number', description: 'Index d\'insertion. Omis = fin de section.' }
     }, required: ['sectionIndex'] }
+  },
+  {
+    name: 'duplicate_bar',
+    description: 'Duplique une mesure entière (accords, annotations, barres) juste après la mesure originale.',
+    inputSchema: { type: 'object', properties: {
+      sectionIndex: { type: 'number', description: 'Index de la section (0-based).' },
+      barIndex: { type: 'number', description: 'Index de la mesure à dupliquer (0-based).' }
+    }, required: ['sectionIndex', 'barIndex'] }
   },
   {
     name: 'remove_bar',
@@ -293,6 +308,14 @@ const _AI_TOOL_EXECUTORS = {
     draft.sections.splice(Math.max(0, Math.min(pos, draft.sections.length)), 0, newSection);
   },
 
+  duplicate_section(draft, a) {
+    const idx = parseInt(a.sectionIndex);
+    if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
+    const clone = JSON.parse(JSON.stringify(draft.sections[idx]));
+    clone.label += ' (bis)';
+    draft.sections.splice(idx + 1, 0, clone);
+  },
+
   remove_section(draft, a) {
     if (draft.sections.length <= 1) throw new Error('Cannot remove the last section');
     const idx = parseInt(a.sectionIndex);
@@ -317,6 +340,15 @@ const _AI_TOOL_EXECUTORS = {
     };
     const pos = a.position !== undefined ? parseInt(a.position) : sec.measures.length;
     sec.measures.splice(Math.max(0, Math.min(pos, sec.measures.length)), 0, bar);
+  },
+
+  duplicate_bar(draft, a) {
+    const sec = draft.sections[parseInt(a.sectionIndex)];
+    if (!sec) throw new Error('Section not found');
+    const idx = parseInt(a.barIndex);
+    if (idx < 0 || idx >= sec.measures.length) throw new Error('barIndex out of range');
+    const clone = JSON.parse(JSON.stringify(sec.measures[idx]));
+    sec.measures.splice(idx + 1, 0, clone);
   },
 
   remove_bar(draft, a) {
