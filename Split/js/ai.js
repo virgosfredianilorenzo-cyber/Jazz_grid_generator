@@ -15,7 +15,7 @@ function aiSettingsLoad() {
   try {
     const raw = localStorage.getItem(_AI_STORAGE_KEY);
     return raw ? Object.assign({}, _AI_DEFAULTS, JSON.parse(raw)) : Object.assign({}, _AI_DEFAULTS);
-  } catch { return Object.assign({}, _AI_DEFAULTS); }
+  } catch (e) { console.warn('[AI] settings parse error, using defaults', e); return Object.assign({}, _AI_DEFAULTS); }
 }
 
 function aiSettingsSave(patch) {
