@@ -283,7 +283,7 @@ label { font-size:0.85rem; color:#aaa; }
 .ai-msg-user { background: #1e3a5f; border: 1px solid #2d5a8a; align-self: flex-end; color: #eee; }
 .ai-msg-assistant { background: #0a2a14; border: 1px solid #1a5a2a; align-self: flex-start; color: #86efac; }
 .ai-msg-error { background: #2a0f0f; border-color: #5a1a1a; color: #fca5a5; align-self: center; }
-.ai-msg-loading { background: #1a2f4e; color: #888; align-self: flex-start; font-style: italic; }
+.ai-msg-loading { background: #1a2f4e; color: #8ab0c8; align-self: flex-start; font-style: italic; }
 .ai-preview-card { background: #0f2040; border: 1px solid #f0a500; border-radius: 8px; padding: 10px; font-size: 0.82rem; }
 .ai-preview-msg { color: #e0e0e0; margin-bottom: 6px; line-height: 1.5; }
 .ai-preview-diff { list-style: disc; padding-left: 16px; color: #aed6f1; margin-bottom: 8px; }
@@ -292,11 +292,11 @@ label { font-size:0.85rem; color:#aaa; }
 .ai-preview-btns { display: flex; gap: 6px; margin-top: 8px; }
 .ai-btn-apply { background: #27ae60; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
 .ai-btn-cancel { background: #c0392b; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 0.8rem; }
-.ai-preview-status { color: #888; font-size: 0.78rem; }
+.ai-preview-status { color: #aaa; font-size: 0.78rem; }
 #ai-input-row { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #2d4a7a; background: #0f1a30; flex-shrink: 0; }
 #ai-input { flex: 1; background: #1e3a5f; border: 1px solid #2d5a8a; color: #eee; border-radius: 4px; padding: 6px 8px; font-size: 0.82rem; resize: none; font-family: Georgia, serif; line-height: 1.4; }
 #ai-input:focus { outline: none; border-color: #f0a500; }
-#ai-input::placeholder { color: #4a6a8a; }
+#ai-input::placeholder { color: #7eaac8; }
 #ai-send { background: #f0a500; color: #1a1a2e; border: none; border-radius: 4px; padding: 6px 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; align-self: flex-end; }
 #ai-send:hover { background: #ffc107; }
 #ai-send:disabled { opacity: 0.5; cursor: default; }
