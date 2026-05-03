@@ -295,7 +295,9 @@ const _AI_TOOL_EXECUTORS = {
 
   remove_section(draft, a) {
     if (draft.sections.length <= 1) throw new Error('Cannot remove the last section');
-    draft.sections.splice(parseInt(a.sectionIndex), 1);
+    const idx = parseInt(a.sectionIndex);
+    if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
+    draft.sections.splice(idx, 1);
   },
 
   rename_section(draft, a) {
@@ -321,7 +323,9 @@ const _AI_TOOL_EXECUTORS = {
     const sec = draft.sections[parseInt(a.sectionIndex)];
     if (!sec) throw new Error('Section not found');
     if (sec.measures.length <= 1) throw new Error('Cannot remove the last measure');
-    sec.measures.splice(parseInt(a.barIndex), 1);
+    const idx = parseInt(a.barIndex);
+    if (idx < 0 || idx >= sec.measures.length) throw new Error('barIndex out of range');
+    sec.measures.splice(idx, 1);
   },
 
   set_barline(draft, a) {
@@ -350,7 +354,9 @@ const _AI_TOOL_EXECUTORS = {
     const bar = draft.sections[parseInt(a.sectionIndex)]?.measures[parseInt(a.barIndex)];
     if (!bar) throw new Error('Measure not found');
     if (bar.chords.length <= 1) throw new Error('Cannot remove the last chord');
-    bar.chords.splice(parseInt(a.chordIndex), 1);
+    const idx = parseInt(a.chordIndex);
+    if (idx < 0 || idx >= bar.chords.length) throw new Error('chordIndex out of range');
+    bar.chords.splice(idx, 1);
   },
 
   set_chord_alt(draft, a) {
@@ -433,7 +439,8 @@ function aiDraftApply() {
   if (_aiDraft._uiBassStrings) { setBassStrings(_aiDraft._uiBassStrings); delete _aiDraft._uiBassStrings; }
   if (_aiDraft._uiColumns) {
     const sel = document.getElementById('global-cols');
-    if (sel) { sel.value = _aiDraft._uiColumns; } delete _aiDraft._uiColumns;
+    if (sel) sel.value = _aiDraft._uiColumns;
+    delete _aiDraft._uiColumns;
   }
   chartData = _aiDraft;
   _aiDraft = null;
@@ -499,7 +506,7 @@ async function aiChatSend(text) {
       }
       _aiRenderPreview(resp.message, aiDraftDiff(), errors);
     } else {
-      _aiMsg('assistant', resp.message);
+      if (resp.message) _aiMsg('assistant', resp.message);
     }
   } catch (err) {
     _aiMsg('error', 'Erreur : ' + err.message);
