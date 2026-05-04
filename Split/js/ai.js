@@ -633,26 +633,33 @@ function aiConfigToggle() {
 
 function _aiConfigRender() {
   const s = aiSettingsLoad();
-  document.getElementById('ai-cfg-provider').value = s.provider;
-  document.getElementById('ai-cfg-claude-model').value = s.claudeModel;
-  document.getElementById('ai-cfg-openai-model').value = s.openaiModel;
-  document.getElementById('ai-cfg-claude-key').value = s.claudeKey;
-  document.getElementById('ai-cfg-openai-key').value = s.openaiKey;
+  document.getElementById('ai-cfg-provider').value              = s.provider;
+  document.getElementById('ai-cfg-claude-model').value          = s.claudeModel;
+  document.getElementById('ai-cfg-openai-model').value          = s.openaiModel;
+  document.getElementById('ai-cfg-claude-key').value            = s.claudeKey;
+  document.getElementById('ai-cfg-openai-key').value            = s.openaiKey;
+  document.getElementById('ai-cfg-infomaniak-model').value      = s.infomaniakModel;
+  document.getElementById('ai-cfg-infomaniak-product-id').value = s.infomaniakProductId;
+  document.getElementById('ai-cfg-infomaniak-key').value        = s.infomaniakKey;
   aiConfigUpdateRows(s.provider);
 }
 
 function aiConfigUpdateRows(provider) {
-  document.getElementById('ai-cfg-row-claude').style.display = provider === 'claude' ? '' : 'none';
-  document.getElementById('ai-cfg-row-openai').style.display = provider === 'openai' ? '' : 'none';
+  document.getElementById('ai-cfg-row-claude').style.display      = provider === 'claude'      ? '' : 'none';
+  document.getElementById('ai-cfg-row-openai').style.display      = provider === 'openai'      ? '' : 'none';
+  document.getElementById('ai-cfg-row-infomaniak').style.display  = provider === 'infomaniak'  ? '' : 'none';
 }
 
 function aiConfigSave() {
   aiSettingsSave({
-    provider: document.getElementById('ai-cfg-provider').value,
-    claudeModel: document.getElementById('ai-cfg-claude-model').value,
-    openaiModel: document.getElementById('ai-cfg-openai-model').value,
-    claudeKey: document.getElementById('ai-cfg-claude-key').value,
-    openaiKey: document.getElementById('ai-cfg-openai-key').value
+    provider:            document.getElementById('ai-cfg-provider').value,
+    claudeModel:         document.getElementById('ai-cfg-claude-model').value,
+    openaiModel:         document.getElementById('ai-cfg-openai-model').value,
+    claudeKey:           document.getElementById('ai-cfg-claude-key').value,
+    openaiKey:           document.getElementById('ai-cfg-openai-key').value,
+    infomaniakModel:     document.getElementById('ai-cfg-infomaniak-model').value,
+    infomaniakProductId: document.getElementById('ai-cfg-infomaniak-product-id').value,
+    infomaniakKey:       document.getElementById('ai-cfg-infomaniak-key').value
   });
   document.getElementById('ai-config').classList.remove('ai-config-open');
 }
