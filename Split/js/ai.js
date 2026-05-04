@@ -8,7 +8,10 @@ const _AI_DEFAULTS = {
   claudeModel: 'claude-sonnet-4-6',
   openaiModel: 'gpt-4o',
   claudeKey: '',
-  openaiKey: ''
+  openaiKey: '',
+  infomaniakModel: 'euria',
+  infomaniakKey: '',
+  infomaniakProductId: ''
 };
 
 function aiSettingsLoad() {
@@ -33,6 +36,7 @@ function aiSettingsSave(patch) {
 
 async function aiProviderChat(systemPrompt, messages, tools, settings) {
   if (settings.provider === 'openai') return _aiCallOpenAI(systemPrompt, messages, tools, settings);
+  if (settings.provider === 'infomaniak') return _aiCallInfomaniak(systemPrompt, messages, tools, settings);
   return _aiCallClaude(systemPrompt, messages, tools, settings);
 }
 
@@ -86,6 +90,39 @@ async function _aiCallOpenAI(systemPrompt, messages, tools, settings) {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error('OpenAI ' + res.status + ': ' + (err.error?.message || res.statusText));
+  }
+  const data = await res.json();
+  const msg = data.choices?.[0]?.message || {};
+  return {
+    message: msg.content || '',
+    toolCalls: (msg.tool_calls || []).map(tc => ({
+      id: tc.id, name: tc.function.name,
+      args: JSON.parse(tc.function.arguments || '{}')
+    }))
+  };
+}
+
+async function _aiCallInfomaniak(systemPrompt, messages, tools, settings) {
+  const productId = settings.infomaniakProductId;
+  if (!productId) throw new Error('Product ID Infomaniak non configuré');
+  const res = await fetch('https://api.infomaniak.com/2/ai/' + productId + '/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + settings.infomaniakKey,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: settings.infomaniakModel || 'euria',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.map(m => ({ role: m.role, content: m.content }))
+      ],
+      tools: tools.map(t => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.inputSchema } }))
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error('Infomaniak ' + res.status + ': ' + (err.error?.message || res.statusText));
   }
   const data = await res.json();
   const msg = data.choices?.[0]?.message || {};
@@ -511,7 +548,9 @@ async function aiChatSend(text) {
   text = (text || '').trim();
   if (!text) return;
   const settings = aiSettingsLoad();
-  const key = settings.provider === 'openai' ? settings.openaiKey : settings.claudeKey;
+  const key = settings.provider === 'openai'     ? settings.openaiKey
+            : settings.provider === 'infomaniak' ? settings.infomaniakKey
+            : settings.claudeKey;
   if (!key) { _aiMsg('error', 'Clé API non configurée — cliquer ⚙'); return; }
 
   document.getElementById('ai-input').value = '';
