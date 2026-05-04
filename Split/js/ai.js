@@ -105,7 +105,7 @@ async function _aiCallOpenAI(systemPrompt, messages, tools, settings) {
 async function _aiCallInfomaniak(systemPrompt, messages, tools, settings) {
   const productId = settings.infomaniakProductId;
   if (!productId) throw new Error('Product ID Infomaniak non configuré');
-  const res = await fetch('https://api.infomaniak.com/2/ai/' + productId + '/openai/v1/chat/completions', {
+  const res = await fetch('https://api.infomaniak.com/2/ai/' + encodeURIComponent(productId) + '/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + settings.infomaniakKey,
