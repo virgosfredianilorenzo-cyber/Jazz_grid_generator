@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne avec assistant IA conversationnel, annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
 
-![Version](https://img.shields.io/badge/version-4.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.1-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -24,7 +24,7 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
   - Modifie les métadonnées (titre, tonalité, tempo, style)
   - Transpose tout le chart
   - Aperçu avant application : liste des changements, boutons Appliquer / Annuler
-  - Compatible **Claude** (claude-sonnet-4-6, claude-opus-4-7) et **OpenAI** (gpt-4o, gpt-4o-mini)
+  - Compatible **Claude** (claude-sonnet-4-6, claude-opus-4-7), **OpenAI** (gpt-4o, gpt-4o-mini) et **Infomaniak** (euria, Ministral, Qwen, Gemma, Kimi)
   - Clé API saisie dans l'app, stockée en `localStorage`, jamais transmise ailleurs
   - Réponses dans la langue active de l'application
 - 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo
@@ -113,9 +113,11 @@ Cliquer **⚙** dans l'en-tête du panneau :
 
 | Paramètre | Valeurs |
 |-----------|---------|
-| Provider | Claude (Anthropic) · OpenAI |
+| Provider | Claude (Anthropic) · OpenAI · Infomaniak |
 | Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-7` |
 | Modèle OpenAI | `gpt-4o`, `gpt-4o-mini` |
+| Modèle Infomaniak | `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6` |
+| Product ID Infomaniak | Identifiant du produit AI Tools sur votre compte Infomaniak |
 | Clé API | Saisie dans l'app, stockée en `localStorage` |
 
 ### Outils disponibles
@@ -224,6 +226,11 @@ Les menus de sélection de barres de mesure, de voltas et de symboles de navigat
 ---
 
 ## 📋 Changelog
+
+### v4.1 (mai 2026)
+- ✅ **Provider Infomaniak** — API souveraine hébergée en Europe (compatible OpenAI)
+- ✅ 5 modèles disponibles : `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6`
+- ✅ Authentification Bearer + Product ID saisi dans le panneau de config
 
 ### v4.0 (mai 2026)
 - ✅ **Assistant IA conversationnel** — Claude (Sonnet / Opus) et OpenAI (GPT-4o)

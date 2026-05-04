@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor with a conversational AI assistant, music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export, and optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.1-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -24,7 +24,7 @@ This application lets you build chord charts from scratch or by importing MusicX
   - Edits metadata (title, key, tempo, style)
   - Transposes the entire chart
   - Preview before applying: list of changes, Apply / Cancel buttons
-  - Compatible with **Claude** (claude-sonnet-4-6, claude-opus-4-7) and **OpenAI** (gpt-4o, gpt-4o-mini)
+  - Compatible with **Claude** (claude-sonnet-4-6, claude-opus-4-7), **OpenAI** (gpt-4o, gpt-4o-mini) and **Infomaniak** (euria, Ministral, Qwen, Gemma, Kimi)
   - API key entered in the app, stored in `localStorage`, never sent anywhere else
   - Responds in the active language of the application
 - 📂 **MusicXML import** — drag & drop or file picker, parses chords, sections, repeat barlines, key signature, tempo
@@ -113,9 +113,11 @@ Click **⚙** in the panel header:
 
 | Setting | Values |
 |---------|--------|
-| Provider | Claude (Anthropic) · OpenAI |
+| Provider | Claude (Anthropic) · OpenAI · Infomaniak |
 | Claude model | `claude-sonnet-4-6`, `claude-opus-4-7` |
 | OpenAI model | `gpt-4o`, `gpt-4o-mini` |
+| Infomaniak model | `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6` |
+| Infomaniak Product ID | AI Tools product identifier from your Infomaniak account |
 | API key | Entered in the app, stored in `localStorage` |
 
 ### Available tools
@@ -224,6 +226,11 @@ Barline, volta, and navigation symbol popup menus automatically reposition to st
 ---
 
 ## 📋 Changelog
+
+### v4.1 (May 2026)
+- ✅ **Infomaniak provider** — sovereign European-hosted AI API (OpenAI-compatible)
+- ✅ 5 available models: `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6`
+- ✅ Bearer authentication + Product ID entered in the config panel
 
 ### v4.0 (May 2026)
 - ✅ **Conversational AI assistant** — Claude (Sonnet / Opus) and OpenAI (GPT-4o)
