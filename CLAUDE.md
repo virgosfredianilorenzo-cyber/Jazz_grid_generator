@@ -7,27 +7,26 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 ## Architecture
 
-### Fichier monolithique
-- `Jazz_grid_generator.html` — version tout-en-un (HTML + CSS + JS inline)
-
-### Version splittée (répertoire `Split/`)
 ```
-Split/
+/
 ├── index.html
 ├── css/
 │   ├── app.css        ← styles généraux + toggle 4/5 cordes basse
 │   ├── modals.css
 │   └── print.css      ← réduction police automatique mesures multi-accords
-└── js/
-    ├── i18n.js        ← internationalisation (FR, ES, IT, EN)
-    ├── diagrams.js    ← diagrammes SVG basse 4 et 5 cordes, transposeModesvg, getModesvg
-    ├── theory.js      ← moteur de théorie musicale (modes, arpèges, tensions)
-    ├── state.js       ← état global, window.bassStrings, setBassStrings()
-    ├── render.js      ← rendu de la grille
-    ├── modals.js      ← gestion des modales
-    ├── actions.js     ← actions utilisateur
-    ├── print.js       ← logique d'impression/PDF
-    └── init.js        ← initialisation, restauration localStorage
+├── js/
+│   ├── i18n.js        ← internationalisation (FR, ES, IT, EN)
+│   ├── diagrams.js    ← diagrammes SVG basse 4 et 5 cordes, transposeModesvg, getModesvg
+│   ├── theory.js      ← moteur de théorie musicale (modes, arpèges, tensions)
+│   ├── state.js       ← état global, window.bassStrings, setBassStrings()
+│   ├── render.js      ← rendu de la grille
+│   ├── modals.js      ← gestion des modales
+│   ├── actions.js     ← actions utilisateur
+│   ├── print.js       ← logique d'impression/PDF
+│   ├── touch.js       ← gestion tactile
+│   ├── ai.js          ← chat AI (Claude, OpenAI)
+│   └── init.js        ← initialisation, restauration localStorage
+└── OLD/               ← archives (versions monolithiques précédentes)
 ```
 
 ## Fonctionnalités clés
@@ -65,9 +64,7 @@ Split/
 
 ## Développement
 
-Pas de build, pas de bundler. Ouvrir directement `Jazz_grid_generator.html` ou `Split/index.html` dans un navigateur.
-
-Pour tester les modifications de la version splittée, ouvrir `Split/index.html`.
+Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur.
 
 ## Version en cours (v3.0)
 - Diagrammes 5 cordes pour les 17 modes
