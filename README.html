@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jazz Grid Generator — Documentation</title>
+<style>
+  :root {
+    --bg: #0f1a30;
+    --bg2: #1a2a4a;
+    --border: #2d4a7a;
+    --gold: #f0a500;
+    --green: #86efac;
+    --purple: #c4b5fd;
+    --blue: #7dd3fc;
+    --red: #fca5a5;
+    --text: #d0dff0;
+    --text-dim: #8ab0c8;
+    --code-bg: #0a1525;
+    --table-head: #1e3a5f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  h1 {
+    color: var(--gold);
+    font-size: 2rem;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  h2 {
+    color: var(--gold);
+    font-size: 1.3rem;
+    margin: 2rem 0 0.75rem;
+    border-left: 4px solid var(--gold);
+    padding-left: 0.75rem;
+  }
+  h3 {
+    color: var(--green);
+    font-size: 1.05rem;
+    margin: 1.5rem 0 0.5rem;
+  }
+  p { margin-bottom: 0.85rem; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  blockquote {
+    border-left: 3px solid var(--gold);
+    padding: 0.5rem 1rem;
+    color: var(--text-dim);
+    background: var(--bg2);
+    border-radius: 0 6px 6px 0;
+    margin: 1rem 0;
+    font-style: italic;
+  }
+  code {
+    background: var(--code-bg);
+    color: var(--purple);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    color: var(--green);
+    font-size: 0.85rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  thead tr { background: var(--table-head); }
+  th {
+    color: var(--gold);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
+  ul, ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0 0.85rem;
+  }
+  li { margin-bottom: 0.3rem; }
+  li ul, li ol { margin: 0.3rem 0; }
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+  .badges { margin: 0.75rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: 6px; }
+  .badges img { height: 20px; }
+  strong { color: #fff; }
+  em { color: var(--text-dim); }
+  /* Changelog checkmarks */
+  li:has(> p:first-child)  { list-style: none; margin-left: -1rem; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.1rem; }
+    table { font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+<h1 id="jazz-grid-generator">𝄢 Jazz Grid Generator</h1>
+<blockquote>
+<p>Éditeur de grilles jazz en ligne avec assistant IA conversationnel, annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.</p>
+</blockquote>
+<p><img alt="Version" src="https://img.shields.io/badge/version-4.2-f0a500?style=flat-square" />
+<img alt="Licence" src="https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square" />
+<img alt="HTML" src="https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square" />
+<img alt="Langues" src="https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square" />
+<img alt="Sans dépendances" src="https://img.shields.io/badge/dépendances-aucune-fca5a5?style=flat-square" /></p>
+<p><strong>Déployé sur</strong> : https://www.virgos.fr/JazzGridGenerator/</p>
+<hr />
+<p>Cette application permet de créer des grilles à partir d'un document vierge. L'import de fichiers au format MusicXML issus de iReal Pro, Musescore ou tout autre logiciel supportant ce format est fonctionnel. Les grilles une fois importées sont modifiables. L'impression au format PDF de la grille finalisée peut être par exemple uploadée dans une application de type SongBook Pro et utilisée sur tablette lors de jam sessions ou de concerts.</p>
+<hr />
+<h2 id="fonctionnalites">✨ Fonctionnalités</h2>
+<ul>
+<li>🤖 <strong>Assistant IA conversationnel</strong> — panneau en bas de page, piloté en langage naturel :</li>
+<li>Crée, modifie et supprime sections, mesures, accords et annotations</li>
+<li>Duplique sections et mesures avec copie complète du contenu</li>
+<li>Modifie les métadonnées (titre, tonalité, tempo, style)</li>
+<li>Transpose tout le chart</li>
+<li>Aperçu avant application : liste des changements, boutons Appliquer / Annuler</li>
+<li>Compatible <strong>Claude</strong> (claude-sonnet-4-6, claude-opus-4-7), <strong>OpenAI</strong> (gpt-4o, gpt-4o-mini) et <strong>Infomaniak</strong> (euria, Ministral, Qwen, Gemma, Kimi)</li>
+<li>Clé API saisie dans l'app, stockée en <code>localStorage</code>, jamais transmise ailleurs</li>
+<li>Réponses dans la langue active de l'application</li>
+<li>📂 <strong>Import MusicXML</strong> — drag &amp; drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo</li>
+<li>📦 <strong>Import / Export MXL</strong> — format MusicXML compressé (JSZip)</li>
+<li>✏️ <strong>Édition complète des accords</strong> — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord</li>
+<li>🔄 <strong>Accord alternatif</strong> — substitution tritoniée, suggestion automatique, export/import MusicXML</li>
+<li>🎼 <strong>Annotations de théorie musicale</strong> par accord :</li>
+<li>Modes compatibles (Ionien, Dorien, Mixolydien, Altéré, etc.)</li>
+<li>Arpèges à 4 sons avec toutes les inversions</li>
+<li>Tensions disponibles &amp; notes à éviter</li>
+<li>Notes libres avec couleur et mise en forme gras/italique</li>
+<li>🎸 <strong>Diagrammes de manche basse 4 et 5 cordes</strong> :</li>
+<li>Toggle <strong>🎸 4 / 5</strong> dans la toolbar, choix persisté en <code>localStorage</code></li>
+<li><strong>17 modes disponibles en version 5 cordes</strong> (accordage BEADG)</li>
+<li>Transposition automatique des diagrammes selon la fondamentale de l'accord</li>
+<li>Couleurs : 🔴 fondamentale · 🟡 notes d'arpège · 🔵 autres degrés</li>
+<li>🎵 <strong>Transposition</strong> — par demi-ton (±) ou sélection directe de tonalité, avec gestion enharmonique</li>
+<li>🗂️ <strong>Gestion des sections</strong> — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), suffixes chiffrés (0–9), dupliquer, réordonner par drag &amp; drop, annoter</li>
+<li>🔀 <strong>Drag &amp; drop</strong> — réordonner les sections et les mesures à la souris et au toucher (tablette)</li>
+<li>🎵 <strong>Symboles de mesure</strong> — <code>%</code> (répétition), <code>𝄎</code> (double répétition), <code>N.C.</code> (no chord), <code>/</code> (slash), <code>(w)</code> (basse seule sans harmonie)</li>
+<li>🔢 <strong>Barres de mesure enrichies</strong> — normale, double, finale, début/fin de reprise, export/import MusicXML</li>
+<li>🎼 <strong>Voltas et symboles de navigation</strong> — 1ère / 2ème / 3ème fois, Segno, Coda, D.C., D.S., Fine, export/import MusicXML</li>
+<li>↩️ <strong>Annuler / Rétablir (Undo/Redo)</strong> :</li>
+<li>Pile de 10 snapshots JSON</li>
+<li>Raccourcis Ctrl+Z / Ctrl+Y (⌘Z / ⌘Y sur Mac)</li>
+<li>Boutons ↩ ↪ dans la toolbar</li>
+<li>Couverture complète : accords, annotations, sections, mesures, barlines, voltas, navigation, accord alternatif, drag &amp; drop</li>
+<li>📱 <strong>Support tactile tablette</strong> :</li>
+<li>Drag &amp; drop sections et mesures via Touch Events</li>
+<li>MutationObserver pour patcher dynamiquement les éléments post-render</li>
+<li>Pinch-to-zoom sur la grille</li>
+<li>Cibles agrandies via <code>@media (pointer: coarse)</code></li>
+<li>🖨️ <strong>Impression / PDF avancée</strong> :</li>
+<li>Thème clair ☀️ / sombre 🌙, contraste ajustable (5 niveaux)</li>
+<li>Colorisation automatique par section</li>
+<li>Police réduite automatiquement sur les mesures multi-accords (lisibilité sur 2 lignes max)</li>
+<li>Menus barline / navigation positionnés intelligemment (ne débordent plus en bord d'écran)</li>
+<li>💾 <strong>Sauvegarde / chargement JSON</strong> — fidélité complète incluant toutes les annotations</li>
+<li>🎼 <strong>Export MusicXML</strong> — compatible MuseScore, Sibelius, Finale, iReal Pro</li>
+<li>🌐 <strong>4 langues</strong> — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧</li>
+<li>📱 <strong>Zéro dépendance</strong> — fichier HTML unique, fonctionne hors ligne, aucun build requis</li>
+</ul>
+<hr />
+<h2 id="demarrage-rapide">🚀 Démarrage rapide</h2>
+<h3 id="option-1-directement-dans-le-navigateur">Option 1 — Directement dans le navigateur</h3>
+<p>Ouvrir <code>Jazz_grid_generator.html</code> dans n'importe quel navigateur moderne. Aucun serveur requis.</p>
+<h3 id="option-2-version-splittee-developpement">Option 2 — Version splittée (développement)</h3>
+<pre><code>Split/
+├── index.html
+├── css/
+│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo + panneau IA
+│   ├── modals.css       ← styles des modales
+│   └── print.css        ← styles impression, réduction police multi-accords
+└── js/
+    ├── i18n.js          ← dictionnaire de traductions (FR/ES/IT/EN)
+    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg(), getModesvg()
+    ├── theory.js        ← moteur de théorie (gammes, arpèges, tensions)
+    ├── state.js         ← variables globales, window.bassStrings, setBassStrings()
+    ├── render.js        ← rendu DOM de la grille
+    ├── modals.js        ← modales accord et annotation
+    ├── actions.js       ← mutations de la grille, auto-annotation à l'import
+    ├── print.js         ← thème impression et système de couleurs par section
+    ├── init.js          ← initialisation, restauration localStorage
+    └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)
+</code></pre>
+<h3 id="option-3-hebergement-statique">Option 3 — Hébergement statique</h3>
+<p>Uploader les fichiers sur n'importe quel hébergeur statique (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). Aucune configuration requise.</p>
+<hr />
+<h2 id="assistant-ia">🤖 Assistant IA</h2>
+<p>Le panneau IA s'ouvre via l'onglet <strong>✦ IA</strong> en bas à droite de la page. Il remonte sur toute la largeur de l'écran.</p>
+<h3 id="configuration">Configuration</h3>
+<p>Cliquer <strong>⚙</strong> dans l'en-tête du panneau :</p>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Valeurs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Provider</td>
+<td>Claude (Anthropic) · OpenAI · Infomaniak</td>
+</tr>
+<tr>
+<td>Modèle Claude</td>
+<td><code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></td>
+</tr>
+<tr>
+<td>Modèle OpenAI</td>
+<td><code>gpt-4o</code>, <code>gpt-4o-mini</code></td>
+</tr>
+<tr>
+<td>Modèle Infomaniak</td>
+<td><code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></td>
+</tr>
+<tr>
+<td>Product ID Infomaniak</td>
+<td>Identifiant du produit AI Tools sur votre compte Infomaniak</td>
+</tr>
+<tr>
+<td>Clé API</td>
+<td>Saisie dans l'app, stockée en <code>localStorage</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="outils-disponibles">Outils disponibles</h3>
+<table>
+<thead>
+<tr>
+<th>Catégorie</th>
+<th>Outils</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Chart</td>
+<td><code>set_chart_metadata</code>, <code>transpose_chart</code>, <code>set_columns</code>, <code>set_bass_strings</code></td>
+</tr>
+<tr>
+<td>Sections</td>
+<td><code>add_section</code>, <code>duplicate_section</code>, <code>rename_section</code>, <code>remove_section</code></td>
+</tr>
+<tr>
+<td>Mesures</td>
+<td><code>add_bar</code>, <code>duplicate_bar</code>, <code>remove_bar</code>, <code>set_barline</code></td>
+</tr>
+<tr>
+<td>Accords</td>
+<td><code>add_chord</code>, <code>edit_chord</code>, <code>remove_chord</code>, <code>set_chord_alt</code></td>
+</tr>
+<tr>
+<td>Annotations</td>
+<td><code>set_annotation</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="flux-de-travail">Flux de travail</h3>
+<ol>
+<li>L'utilisateur écrit une instruction en langage naturel</li>
+<li>L'IA résume ce qu'elle va faire, puis appelle les outils nécessaires</li>
+<li>Un aperçu liste les changements (ex. : <em>"Section B ajoutée"</em>, <em>"Dm7 → D7 mes. 3"</em>)</li>
+<li><strong>Appliquer</strong> → <code>chartData</code> mis à jour, snapshot undo, re-render</li>
+<li><strong>Annuler</strong> → draft supprimé, rien ne change</li>
+</ol>
+<hr />
+<h2 id="toggle-basse-4-5-cordes">🎸 Toggle Basse 4 / 5 cordes</h2>
+<p>Le bouton <strong>🎸 4 / 5</strong> dans la toolbar permet de basculer entre les diagrammes <strong>4 cordes (GDAE)</strong> et <strong>5 cordes (BEADG)</strong>.</p>
+<ul>
+<li>Le choix est persisté en <strong><code>localStorage</code></strong> et restauré automatiquement au rechargement</li>
+<li>La variable <code>window.bassStrings</code> (valeur <code>4</code> ou <code>5</code>) est partagée entre tous les modules JS</li>
+<li>Si un mode n'a pas de diagramme 5 cordes, le diagramme 4 cordes est utilisé en fallback</li>
+</ul>
+<h3 id="modes-disponibles-en-5-cordes-17-17">Modes disponibles en 5 cordes (17 / 17)</h3>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Clé <code>diagrams.js</code></th>
+<th>Mode</th>
+<th>Clé <code>diagrams.js</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ionien</td>
+<td><code>Ionien_5</code></td>
+<td>Lydien b7</td>
+<td><code>LydienB7_5</code></td>
+</tr>
+<tr>
+<td>Dorien</td>
+<td><code>Dorien_5</code></td>
+<td>Altéré</td>
+<td><code>Altere_5</code></td>
+</tr>
+<tr>
+<td>Phrygien</td>
+<td><code>Phrygien_5</code></td>
+<td>Mélodie mineure</td>
+<td><code>MelodieMineure_5</code></td>
+</tr>
+<tr>
+<td>Lydien</td>
+<td><code>Lydien_5</code></td>
+<td>Min. harmonique</td>
+<td><code>MinHarmonique_5</code></td>
+</tr>
+<tr>
+<td>Mixolydien</td>
+<td><code>Mixolydien_5</code></td>
+<td>Mixolydien b9b13</td>
+<td><code>MixolydienB9B13_5</code></td>
+</tr>
+<tr>
+<td>Éolien</td>
+<td><code>Aeolien_5</code></td>
+<td>Lydien augmenté</td>
+<td><code>LydienAugmente_5</code></td>
+</tr>
+<tr>
+<td>Locrien</td>
+<td><code>Locrien_5</code></td>
+<td>Locrien #2</td>
+<td><code>LocrienDiese2_5</code></td>
+</tr>
+<tr>
+<td>Dim. demi-ton</td>
+<td><code>DimDemiTon_5</code></td>
+<td>Dim. ton-demi</td>
+<td><code>DimTonDemi_5</code></td>
+</tr>
+<tr>
+<td>Tons entiers</td>
+<td><code>TonsEntiers_5</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="annuler-retablir">↩️ Annuler / Rétablir</h2>
+<p>L'historique couvre <strong>toutes les mutations</strong> de la grille :</p>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Couverte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ajout / suppression / duplication d'accord</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Modification d'annotation</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Ajout / suppression / duplication de mesure</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Ajout / suppression de section</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Drag &amp; drop section ou mesure</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Modification de barline</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Volta (1ère / 2ème / 3ème)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Symbole de navigation</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Accord alternatif</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Application d'un draft IA</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p>La profondeur est de <strong>10 niveaux</strong>. Au-delà, le snapshot le plus ancien est supprimé.</p>
+<hr />
+<h2 id="support-tablette">📱 Support tablette</h2>
+<ul>
+<li><strong>Drag &amp; drop tactile</strong> — sections et mesures déplaçables au doigt</li>
+<li><strong>Pinch-to-zoom</strong> — pincer la grille pour zoomer (0.5× à 2×)</li>
+<li><strong>Cibles agrandies</strong> — <code>@media (pointer: coarse)</code> augmente la taille des boutons barline, nav, accord</li>
+<li><strong>MutationObserver</strong> — les éléments ajoutés dynamiquement après un render sont automatiquement patchés</li>
+</ul>
+<hr />
+<h2 id="impression-pdf">🖨️ Impression / PDF</h2>
+<h3 id="mesures-multi-accords">Mesures multi-accords</h3>
+<table>
+<thead>
+<tr>
+<th>Nombre d'accords</th>
+<th>Symbole</th>
+<th>Zone théorie</th>
+<th>Hauteur max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2 accords</td>
+<td>0.72rem</td>
+<td>0.52rem</td>
+<td>2.6em (≈ 2 lignes)</td>
+</tr>
+<tr>
+<td>3+ accords</td>
+<td>0.62rem</td>
+<td>0.44rem</td>
+<td>2.2em (≈ 2 lignes)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="menus-popup">Menus popup</h3>
+<p>Les menus de sélection de barres de mesure, de voltas et de symboles de navigation se positionnent automatiquement pour rester dans l'écran, même en bord droit ou en bas de page.</p>
+<hr />
+<h2 id="moteur-de-theorie-musicale">🎼 Moteur de théorie musicale</h2>
+<h3 id="modes-suggeres-par-qualite">Modes suggérés par qualité</h3>
+<table>
+<thead>
+<tr>
+<th>Qualité</th>
+<th>Modes suggérés</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maj7</code></td>
+<td>Ionien, Lydien, Lydien augmenté</td>
+</tr>
+<tr>
+<td><code>7</code></td>
+<td>Mixolydien, Lydien b7, Altéré, Mixolydien b9b13</td>
+</tr>
+<tr>
+<td><code>m7</code></td>
+<td>Dorien, Éolien, Phrygien, Min. harmonique</td>
+</tr>
+<tr>
+<td><code>m7b5</code></td>
+<td>Locrien, Locrien #2</td>
+</tr>
+<tr>
+<td><code>dim7</code></td>
+<td>Dim. ton-demi, Dim. demi-ton</td>
+</tr>
+<tr>
+<td><code>mM7</code></td>
+<td>Mélodie mineure, Lydien augmenté, Min. harmonique</td>
+</tr>
+<tr>
+<td><code>aug</code></td>
+<td>Tons entiers</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="changelog">📋 Changelog</h2>
+<h3 id="v42-mai-2026">v4.2 (mai 2026)</h3>
+<ul>
+<li>✅ Rendu Markdown dans les réponses IA — paragraphes, listes, <strong>gras</strong>, <em>italique</em>, <code>code</code></li>
+<li>✅ Suppression du provider Infomaniak</li>
+</ul>
+<h3 id="v41-mai-2026">v4.1 (mai 2026)</h3>
+<ul>
+<li>✅ <strong>Provider Infomaniak</strong> — API souveraine hébergée en Europe (compatible OpenAI)</li>
+<li>✅ 5 modèles disponibles : <code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></li>
+<li>✅ Authentification Bearer + Product ID saisi dans le panneau de config</li>
+</ul>
+<h3 id="v40-mai-2026">v4.0 (mai 2026)</h3>
+<ul>
+<li>✅ <strong>Assistant IA conversationnel</strong> — Claude (Sonnet / Opus) et OpenAI (GPT-4o)</li>
+<li>✅ 15 outils IA : sections, mesures, accords, annotations, métadonnées, transposition</li>
+<li>✅ <code>duplicate_section</code> et <code>duplicate_bar</code> — copie complète du contenu (accords, annotations)</li>
+<li>✅ Flux draft-preview-apply avec liste des changements et undo intégré</li>
+<li>✅ Panneau IA en barre du bas, pleine largeur, animation slide-up</li>
+</ul>
+<h3 id="v30-avril-2026">v3.0 (avril 2026)</h3>
+<ul>
+<li>✅ Diagrammes 5 cordes (BEADG) pour les 17 modes</li>
+<li>✅ Toggle 🎸 4/5 cordes dans la toolbar, persisté en <code>localStorage</code></li>
+<li>✅ Correction <code>transposeModesvg()</code> — support des degrés altérés (<code>b2</code>, <code>#4</code>, <code>b6</code>, <code>b7</code>…)</li>
+<li>✅ Réduction automatique de police en PDF pour les mesures multi-accords</li>
+<li>✅ Auto-annotation à l'import MusicXML</li>
+<li>✅ Menus popup (barlines, navigation) repositionnés en bord d'écran</li>
+</ul>
+<h3 id="v20">v2.0</h3>
+<ul>
+<li>✅ Historique Annuler / Rétablir (10 niveaux, Ctrl+Z/Y, boutons toolbar)</li>
+<li>✅ Support tactile tablette — drag &amp; drop Touch Events, pinch-to-zoom, MutationObserver</li>
+<li>✅ Symbole <code>(w)</code> basse seule</li>
+<li>✅ Accord alternatif (substitution tritoniée)</li>
+<li>✅ Barres de mesure enrichies, Voltas, Symboles de navigation</li>
+<li>✅ Symboles iReal Pro (<code>%</code>, <code>𝄎</code>, <code>N.C.</code>, <code>/</code>)</li>
+<li>✅ Drag &amp; drop sections et mesures</li>
+<li>✅ Import/Export MXL (JSZip)</li>
+<li>✅ 4 langues (FR, ES, IT, EN)</li>
+</ul>
+<h3 id="v10">v1.0</h3>
+<ul>
+<li>✅ Éditeur de grilles basique</li>
+<li>✅ Annotations de théorie musicale</li>
+<li>✅ Import MusicXML</li>
+<li>✅ Transposition chromatique</li>
+<li>✅ Import/export JSON</li>
+<li>✅ Impression PDF thème clair/sombre</li>
+</ul>
+<hr />
+<h2 id="feuille-de-route">📋 Feuille de route</h2>
+<ul>
+<li>[ ] Lecture MIDI des notes fondamentales</li>
+<li>[ ] Sélecteur de couleur personnalisé par section</li>
+<li>[ ] Import iReal Pro <code>.irealbook</code></li>
+</ul>
+<hr />
+<h2 id="licence">📄 Licence</h2>
+<p>Apache 2.0 — <em>𝄢 Made with love for musicians, by a bass player.</em></p>
+</div>
+</body>
+</html>
