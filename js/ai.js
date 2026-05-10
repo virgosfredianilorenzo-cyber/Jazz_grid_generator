@@ -548,11 +548,29 @@ async function aiChatSend(text) {
   }
 }
 
+function _aiMdToHtml(raw) {
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const inline = s => s
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>');
+  return esc(raw).split(/\n{2,}/).map(block => {
+    if (!block.trim()) return '';
+    const lines = block.split('\n').filter(l => l.trim());
+    if (lines.every(l => /^[-*•]\s/.test(l)))
+      return '<ul>' + lines.map(l => '<li>' + inline(l.replace(/^[-*•]\s+/,'')) + '</li>').join('') + '</ul>';
+    if (lines.every(l => /^\d+[.)]\s/.test(l)))
+      return '<ol>' + lines.map(l => '<li>' + inline(l.replace(/^\d+[.)]\s+/,'')) + '</li>').join('') + '</ol>';
+    return '<p>' + inline(block.split('\n').join('<br>')) + '</p>';
+  }).join('');
+}
+
 function _aiMsg(role, text) {
   const log = document.getElementById('ai-log');
   const div = document.createElement('div');
   div.className = 'ai-msg ai-msg-' + role;
-  div.textContent = text;
+  if (role === 'assistant') div.innerHTML = _aiMdToHtml(text);
+  else div.textContent = text;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
   return div;
@@ -563,7 +581,7 @@ function _aiRenderPreview(message, diff, errors) {
   const card = document.createElement('div');
   card.className = 'ai-preview-card';
   let html = '';
-  if (message) html += '<p class="ai-preview-msg">' + escHtml(message) + '</p>';
+  if (message) html += '<div class="ai-preview-msg">' + _aiMdToHtml(message) + '</div>';
   if (diff.length) html += '<ul class="ai-preview-diff">' + diff.map(l => '<li>' + escHtml(l) + '</li>').join('') + '</ul>';
   if (errors.length) html += '<p class="ai-preview-err">⚠ ' + escHtml(errors.join(', ')) + '</p>';
   html += '<div class="ai-preview-btns"><button class="ai-btn-apply" onclick="aiChatApply(this)">✅ Appliquer</button><button class="ai-btn-cancel" onclick="aiChatCancel(this)">✕ Annuler</button></div>';

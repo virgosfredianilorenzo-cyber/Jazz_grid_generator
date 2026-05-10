@@ -288,6 +288,11 @@ label { font-size:0.85rem; color:#aaa; }
 .ai-msg-loading { background: #1a2f4e; color: #8ab0c8; align-self: flex-start; font-style: italic; }
 .ai-preview-card { background: #0f2040; border: 1px solid #f0a500; border-radius: 8px; padding: 10px; font-size: 0.82rem; }
 .ai-preview-msg { color: #e0e0e0; margin-bottom: 6px; line-height: 1.5; }
+.ai-msg-assistant p, .ai-preview-msg p { margin: 0 0 5px; }
+.ai-msg-assistant p:last-child, .ai-preview-msg p:last-child { margin-bottom: 0; }
+.ai-msg-assistant ul, .ai-msg-assistant ol, .ai-preview-msg ul, .ai-preview-msg ol { margin: 3px 0 5px; padding-left: 18px; }
+.ai-msg-assistant li, .ai-preview-msg li { margin-bottom: 2px; }
+.ai-msg-assistant code, .ai-preview-msg code { background: rgba(0,0,0,0.35); padding: 1px 4px; border-radius: 3px; font-family: monospace; font-size: 0.9em; }
 .ai-preview-diff { list-style: disc; padding-left: 16px; color: #aed6f1; margin-bottom: 8px; }
 .ai-preview-diff li { margin-bottom: 2px; }
 .ai-preview-err { color: #e74c3c; margin-bottom: 6px; font-size: 0.8rem; }
