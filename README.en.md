@@ -24,7 +24,7 @@ This application lets you build chord charts from scratch or by importing MusicX
   - Edits metadata (title, key, tempo, style)
   - Transposes the entire chart
   - Preview before applying: list of changes, Apply / Cancel buttons
-  - Compatible with **Claude** (claude-sonnet-4-6, claude-opus-4-7), **OpenAI** (gpt-4o, gpt-4o-mini) and **Infomaniak** (euria, Ministral, Qwen, Gemma, Kimi)
+  - Compatible with **Claude** (claude-sonnet-4-6, claude-opus-4-7) and **OpenAI** (gpt-4o, gpt-4o-mini)
   - API key entered in the app, stored in `localStorage`, never sent anywhere else
   - Responds in the active language of the application
 - 📂 **MusicXML import** — drag & drop or file picker, parses chords, sections, repeat barlines, key signature, tempo
@@ -113,11 +113,9 @@ Click **⚙** in the panel header:
 
 | Setting | Values |
 |---------|--------|
-| Provider | Claude (Anthropic) · OpenAI · Infomaniak |
+| Provider | Claude (Anthropic) · OpenAI |
 | Claude model | `claude-sonnet-4-6`, `claude-opus-4-7` |
 | OpenAI model | `gpt-4o`, `gpt-4o-mini` |
-| Infomaniak model | `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6` |
-| Infomaniak Product ID | AI Tools product identifier from your Infomaniak account |
 | API key | Entered in the app, stored in `localStorage` |
 
 ### Available tools
@@ -229,12 +227,6 @@ Barline, volta, and navigation symbol popup menus automatically reposition to st
 
 ### v4.2 (May 2026)
 - ✅ Markdown rendering in AI responses — paragraphs, lists, **bold**, *italic*, `code`
-- ✅ Removed Infomaniak provider
-
-### v4.1 (May 2026)
-- ✅ **Infomaniak provider** — sovereign European-hosted AI API (OpenAI-compatible)
-- ✅ 5 available models: `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6`
-- ✅ Bearer authentication + Product ID entered in the config panel
 
 ### v4.0 (May 2026)
 - ✅ **Conversational AI assistant** — Claude (Sonnet / Opus) and OpenAI (GPT-4o)

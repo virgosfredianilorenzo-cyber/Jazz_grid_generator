@@ -115,13 +115,8 @@
     border-top: 1px solid var(--border);
     margin: 2rem 0;
   }
-  .badges { margin: 0.75rem 0 1.25rem; display: flex; flex-wrap: wrap; gap: 6px; }
-  .badges img { height: 20px; }
   strong { color: #fff; }
   em { color: var(--text-dim); }
-  /* Changelog checkmarks */
-  li:has(> p:first-child)  { list-style: none; margin-left: -1rem; }
-
   @media (max-width: 600px) {
     h1 { font-size: 1.5rem; }
     h2 { font-size: 1.1rem; }
@@ -152,7 +147,7 @@
 <li>Modifie les métadonnées (titre, tonalité, tempo, style)</li>
 <li>Transpose tout le chart</li>
 <li>Aperçu avant application : liste des changements, boutons Appliquer / Annuler</li>
-<li>Compatible <strong>Claude</strong> (claude-sonnet-4-6, claude-opus-4-7), <strong>OpenAI</strong> (gpt-4o, gpt-4o-mini) et <strong>Infomaniak</strong> (euria, Ministral, Qwen, Gemma, Kimi)</li>
+<li>Compatible <strong>Claude</strong> (claude-sonnet-4-6, claude-opus-4-7) et <strong>OpenAI</strong> (gpt-4o, gpt-4o-mini)</li>
 <li>Clé API saisie dans l'app, stockée en <code>localStorage</code>, jamais transmise ailleurs</li>
 <li>Réponses dans la langue active de l'application</li>
 <li>📂 <strong>Import MusicXML</strong> — drag &amp; drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo</li>
@@ -235,7 +230,7 @@
 <tbody>
 <tr>
 <td>Provider</td>
-<td>Claude (Anthropic) · OpenAI · Infomaniak</td>
+<td>Claude (Anthropic) · OpenAI</td>
 </tr>
 <tr>
 <td>Modèle Claude</td>
@@ -244,14 +239,6 @@
 <tr>
 <td>Modèle OpenAI</td>
 <td><code>gpt-4o</code>, <code>gpt-4o-mini</code></td>
-</tr>
-<tr>
-<td>Modèle Infomaniak</td>
-<td><code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></td>
-</tr>
-<tr>
-<td>Product ID Infomaniak</td>
-<td>Identifiant du produit AI Tools sur votre compte Infomaniak</td>
 </tr>
 <tr>
 <td>Clé API</td>
@@ -510,13 +497,6 @@
 <h3 id="v42-mai-2026">v4.2 (mai 2026)</h3>
 <ul>
 <li>✅ Rendu Markdown dans les réponses IA — paragraphes, listes, <strong>gras</strong>, <em>italique</em>, <code>code</code></li>
-<li>✅ Suppression du provider Infomaniak</li>
-</ul>
-<h3 id="v41-mai-2026">v4.1 (mai 2026)</h3>
-<ul>
-<li>✅ <strong>Provider Infomaniak</strong> — API souveraine hébergée en Europe (compatible OpenAI)</li>
-<li>✅ 5 modèles disponibles : <code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></li>
-<li>✅ Authentification Bearer + Product ID saisi dans le panneau de config</li>
 </ul>
 <h3 id="v40-mai-2026">v4.0 (mai 2026)</h3>
 <ul>

@@ -24,7 +24,7 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
   - Modifie les métadonnées (titre, tonalité, tempo, style)
   - Transpose tout le chart
   - Aperçu avant application : liste des changements, boutons Appliquer / Annuler
-  - Compatible **Claude** (claude-sonnet-4-6, claude-opus-4-7), **OpenAI** (gpt-4o, gpt-4o-mini) et **Infomaniak** (euria, Ministral, Qwen, Gemma, Kimi)
+  - Compatible **Claude** (claude-sonnet-4-6, claude-opus-4-7) et **OpenAI** (gpt-4o, gpt-4o-mini)
   - Clé API saisie dans l'app, stockée en `localStorage`, jamais transmise ailleurs
   - Réponses dans la langue active de l'application
 - 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier, parse les accords, sections, barres de reprise, tonalité, tempo
@@ -113,11 +113,9 @@ Cliquer **⚙** dans l'en-tête du panneau :
 
 | Paramètre | Valeurs |
 |-----------|---------|
-| Provider | Claude (Anthropic) · OpenAI · Infomaniak |
+| Provider | Claude (Anthropic) · OpenAI |
 | Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-7` |
 | Modèle OpenAI | `gpt-4o`, `gpt-4o-mini` |
-| Modèle Infomaniak | `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6` |
-| Product ID Infomaniak | Identifiant du produit AI Tools sur votre compte Infomaniak |
 | Clé API | Saisie dans l'app, stockée en `localStorage` |
 
 ### Outils disponibles
@@ -229,12 +227,6 @@ Les menus de sélection de barres de mesure, de voltas et de symboles de navigat
 
 ### v4.2 (mai 2026)
 - ✅ Rendu Markdown dans les réponses IA — paragraphes, listes, **gras**, *italique*, `code`
-- ✅ Suppression du provider Infomaniak
-
-### v4.1 (mai 2026)
-- ✅ **Provider Infomaniak** — API souveraine hébergée en Europe (compatible OpenAI)
-- ✅ 5 modèles disponibles : `euria`, `Ministral-3B`, `Qwen3.5-122B`, `Gemma-4-31B`, `Kimi-K2.6`
-- ✅ Authentification Bearer + Product ID saisi dans le panneau de config
 
 ### v4.0 (mai 2026)
 - ✅ **Assistant IA conversationnel** — Claude (Sonnet / Opus) et OpenAI (GPT-4o)
