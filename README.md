@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne avec assistant IA conversationnel, annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.
 
-![Version](https://img.shields.io/badge/version-4.1-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.2-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -226,6 +226,10 @@ Les menus de sélection de barres de mesure, de voltas et de symboles de navigat
 ---
 
 ## 📋 Changelog
+
+### v4.2 (mai 2026)
+- ✅ Rendu Markdown dans les réponses IA — paragraphes, listes, **gras**, *italique*, `code`
+- ✅ Suppression du provider Infomaniak
 
 ### v4.1 (mai 2026)
 - ✅ **Provider Infomaniak** — API souveraine hébergée en Europe (compatible OpenAI)

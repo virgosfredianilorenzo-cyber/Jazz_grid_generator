@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor with a conversational AI assistant, music theory annotations, 4- and 5-string bass fretboard diagrams, MusicXML import/export, and optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.1-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.2-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -226,6 +226,10 @@ Barline, volta, and navigation symbol popup menus automatically reposition to st
 ---
 
 ## 📋 Changelog
+
+### v4.2 (May 2026)
+- ✅ Markdown rendering in AI responses — paragraphs, lists, **bold**, *italic*, `code`
+- ✅ Removed Infomaniak provider
 
 ### v4.1 (May 2026)
 - ✅ **Infomaniak provider** — sovereign European-hosted AI API (OpenAI-compatible)

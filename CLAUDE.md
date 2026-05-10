@@ -66,9 +66,6 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur.
 
-## Version en cours (v3.0)
-- Diagrammes 5 cordes pour les 17 modes
-- Toggle 4/5 cordes (localStorage)
-- Correction `transposeModesvg` — degrés altérés
-- Réduction police automatique en PDF
-- Auto-annotation à l'import MusicXML
+## Version en cours (v4.2)
+- Suppression du provider Infomaniak
+- Rendu Markdown dans les bulles de réponse IA (`_aiMdToHtml`)
