@@ -314,8 +314,8 @@ const _AI_TOOL_EXECUTORS = {
     const idx = parseInt(a.sectionIndex);
     if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
     const clone = JSON.parse(JSON.stringify(draft.sections[idx]));
-    const insertAfter = a.afterIndex !== undefined ? parseInt(a.afterIndex) : idx;
-    if (insertAfter < 0 || insertAfter >= draft.sections.length) throw new Error('afterIndex out of range');
+    const rawAfter = a.afterIndex !== undefined ? parseInt(a.afterIndex) : idx;
+    const insertAfter = Math.max(0, Math.min(rawAfter, draft.sections.length - 1));
     draft.sections.splice(insertAfter + 1, 0, clone);
   },
 
