@@ -148,9 +148,10 @@ const AI_TOOLS = [
   },
   {
     name: 'duplicate_section',
-    description: 'Duplique une section entière (accords, annotations, barres) juste après la section originale. Le label reçoit le suffixe " (bis)".',
+    description: 'Duplique une section entière (accords, annotations, barres) en conservant le même label. Par défaut insère juste après l\'originale. Utiliser afterIndex pour choisir la position : la copie sera placée après la section dont l\'index est afterIndex.',
     inputSchema: { type: 'object', properties: {
-      sectionIndex: { type: 'number', description: 'Index de la section à dupliquer (0-based).' }
+      sectionIndex: { type: 'number', description: 'Index de la section à dupliquer (0-based).' },
+      afterIndex: { type: 'number', description: 'Index de la section après laquelle insérer la copie. Omis = juste après l\'originale.' }
     }, required: ['sectionIndex'] }
   },
   {
@@ -313,8 +314,9 @@ const _AI_TOOL_EXECUTORS = {
     const idx = parseInt(a.sectionIndex);
     if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
     const clone = JSON.parse(JSON.stringify(draft.sections[idx]));
-    clone.label += ' (bis)';
-    draft.sections.splice(idx + 1, 0, clone);
+    const insertAfter = a.afterIndex !== undefined ? parseInt(a.afterIndex) : idx;
+    if (insertAfter < 0 || insertAfter >= draft.sections.length) throw new Error('afterIndex out of range');
+    draft.sections.splice(insertAfter + 1, 0, clone);
   },
 
   remove_section(draft, a) {
@@ -511,10 +513,10 @@ function _aiSystemPrompt() {
   const lang = (typeof currentLang !== 'undefined' ? currentLang : null)
     || document.getElementById('lang-select')?.value || 'fr';
   const prompts = {
-    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\nRègle importante : pour dupliquer/copier une section → duplicate_section ; pour dupliquer/copier une mesure → duplicate_bar. N'utilise jamais add_section ou add_bar pour dupliquer.\n\nÉtat actuel de la grille :\n",
-    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\nImportant rule: to duplicate/copy a section → duplicate_section; to duplicate/copy a bar → duplicate_bar. Never use add_section or add_bar to duplicate.\n\nCurrent chart state:\n",
-    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\nRegla importante: para duplicar una sección → duplicate_section; para duplicar un compás → duplicate_bar.\n\nEstado actual:\n",
-    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\nRegola importante: per duplicare una sezione → duplicate_section; per duplicare una misura → duplicate_bar.\n\nGriglia attuale:\n"
+    fr: "Tu es un assistant musical intégré à Jazz Grid Generator. Aide l'utilisateur à construire et modifier des grilles jazz en utilisant les outils disponibles. Avant d'agir, résume en 1-2 phrases ce que tu vas faire. Si une demande est ambiguë, pose une question de clarification. Réponds en français.\nRègle importante : pour dupliquer/copier une section → duplicate_section ; pour dupliquer/copier une mesure → duplicate_bar. N'utilise jamais add_section ou add_bar pour dupliquer. Pour placer la copie après une section précise (et non juste après l'originale), utiliser le paramètre afterIndex de duplicate_section.\n\nÉtat actuel de la grille :\n",
+    en: "You are a musical assistant integrated into Jazz Grid Generator. Help the user build and modify jazz chord charts using the available tools. Before acting, summarize in 1-2 sentences what you will do. If a request is ambiguous, ask for clarification. Respond in English.\nImportant rule: to duplicate/copy a section → duplicate_section; to duplicate/copy a bar → duplicate_bar. Never use add_section or add_bar to duplicate. To place the copy after a specific section (not just after the original), use the afterIndex parameter of duplicate_section.\n\nCurrent chart state:\n",
+    es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\nRegla importante: para duplicar una sección → duplicate_section; para duplicar un compás → duplicate_bar. Para colocar la copia después de una sección específica, usar el parámetro afterIndex de duplicate_section.\n\nEstado actual:\n",
+    it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\nRegola importante: per duplicare una sezione → duplicate_section; per duplicare una misura → duplicate_bar. Per inserire la copia dopo una sezione specifica, usare il parametro afterIndex di duplicate_section.\n\nGriglia attuale:\n"
   };
   return (prompts[lang] || prompts.en) + JSON.stringify(chartData);
 }
