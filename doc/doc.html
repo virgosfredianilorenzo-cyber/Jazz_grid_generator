@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>𝄢 Jazz Grid Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0f0f;
+    --paper: #f5f0e8;
+    --cream: #ece6d4;
+    --gold: #c8922a;
+    --gold-light: #e8b84b;
+    --rust: #8b3a1e;
+    --staff: #d4c9a8;
+    --accent: #1a3a5c;
+    --code-bg: #1e1e2e;
+    --code-fg: #cdd6f4;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── STAFF LINES BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 22px,
+      var(--staff) 22px,
+      var(--staff) 23px
+    );
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem 6rem;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 5rem 0 3rem;
+    border-bottom: 3px solid var(--ink);
+    position: relative;
+  }
+
+  .hero::after {
+    content: '';
+    display: block;
+    border-bottom: 1px solid var(--ink);
+    margin-top: 3px;
+  }
+
+  .clef {
+    font-size: 9rem;
+    line-height: 1;
+    color: var(--gold);
+    display: block;
+    font-family: serif;
+    margin-bottom: -0.5rem;
+    animation: clefIn 1.2s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  @keyframes clefIn {
+    from { opacity: 0; transform: translateY(30px) rotate(-5deg); }
+    to   { opacity: 1; transform: translateY(0) rotate(0deg); }
+  }
+
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    animation: fadeUp 1s 0.2s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  .tagline {
+    font-size: 1.05rem;
+    color: #555;
+    max-width: 600px;
+    margin-top: 1rem;
+    font-style: italic;
+    animation: fadeUp 1s 0.35s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    animation: fadeUp 1s 0.5s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+  }
+
+  .badge.gold   { background: var(--gold); color: #fff; }
+  .badge.rust   { background: var(--rust); color: #fff; }
+  .badge.accent { background: var(--accent); color: #fff; }
+  .badge.green  { background: #2d6a4f; color: #fff; }
+
+  .deploy-link {
+    display: inline-block;
+    margin-top: 1.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 1px;
+    transition: color .2s, border-color .2s;
+  }
+  .deploy-link:hover { color: var(--gold); border-color: var(--accent); }
+
+  .intro-block {
+    background: var(--cream);
+    border-left: 4px solid var(--gold);
+    padding: 1rem 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-top: 3.5rem;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.1;
+    border-bottom: 2px solid var(--gold);
+    padding-bottom: 0.4rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 2rem 0 0.75rem;
+    color: var(--accent);
+  }
+
+  p { margin-bottom: 1rem; }
+
+  /* ── FEATURE GRID ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    margin-top: 1rem;
+  }
+
+  .feature-card {
+    background: var(--paper);
+    padding: 1.25rem 1.4rem;
+    transition: background .2s;
+  }
+  .feature-card:hover { background: var(--cream); }
+
+  .feature-card .icon {
+    font-size: 1.4rem;
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .feature-card strong {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .feature-card p {
+    font-size: 0.88rem;
+    color: #444;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .sub-features {
+    margin-top: 0.4rem;
+    padding-left: 1rem;
+    border-left: 2px solid var(--gold-light);
+  }
+  .sub-features li {
+    font-size: 0.82rem;
+    color: #555;
+    list-style: none;
+    padding: 0.15rem 0;
+  }
+  .sub-features li::before { content: '— '; color: var(--gold); }
+
+  /* ── CODE BLOCKS ── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    border-radius: 0;
+    border-left: 3px solid var(--gold);
+    margin: 1rem 0;
+  }
+
+  code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85em;
+    background: rgba(200,146,42,.15);
+    color: var(--rust);
+    padding: 0.1em 0.35em;
+    border-radius: 2px;
+  }
+
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.9rem;
+  }
+
+  thead { background: var(--ink); color: var(--paper); }
+
+  thead th {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 0.8rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+    text-align: left;
+  }
+
+  tbody tr { border-bottom: 1px solid var(--staff); }
+  tbody tr:nth-child(even) { background: var(--cream); }
+  tbody tr:hover { background: rgba(200,146,42,.1); }
+
+  td { padding: 0.55rem 1rem; vertical-align: top; }
+  td code { font-size: 0.8rem; }
+
+  /* ── ORDERED LIST (flux) ── */
+  .workflow-list {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .workflow-list li {
+    counter-increment: step;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .workflow-list li::before {
+    content: counter(step);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--gold);
+    min-width: 1.8rem;
+    line-height: 1.2;
+  }
+
+  /* ── CHANGELOG ── */
+  .changelog-entry {
+    border-left: 3px solid var(--staff);
+    padding-left: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .changelog-entry.latest { border-color: var(--gold); }
+
+  .changelog-entry h3 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .version-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+    vertical-align: middle;
+  }
+
+  .changelog-entry ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5rem;
+  }
+
+  .changelog-entry li {
+    font-size: 0.9rem;
+    padding: 0.2rem 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .changelog-entry li::before {
+    content: '✅';
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  /* ── ROADMAP ── */
+  .roadmap-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .roadmap-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem;
+    background: var(--cream);
+    border: 1px dashed var(--staff);
+  }
+
+  .roadmap-list li::before {
+    content: '○';
+    color: var(--gold);
+    font-size: 1.1rem;
+  }
+
+  /* ── LICENCE FOOTER ── */
+  .licence-block {
+    margin-top: 4rem;
+    border-top: 3px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    margin-bottom: 3px;
+    padding: 1.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .licence-block .big-clef {
+    font-size: 4rem;
+    color: var(--gold);
+    font-family: serif;
+    line-height: 1;
+  }
+
+  .licence-block p {
+    font-style: italic;
+    font-size: 0.95rem;
+    color: #444;
+    margin: 0;
+  }
+
+  .licence-block strong { color: var(--ink); }
+
+  /* ── QUICK START CARDS ── */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+  }
+
+  .option-card {
+    background: var(--paper);
+    padding: 1.25rem;
+    transition: background .2s;
+  }
+
+  .option-card:hover { background: var(--cream); }
+
+  .option-card .opt-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .option-card strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+
+  .option-card p { font-size: 0.85rem; color: #555; margin: 0; }
+
+  /* ── MODES TABLE COMPACT ── */
+  .modes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    margin: 1rem 0;
+  }
+
+  .mode-cell {
+    background: var(--paper);
+    padding: 0.6rem 0.9rem;
+    transition: background .2s;
+  }
+
+  .mode-cell:hover { background: var(--cream); }
+  .mode-cell .mode-name { font-weight: 700; font-size: 0.9rem; }
+  .mode-cell .mode-key {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: #666;
+    margin-top: 0.1rem;
+  }
+
+  /* ── UNDO TABLE ── */
+  .undo-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    margin: 1rem 0;
+  }
+
+  .undo-row {
+    display: contents;
+  }
+
+  .undo-row > div {
+    background: var(--paper);
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .undo-row:nth-child(even) > div { background: var(--cream); }
+  .undo-row > div:last-child { text-align: center; }
+
+  .undo-header > div {
+    background: var(--ink) !important;
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── THEORY TABLE ── */
+  .theory-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    margin: 1rem 0;
+  }
+
+  .theory-row { display: contents; }
+  .theory-row > div {
+    background: var(--paper);
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+  }
+  .theory-row:nth-child(even) > div { background: var(--cream); }
+  .theory-row > div:first-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--rust);
+    white-space: nowrap;
+  }
+  .theory-header > div {
+    background: var(--ink) !important;
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── CONFIG TABLE ── */
+  .config-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1px;
+    background: var(--ink);
+    border: 1px solid var(--ink);
+    margin: 1rem 0;
+  }
+  .config-row { display: contents; }
+  .config-row > div {
+    background: var(--paper);
+    padding: 0.55rem 1rem;
+    font-size: 0.88rem;
+  }
+  .config-row:nth-child(even) > div { background: var(--cream); }
+  .config-row > div:first-child { font-weight: 700; white-space: nowrap; }
+  .config-header > div {
+    background: var(--ink) !important;
+    color: var(--paper);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 2.2rem; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .options-grid  { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- HERO -->
+  <header class="hero">
+    <span class="clef">𝄢</span>
+    <h1>Jazz Grid Generator</h1>
+    <p class="tagline">Éditeur de grilles jazz en ligne avec assistant IA conversationnel, annotations de théorie musicale, diagrammes de manche basse 4 et 5 cordes, import/export MusicXML et sortie PDF optimisée.</p>
+
+    <div class="badges">
+      <span class="badge gold">v4.1</span>
+      <span class="badge accent">Apache 2.0</span>
+      <span class="badge">HTML / JS</span>
+      <span class="badge rust">FR · ES · IT · EN</span>
+      <span class="badge green">Zéro dépendance</span>
+    </div>
+
+    <a class="deploy-link" href="https://www.virgos.fr/JazzGridGenerator/" target="_blank">
+      🌐 virgos.fr/JazzGridGenerator/
+    </a>
+  </header>
+
+  <div class="intro-block">
+    Cette application permet de créer des grilles à partir d'un document vierge. L'import de fichiers au format MusicXML issus de iReal Pro, Musescore ou tout autre logiciel supportant ce format est fonctionnel. Les grilles une fois importées sont modifiables. L'impression au format PDF de la grille finalisée peut être uploadée dans une application de type SongBook Pro et utilisée sur tablette lors de jam sessions ou de concerts.
+  </div>
+
+  <!-- FONCTIONNALITÉS -->
+  <section>
+    <h2>✨ Fonctionnalités</h2>
+
+    <div class="feature-grid">
+
+      <div class="feature-card">
+        <span class="icon">🤖</span>
+        <strong>Assistant IA conversationnel</strong>
+        <p>Panneau en bas de page, piloté en langage naturel.</p>
+        <ul class="sub-features">
+          <li>Crée, modifie, supprime sections, mesures, accords</li>
+          <li>Duplique sections et mesures avec contenu complet</li>
+          <li>Transpose tout le chart</li>
+          <li>Aperçu avant application : Appliquer / Annuler</li>
+          <li>Claude, OpenAI &amp; Infomaniak</li>
+          <li>Clé API stockée en localStorage</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">🎸</span>
+        <strong>Diagrammes de manche basse</strong>
+        <p>4 cordes (GDAE) et 5 cordes (BEADG) avec toggle dans la toolbar.</p>
+        <ul class="sub-features">
+          <li>17 modes disponibles en version 5 cordes</li>
+          <li>Transposition automatique par fondamentale</li>
+          <li>🔴 fondamentale · 🟡 arpège · 🔵 autres degrés</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">🎼</span>
+        <strong>Annotations de théorie musicale</strong>
+        <p>Par accord : modes, arpèges, tensions, notes libres colorées.</p>
+        <ul class="sub-features">
+          <li>Ionien, Dorien, Mixolydien, Altéré, etc.</li>
+          <li>Arpèges à 4 sons + inversions</li>
+          <li>Tensions disponibles &amp; notes à éviter</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">📂</span>
+        <strong>Import / Export MusicXML &amp; MXL</strong>
+        <p>Drag &amp; drop ou sélecteur de fichier. Compatible MuseScore, Sibelius, Finale, iReal Pro.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">✏️</span>
+        <strong>Édition complète des accords</strong>
+        <p>17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord. Accord alternatif (substitution tritoniée).</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">🎵</span>
+        <strong>Transposition &amp; Navigation</strong>
+        <p>Par demi-ton (±) ou sélection directe. Voltas, Segno, Coda, D.C., D.S., Fine. Barres de mesure enrichies.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">↩️</span>
+        <strong>Annuler / Rétablir</strong>
+        <p>Pile de 10 snapshots JSON. Raccourcis Ctrl+Z / Ctrl+Y (⌘Z / ⌘Y sur Mac). Boutons ↩ ↪ dans la toolbar.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">📱</span>
+        <strong>Support tactile tablette</strong>
+        <p>Drag &amp; drop Touch Events, pinch-to-zoom (0.5× à 2×), cibles agrandies, MutationObserver.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">🖨️</span>
+        <strong>Impression / PDF avancée</strong>
+        <p>Thème clair ☀️ / sombre 🌙, contraste ajustable (5 niveaux), colorisation par section, police adaptative.</p>
+      </div>
+
+      <div class="feature-card">
+        <span class="icon">💾</span>
+        <strong>Sauvegarde JSON &amp; Zéro dépendance</strong>
+        <p>Fidélité complète incluant toutes les annotations. Fichier HTML unique, fonctionne hors ligne.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DÉMARRAGE RAPIDE -->
+  <section>
+    <h2>🚀 Démarrage rapide</h2>
+
+    <div class="options-grid">
+      <div class="option-card">
+        <div class="opt-num">1</div>
+        <strong>Directement dans le navigateur</strong>
+        <p>Ouvrir <code>Jazz_grid_generator.html</code> dans n'importe quel navigateur moderne. Aucun serveur requis.</p>
+      </div>
+      <div class="option-card">
+        <div class="opt-num">2</div>
+        <strong>Version splittée (développement)</strong>
+        <p>Structure modulaire avec CSS et JS séparés pour faciliter la maintenance.</p>
+      </div>
+      <div class="option-card">
+        <div class="opt-num">3</div>
+        <strong>Hébergement statique</strong>
+        <p>Apache, Nginx, Netlify, Vercel, Cloudflare Pages… Aucune configuration requise.</p>
+      </div>
+    </div>
+
+    <h3>Structure de la version splittée</h3>
+    <pre>Split/
+├── index.html
+├── css/
+│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo + panneau IA
+│   ├── modals.css       ← styles des modales
+│   └── print.css        ← styles impression, réduction police multi-accords
+└── js/
+    ├── i18n.js          ← dictionnaire de traductions (FR/ES/IT/EN)
+    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg(), getModesvg()
+    ├── theory.js        ← moteur de théorie (gammes, arpèges, tensions)
+    ├── state.js         ← variables globales, window.bassStrings, setBassStrings()
+    ├── render.js        ← rendu DOM de la grille
+    ├── modals.js        ← modales accord et annotation
+    ├── actions.js       ← mutations de la grille, auto-annotation à l'import
+    ├── print.js         ← thème impression et système de couleurs par section
+    ├── init.js          ← initialisation, restauration localStorage
+    └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)</pre>
+  </section>
+
+  <!-- ASSISTANT IA -->
+  <section>
+    <h2>🤖 Assistant IA</h2>
+
+    <p>Le panneau IA s'ouvre via l'onglet <strong>✦ IA</strong> en bas à droite de la page. Il remonte sur toute la largeur de l'écran.</p>
+
+    <h3>Configuration</h3>
+    <p>Cliquer <strong>⚙</strong> dans l'en-tête du panneau :</p>
+
+    <div class="config-grid">
+      <div class="config-row config-header"><div>Paramètre</div><div>Valeurs</div></div>
+      <div class="config-row"><div>Provider</div><div>Claude (Anthropic) · OpenAI · Infomaniak</div></div>
+      <div class="config-row"><div>Modèle Claude</div><div><code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></div></div>
+      <div class="config-row"><div>Modèle OpenAI</div><div><code>gpt-4o</code>, <code>gpt-4o-mini</code></div></div>
+      <div class="config-row"><div>Modèle Infomaniak</div><div><code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></div></div>
+      <div class="config-row"><div>Product ID Infomaniak</div><div>Identifiant du produit AI Tools sur votre compte Infomaniak</div></div>
+      <div class="config-row"><div>Clé API</div><div>Saisie dans l'app, stockée en <code>localStorage</code></div></div>
+    </div>
+
+    <h3>Outils disponibles</h3>
+    <div class="config-grid">
+      <div class="config-row config-header"><div>Catégorie</div><div>Outils</div></div>
+      <div class="config-row"><div>Chart</div><div><code>set_chart_metadata</code>, <code>transpose_chart</code>, <code>set_columns</code>, <code>set_bass_strings</code></div></div>
+      <div class="config-row"><div>Sections</div><div><code>add_section</code>, <code>duplicate_section</code>, <code>rename_section</code>, <code>remove_section</code></div></div>
+      <div class="config-row"><div>Mesures</div><div><code>add_bar</code>, <code>duplicate_bar</code>, <code>remove_bar</code>, <code>set_barline</code></div></div>
+      <div class="config-row"><div>Accords</div><div><code>add_chord</code>, <code>edit_chord</code>, <code>remove_chord</code>, <code>set_chord_alt</code></div></div>
+      <div class="config-row"><div>Annotations</div><div><code>set_annotation</code></div></div>
+    </div>
+
+    <h3>Flux de travail</h3>
+    <ol class="workflow-list">
+      <li>L'utilisateur écrit une instruction en langage naturel</li>
+      <li>L'IA résume ce qu'elle va faire, puis appelle les outils nécessaires</li>
+      <li>Un aperçu liste les changements (ex. : <em>"Section B ajoutée"</em>, <em>"Dm7 → D7 mes. 3"</em>)</li>
+      <li><strong>Appliquer</strong> → <code>chartData</code> mis à jour, snapshot undo, re-render</li>
+      <li><strong>Annuler</strong> → draft supprimé, rien ne change</li>
+    </ol>
+  </section>
+
+  <!-- BASSE 4/5 CORDES -->
+  <section>
+    <h2>🎸 Toggle Basse 4 / 5 cordes</h2>
+
+    <p>Le bouton <strong>🎸 4 / 5</strong> dans la toolbar permet de basculer entre les diagrammes <strong>4 cordes (GDAE)</strong> et <strong>5 cordes (BEADG)</strong>. Le choix est persisté en <code>localStorage</code> et restauré automatiquement au rechargement.</p>
+
+    <h3>Modes disponibles en 5 cordes (17 / 17)</h3>
+    <div class="modes-grid">
+      <div class="mode-cell"><div class="mode-name">Ionien</div><div class="mode-key">Ionien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Dorien</div><div class="mode-key">Dorien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Phrygien</div><div class="mode-key">Phrygien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Lydien</div><div class="mode-key">Lydien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Mixolydien</div><div class="mode-key">Mixolydien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Éolien</div><div class="mode-key">Aeolien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Locrien</div><div class="mode-key">Locrien_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Lydien b7</div><div class="mode-key">LydienB7_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Altéré</div><div class="mode-key">Altere_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Mélodie mineure</div><div class="mode-key">MelodieMineure_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Min. harmonique</div><div class="mode-key">MinHarmonique_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Mixolydien b9b13</div><div class="mode-key">MixolydienB9B13_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Lydien augmenté</div><div class="mode-key">LydienAugmente_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Locrien #2</div><div class="mode-key">LocrienDiese2_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Dim. demi-ton</div><div class="mode-key">DimDemiTon_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Dim. ton-demi</div><div class="mode-key">DimTonDemi_5</div></div>
+      <div class="mode-cell"><div class="mode-name">Tons entiers</div><div class="mode-key">TonsEntiers_5</div></div>
+    </div>
+  </section>
+
+  <!-- ANNULER / RÉTABLIR -->
+  <section>
+    <h2>↩️ Annuler / Rétablir</h2>
+    <p>L'historique couvre <strong>toutes les mutations</strong> de la grille. Profondeur : <strong>10 niveaux</strong>.</p>
+
+    <div class="undo-grid">
+      <div class="undo-row undo-header"><div>Action</div><div>Couverte</div></div>
+      <div class="undo-row"><div>Ajout / suppression / duplication d'accord</div><div>✅</div></div>
+      <div class="undo-row"><div>Modification d'annotation</div><div>✅</div></div>
+      <div class="undo-row"><div>Ajout / suppression / duplication de mesure</div><div>✅</div></div>
+      <div class="undo-row"><div>Ajout / suppression de section</div><div>✅</div></div>
+      <div class="undo-row"><div>Drag &amp; drop section ou mesure</div><div>✅</div></div>
+      <div class="undo-row"><div>Modification de barline</div><div>✅</div></div>
+      <div class="undo-row"><div>Volta (1ère / 2ème / 3ème)</div><div>✅</div></div>
+      <div class="undo-row"><div>Symbole de navigation</div><div>✅</div></div>
+      <div class="undo-row"><div>Accord alternatif</div><div>✅</div></div>
+      <div class="undo-row"><div>Application d'un draft IA</div><div>✅</div></div>
+    </div>
+  </section>
+
+  <!-- IMPRESSION PDF -->
+  <section>
+    <h2>🖨️ Impression / PDF</h2>
+
+    <h3>Mesures multi-accords</h3>
+    <div class="config-grid">
+      <div class="config-row config-header"><div>Nombre d'accords</div><div>Symbole / Zone théorie / Hauteur max</div></div>
+      <div class="config-row"><div>2 accords</div><div>0.72rem · 0.52rem · 2.6em (≈ 2 lignes)</div></div>
+      <div class="config-row"><div>3+ accords</div><div>0.62rem · 0.44rem · 2.2em (≈ 2 lignes)</div></div>
+    </div>
+
+    <h3>Menus popup</h3>
+    <p>Les menus de sélection de barres de mesure, de voltas et de symboles de navigation se positionnent automatiquement pour rester dans l'écran, même en bord droit ou en bas de page.</p>
+  </section>
+
+  <!-- THÉORIE MUSICALE -->
+  <section>
+    <h2>🎼 Moteur de théorie musicale</h2>
+
+    <h3>Modes suggérés par qualité d'accord</h3>
+    <div class="theory-grid">
+      <div class="theory-row theory-header"><div>Qualité</div><div>Modes suggérés</div></div>
+      <div class="theory-row"><div>maj7</div><div>Ionien, Lydien, Lydien augmenté</div></div>
+      <div class="theory-row"><div>7</div><div>Mixolydien, Lydien b7, Altéré, Mixolydien b9b13</div></div>
+      <div class="theory-row"><div>m7</div><div>Dorien, Éolien, Phrygien, Min. harmonique</div></div>
+      <div class="theory-row"><div>m7b5</div><div>Locrien, Locrien #2</div></div>
+      <div class="theory-row"><div>dim7</div><div>Dim. ton-demi, Dim. demi-ton</div></div>
+      <div class="theory-row"><div>mM7</div><div>Mélodie mineure, Lydien augmenté, Min. harmonique</div></div>
+      <div class="theory-row"><div>aug</div><div>Tons entiers</div></div>
+    </div>
+  </section>
+
+  <!-- CHANGELOG -->
+  <section>
+    <h2>📋 Changelog</h2>
+
+    <div class="changelog-entry latest">
+      <h3><span class="version-tag">v4.1</span> mai 2026</h3>
+      <ul>
+        <li>Provider Infomaniak — API souveraine hébergée en Europe (compatible OpenAI)</li>
+        <li>5 modèles disponibles : <code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></li>
+        <li>Authentification Bearer + Product ID saisi dans le panneau de config</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <h3><span class="version-tag">v4.0</span> mai 2026</h3>
+      <ul>
+        <li>Assistant IA conversationnel — Claude (Sonnet / Opus) et OpenAI (GPT-4o)</li>
+        <li>15 outils IA : sections, mesures, accords, annotations, métadonnées, transposition</li>
+        <li><code>duplicate_section</code> et <code>duplicate_bar</code> — copie complète du contenu</li>
+        <li>Flux draft-preview-apply avec liste des changements et undo intégré</li>
+        <li>Panneau IA en barre du bas, pleine largeur, animation slide-up</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <h3><span class="version-tag">v3.0</span> avril 2026</h3>
+      <ul>
+        <li>Diagrammes 5 cordes (BEADG) pour les 17 modes</li>
+        <li>Toggle 🎸 4/5 cordes dans la toolbar, persisté en <code>localStorage</code></li>
+        <li>Correction <code>transposeModesvg()</code> — support des degrés altérés (<code>b2</code>, <code>#4</code>, <code>b6</code>, <code>b7</code>…)</li>
+        <li>Réduction automatique de police en PDF pour les mesures multi-accords</li>
+        <li>Auto-annotation à l'import MusicXML</li>
+        <li>Menus popup repositionnés en bord d'écran</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <h3><span class="version-tag">v2.0</span></h3>
+      <ul>
+        <li>Historique Annuler / Rétablir (10 niveaux, Ctrl+Z/Y)</li>
+        <li>Support tactile tablette — drag &amp; drop Touch Events, pinch-to-zoom, MutationObserver</li>
+        <li>Symbole <code>(w)</code> basse seule</li>
+        <li>Accord alternatif (substitution tritoniée)</li>
+        <li>Barres de mesure enrichies, Voltas, Symboles de navigation</li>
+        <li>Symboles iReal Pro (<code>%</code>, <code>𝄎</code>, <code>N.C.</code>, <code>/</code>)</li>
+        <li>Drag &amp; drop sections et mesures</li>
+        <li>Import/Export MXL (JSZip)</li>
+        <li>4 langues (FR, ES, IT, EN)</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <h3><span class="version-tag">v1.0</span></h3>
+      <ul>
+        <li>Éditeur de grilles basique</li>
+        <li>Annotations de théorie musicale</li>
+        <li>Import MusicXML</li>
+        <li>Transposition chromatique</li>
+        <li>Import/export JSON</li>
+        <li>Impression PDF thème clair/sombre</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- FEUILLE DE ROUTE -->
+  <section>
+    <h2>📋 Feuille de route</h2>
+    <ul class="roadmap-list">
+      <li>Lecture MIDI des notes fondamentales</li>
+      <li>Sélecteur de couleur personnalisé par section</li>
+      <li>Import iReal Pro <code>.irealbook</code></li>
+    </ul>
+  </section>
+
+  <!-- LICENCE -->
+  <div class="licence-block">
+    <div class="big-clef">𝄢</div>
+    <div>
+      <strong>Apache 2.0</strong>
+      <p><em>Made with love for musicians, by a bass player.</em></p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
