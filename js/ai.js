@@ -64,7 +64,7 @@ async function _aiCallClaude(systemPrompt, messages, tools, settings) {
     if (block.type === 'text') message += block.text;
     else if (block.type === 'tool_use') toolCalls.push({ id: block.id, name: block.name, args: block.input });
   }
-  return { message, toolCalls };
+  return { message, toolCalls, usage: { in: data.usage?.input_tokens || 0, out: data.usage?.output_tokens || 0 } };
 }
 
 async function _aiCallOpenAI(systemPrompt, messages, tools, settings) {
@@ -94,7 +94,8 @@ async function _aiCallOpenAI(systemPrompt, messages, tools, settings) {
     toolCalls: (msg.tool_calls || []).map(tc => ({
       id: tc.id, name: tc.function.name,
       args: JSON.parse(tc.function.arguments || '{}')
-    }))
+    })),
+    usage: { in: data.usage?.prompt_tokens || 0, out: data.usage?.completion_tokens || 0 }
   };
 }
 
@@ -488,6 +489,15 @@ function aiDraftDiscard() { _aiDraft = null; }
 
 let _aiHistory = [];
 const _AI_MAX_HISTORY = 20;
+let _aiTokens = { in: 0, out: 0 };
+
+function _aiUpdateTokenDisplay() {
+  const el = document.getElementById('ai-token-count');
+  if (!el) return;
+  const total = _aiTokens.in + _aiTokens.out;
+  el.textContent = total > 999 ? Math.round(total / 100) / 10 + 'k tk' : total + ' tk';
+  el.title = 'Session — entrée : ' + _aiTokens.in + ' / sortie : ' + _aiTokens.out;
+}
 
 function aiChatToggle() {
   document.getElementById('ai-panel').classList.toggle('ai-open');
@@ -527,6 +537,8 @@ async function aiChatSend(text) {
       AI_TOOLS, settings
     );
     _aiHistory.push({ role: 'assistant', content: resp.message });
+
+    if (resp.usage) { _aiTokens.in += resp.usage.in; _aiTokens.out += resp.usage.out; _aiUpdateTokenDisplay(); }
 
     if (resp.toolCalls && resp.toolCalls.length > 0) {
       if (_aiDraft) aiDraftDiscard();

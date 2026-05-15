@@ -181,7 +181,10 @@
   <div id="ai-tab" onclick="aiChatToggle()" title="Assistant IA">✦ IA</div>
   <div id="ai-body">
     <div id="ai-header">
-      <span>✦ Jazz AI</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>✦ Jazz AI</span>
+        <span id="ai-token-count" style="font-size:0.68rem;color:#8ab0c8;"></span>
+      </div>
       <div style="display:flex;gap:4px;align-items:center;">
         <button class="ai-icon-btn" onclick="aiConfigToggle()" title="Configurer">⚙</button>
         <button class="ai-icon-btn" onclick="aiChatToggle()" title="Fermer">✕</button>

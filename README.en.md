@@ -65,17 +65,13 @@ This application lets you build chord charts from scratch or by importing MusicX
 - 💾 **JSON save/load** — full fidelity including all annotations
 - 🎼 **MusicXML export** — compatible with MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
-- 📱 **Zero dependencies** — single HTML file, works offline, no build step
+- 📱 **Zero dependencies** — works offline, no build step
 
 ---
 
 ## 🚀 Quick Start
 
-### Option 1 — Directly in the browser
-
-Open `Jazz_grid_generator.html` in any modern browser. No server required.
-
-### Option 2 — Split version (development)
+### Option 1 — Development version
 
 ```
 Split/
@@ -97,7 +93,7 @@ Split/
     └── ai.js            ← AI assistant (providers, tools, draft, chat, settings)
 ```
 
-### Option 3 — Any static host
+### Option 2 — Any static host
 
 Upload the files to any static hosting service (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). No configuration needed.
 

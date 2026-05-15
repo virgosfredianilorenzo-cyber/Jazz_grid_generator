@@ -65,17 +65,13 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
 - 💾 **Sauvegarde / chargement JSON** — fidélité complète incluant toutes les annotations
 - 🎼 **Export MusicXML** — compatible MuseScore, Sibelius, Finale, iReal Pro
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- 📱 **Zéro dépendance** — fichier HTML unique, fonctionne hors ligne, aucun build requis
+- 📱 **Zéro dépendance** — fonctionne hors ligne, aucun build requis
 
 ---
 
 ## 🚀 Démarrage rapide
 
-### Option 1 — Directement dans le navigateur
-
-Ouvrir `Jazz_grid_generator.html` dans n'importe quel navigateur moderne. Aucun serveur requis.
-
-### Option 2 — Version splittée (développement)
+### Option 1 — Version de développement
 
 ```
 Split/
@@ -97,7 +93,7 @@ Split/
     └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)
 ```
 
-### Option 3 — Hébergement statique
+### Option 2 — Hébergement statique
 
 Uploader les fichiers sur n'importe quel hébergeur statique (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). Aucune configuration requise.
 
