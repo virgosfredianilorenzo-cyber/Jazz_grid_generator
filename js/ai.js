@@ -501,8 +501,10 @@ function _aiUpdateTokenDisplay() {
 
 function aiChatToggle() {
   document.getElementById('ai-panel').classList.toggle('ai-open');
-  if (document.getElementById('ai-panel').classList.contains('ai-open'))
+  if (document.getElementById('ai-panel').classList.contains('ai-open')) {
     document.getElementById('ai-input').focus();
+    _aiUpdateTokenDisplay();
+  }
 }
 
 function _aiSystemPrompt() {

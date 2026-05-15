@@ -74,6 +74,7 @@ function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,
       let root=re.textContent.trim();
       if(ae){const a=parseFloat(ae.textContent);if(a===1)root+='#';if(a===-1)root+='b';}
       let kind=ke?ke.getAttribute('text')||ke.textContent.trim():'';
+      if(kind==='N.C.'||kind==='none'||(ke&&ke.textContent.trim()==='none')){const entry={symbol:'N.C.',beats:0,annot:null,altChord:null};harmByOffset.set(off,entry);md.chords.push(entry);return;}
       const km={'major':'','minor':'m','dominant':'7','major-seventh':'maj7','minor-seventh':'m7','diminished':'dim','augmented':'aug','half-diminished':'m7b5','diminished-seventh':'dim7','major-ninth':'maj9','dominant-ninth':'9','minor-ninth':'m9','dominant-11th':'11','major-13th':'maj13','dominant-13th':'13','suspended-second':'sus2','suspended-fourth':'sus4','minor-major':'mM7'};
       if(km[kind]!==undefined)kind=km[kind];
       let bass='';
