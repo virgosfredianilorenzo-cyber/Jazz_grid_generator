@@ -306,6 +306,7 @@ const _AI_TOOL_EXECUTORS = {
     const beats = parseInt((draft.timeSig || '4/4').split('/')[0]) || 4;
     const barCount = Math.max(1, parseInt(a.barCount) || 4);
     const newSection = {
+      id: _newSectionId(),
       label: (a.label || 'A') + (a.suffix || ''),
       annotation: '',
       measures: Array.from({ length: barCount }, () => ({
@@ -322,6 +323,7 @@ const _AI_TOOL_EXECUTORS = {
     const idx = parseInt(a.sectionIndex);
     if (idx < 0 || idx >= draft.sections.length) throw new Error('sectionIndex out of range');
     const clone = JSON.parse(JSON.stringify(draft.sections[idx]));
+    clone.id = _newSectionId();
     const rawAfter = a.afterIndex !== undefined ? parseInt(a.afterIndex) : idx;
     const insertAfter = Math.max(0, Math.min(rawAfter, draft.sections.length - 1));
     draft.sections.splice(insertAfter + 1, 0, clone);

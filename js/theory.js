@@ -94,8 +94,8 @@ function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,
     else md.chords.push({symbol:'%',beats:bpm,annot:null});
     pm.push(md);
   });
-  const sections=[];let cur={label:'A',annotation:'',measures:[]};
-  measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});
+  const sections=[];let cur={id:_newSectionId(),label:'A',annotation:'',measures:[]};
+  measures.forEach((m,idx)=>{const r=m.querySelector('rehearsal');if(r&&idx>0){if(cur.measures.length>0)sections.push(cur);cur={id:_newSectionId(),label:r.textContent.trim(),annotation:'',measures:[]};}cur.measures.push(pm[idx]);});
   if(cur.measures.length>0)sections.push(cur);
   return{title,key,tempo,timeSig:ts,style:'Swing',sections};
 }
