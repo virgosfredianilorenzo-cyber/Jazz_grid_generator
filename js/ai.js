@@ -247,17 +247,25 @@ const AI_TOOLS = [
   },
   {
     name: 'set_annotation',
-    description: 'Ajoute/modifie l\'annotation théorique d\'un accord (mode, arpège, tensions, note libre).',
+    description: 'Ajoute/modifie l\'annotation théorique d\'un accord (mode, arpège, tensions, note libre, diagramme SVG). Indices 0-based.',
     inputSchema: { type: 'object', properties: {
-      sectionIndex: { type: 'number' },
-      barIndex: { type: 'number' },
-      chordIndex: { type: 'number' },
+      sectionIndex: { type: 'number', description: 'Index 0-based de la section' },
+      barIndex: { type: 'number', description: 'Index 0-based de la mesure dans la section' },
+      chordIndex: { type: 'number', description: 'Index 0-based de l\'accord dans la mesure' },
       showMode: { type: 'boolean', description: 'Afficher le mode compatible' },
       showArp: { type: 'boolean', description: 'Afficher l\'arpège 4 sons' },
       showTens: { type: 'boolean', description: 'Afficher les tensions' },
+      showSvg: { type: 'boolean', description: 'Afficher le diagramme basse SVG (true par défaut)' },
       tensions: { type: 'array', items: { type: 'string' }, description: 'Tensions sélectionnées ex: ["b9","#11"]' },
       freeText: { type: 'string', description: 'Note libre' }
     }, required: ['sectionIndex', 'barIndex', 'chordIndex'] }
+  },
+  {
+    name: 'toggle_all_diagrams',
+    description: 'Affiche ou cache les diagrammes de basse SVG sur TOUS les accords de toute la grille en un seul appel. Utiliser ce tool plutôt que d\'itérer set_annotation accord par accord.',
+    inputSchema: { type: 'object', properties: {
+      show: { type: 'boolean', description: 'true = afficher tous les diagrammes, false = cacher tous les diagrammes' }
+    }, required: ['show'] }
   }
 ];
 
@@ -409,10 +417,18 @@ const _AI_TOOL_EXECUTORS = {
       showTens: !!(a.showTens && a.tensions?.length),
       showFree: !!(a.freeText),
       modeIdx: 0, invIdx: 0,
-      selTens: a.tensions || [], showSvg: true,
+      selTens: a.tensions || [],
+      showSvg: a.showSvg !== false,
       freeText: a.freeText || '',
       freeColor: '#c4b5fd', freeBold: false, freeItalic: true
     };
+  },
+
+  toggle_all_diagrams(draft, a) {
+    draft.sections.forEach(s => s.measures.forEach(m => m.chords.forEach(c => {
+      if (!c.annot) c.annot = { showMode: false, showArp: false, showTens: false, showFree: false, modeIdx: 0, invIdx: 0, selTens: [], freeText: '', freeColor: '#c4b5fd', freeBold: false, freeItalic: true };
+      c.annot.showSvg = !!a.show;
+    })));
   }
 };
 
