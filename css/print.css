@@ -21,13 +21,15 @@
   .section-label { border-bottom:none !important; cursor:default !important; }
   .section-label::after { content:'' !important; }
   .sec-label-edit { display:none !important; }
+  /* Hide section ID badge */
+  .section-id-badge { display:none !important; }
   /* Hide chord duration and measure numbers (clutter) */
   .chord-duration { display:none !important; }
   .measure-number { display:none !important; }
   #chart-header { margin-bottom:6px !important; }
   #chart-title { font-size:1.4rem !important; border-bottom:1px solid #ccc !important; padding-bottom:2px !important; }
-  #chart-meta { margin-top:4px !important; font-size:0.78rem !important; gap:10px !important; }
-  #chart-meta input { font-size:0.78rem !important; }
+  #chart-meta { margin-top:4px !important; font-size:0.78rem !important; gap:10px !important; color:#000 !important; }
+  #chart-meta input { font-size:0.78rem !important; background:white !important; color:#000 !important; border:none !important; box-shadow:none !important; }
   .section { border:2px solid #000; background:white;
     page-break-inside:avoid; break-inside:avoid;
     overflow:visible !important;
