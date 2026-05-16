@@ -4,7 +4,7 @@
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 
-function _newSectionId(){return Math.random().toString(16).slice(2,6);}
+function _newSectionId(){const c='BCDFGHJKMNPQRSTVWXZ23456789';let id='';for(let i=0;i<4;i++)id+=c[Math.floor(Math.random()*c.length)];return id;}
 function _ensureSectionIds(data){(data.sections||[]).forEach(s=>{if(!s.id)s.id=_newSectionId();});}
 
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
