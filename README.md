@@ -42,7 +42,7 @@ Cette application permet de créer des grilles à partir d'un document vierge. L
   - Transposition automatique des diagrammes selon la fondamentale de l'accord
   - Couleurs : 🔴 fondamentale · 🟡 notes d'arpège · 🔵 autres degrés
 - 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion enharmonique
-- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), suffixes chiffrés (0–9), dupliquer, réordonner par drag & drop, annoter
+- 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), suffixes chiffrés (0–9), dupliquer, réordonner par drag & drop, annoter ; **ID unique `#xxxx`** affiché dans l'en-tête (persisté en JSON, masqué à l'impression)
 - 🔀 **Drag & drop** — réordonner les sections et les mesures à la souris et au toucher (tablette)
 - 🎵 **Symboles de mesure** — `%` (répétition), `𝄎` (double répétition), `N.C.` (no chord), `/` (slash), `(w)` (basse seule sans harmonie)
 - 🔢 **Barres de mesure enrichies** — normale, double, finale, début/fin de reprise, export/import MusicXML
@@ -122,7 +122,7 @@ Cliquer **⚙** dans l'en-tête du panneau :
 | Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
 | Mesures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
 | Accords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |
-| Annotations | `set_annotation` |
+| Annotations | `set_annotation` (avec `showSvg`), `toggle_all_diagrams` |
 
 ### Flux de travail
 
@@ -220,6 +220,13 @@ Les menus de sélection de barres de mesure, de voltas et de symboles de navigat
 ---
 
 ## 📋 Changelog
+
+### v4.3 (mai 2026)
+- ✅ **ID unique par section** — badge `#xxxx` dans l'en-tête, persisté en JSON, masqué à l'impression ; migration automatique des fichiers anciens à l'import
+- ✅ **`toggle_all_diagrams`** — nouvel outil IA pour cacher/afficher tous les diagrammes de basse en un seul appel (fiable même avec OpenAI)
+- ✅ **`set_annotation`** expose `showSvg` pour contrôler la visibilité du diagramme accord par accord
+- ✅ Fix : balise script JSZip restaurée (export/import MXL de nouveau fonctionnel)
+- ✅ Fix impression : champs tonalité/tempo/mesure/style lisibles (fond blanc, texte noir)
 
 ### v4.2 (mai 2026)
 - ✅ Rendu Markdown dans les réponses IA — paragraphes, listes, **gras**, *italique*, `code`

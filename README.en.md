@@ -42,7 +42,7 @@ This application lets you build chord charts from scratch or by importing MusicX
   - Automatic diagram transposition based on chord root
   - Colors: 🔴 root · 🟡 arpeggio notes · 🔵 other scale degrees
 - 🎵 **Transposition** — by semitone (±) or direct key selection, with enharmonic awareness
-- 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), numeric suffixes (0–9), duplicate, reorder via drag & drop, annotate
+- 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), numeric suffixes (0–9), duplicate, reorder via drag & drop, annotate ; **unique ID `#xxxx`** shown in the section header (persisted in JSON, hidden when printing)
 - 🔀 **Drag & drop** — reorder sections and measures with mouse or touch (tablet)
 - 🎵 **Measure symbols** — `%` (repeat), `𝄎` (double repeat), `N.C.` (no chord), `/` (slash), `(w)` (bass only, no written harmony)
 - 🔢 **Enhanced barlines** — normal, double, final, repeat start/end, MusicXML export/import
@@ -122,7 +122,7 @@ Click **⚙** in the panel header:
 | Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
 | Measures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
 | Chords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |
-| Annotations | `set_annotation` |
+| Annotations | `set_annotation` (with `showSvg`), `toggle_all_diagrams` |
 
 ### Workflow
 
@@ -220,6 +220,13 @@ Barline, volta, and navigation symbol popup menus automatically reposition to st
 ---
 
 ## 📋 Changelog
+
+### v4.3 (May 2026)
+- ✅ **Unique section IDs** — `#xxxx` badge in section header, persisted in JSON, hidden when printing; automatic migration on import for legacy files
+- ✅ **`toggle_all_diagrams`** — new AI tool to hide/show all bass diagrams in one call (reliable even with OpenAI)
+- ✅ **`set_annotation`** now exposes `showSvg` to control diagram visibility per chord
+- ✅ Fix: JSZip script tag restored (MXL export/import working again)
+- ✅ Fix print: key/tempo/time signature/style fields now readable (white background, black text)
 
 ### v4.2 (May 2026)
 - ✅ Markdown rendering in AI responses — paragraphs, lists, **bold**, *italic*, `code`
