@@ -72,6 +72,12 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur.
 
+## Checklist release (à chaque version)
+- Mettre à jour `<title>` dans `index.html` ligne 6 → `Jazz Grid Generator vX.X`
+- Mettre à jour les badges `version-X.X` dans `README.md` et `README.en.md`
+- Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
+- Créer un tag git et une release GitHub avec notes de version
+
 ## Version en cours (v4.3)
 - ID unique par section (`#xxxx`), persisté en JSON, masqué à l'impression
 - Nouvel outil IA `toggle_all_diagrams` ; `set_annotation` expose `showSvg`
