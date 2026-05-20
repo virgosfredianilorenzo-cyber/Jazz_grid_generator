@@ -37,7 +37,7 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 - 💾 **Save work in progress (JSON)** — exact restore of chords, annotations and sections
 - 🎼 **MusicXML export** — compatible with MuseScore®, Sibelius, Finale, iReal Pro®
 - 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
-- ⚡ **Zero dependencies** — works offline, no build step
+- ⚡ **No build step** — open `index.html` directly in a browser; the core app works offline (MXL and AI features require a connection)
 
 ---
 
@@ -83,7 +83,7 @@ Click **⚙** in the panel header:
 
 **Online** — open https://www.virgos.fr/JazzGridGenerator/ directly.
 
-**Local** — clone the repo and open `index.html` in a browser. No build, no dependencies, no server required.
+**Local** — clone the repo and open `index.html` in a browser. No build, no server required. MXL and AI features require an internet connection.
 
 **Static host** — drop the files on any static hosting service (Netlify, Vercel, Cloudflare Pages, Apache, Nginx…).
 

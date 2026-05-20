@@ -37,7 +37,7 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - 💾 **Sauvegarde du travail en cours (JSON)** — reprise exacte à l'identique, accords, annotations et sections inclus
 - 🎼 **Export MusicXML** — compatible MuseScore®, Sibelius, Finale, iReal Pro®
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- ⚡ **Zéro dépendance** — fonctionne hors ligne, aucun build requis
+- ⚡ **Sans build** — ouvre `index.html` directement dans un navigateur ; le cœur de l'app fonctionne hors ligne (MXL et IA nécessitent une connexion)
 
 ---
 
@@ -83,7 +83,7 @@ Cliquer **⚙** dans l'en-tête du panneau :
 
 **En ligne** — ouvre directement https://www.virgos.fr/JazzGridGenerator/
 
-**En local** — clone le repo et ouvre `index.html` dans un navigateur. Aucun build, aucune dépendance, aucun serveur requis.
+**En local** — clone le repo et ouvre `index.html` dans un navigateur. Aucun build, aucun serveur requis. MXL et IA nécessitent une connexion internet.
 
 **Sur ton hébergeur** — dépose les fichiers sur n'importe quel hébergeur statique (Netlify, Vercel, Cloudflare Pages, Apache, Nginx…).
 
