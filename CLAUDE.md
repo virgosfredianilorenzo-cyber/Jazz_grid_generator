@@ -2,7 +2,7 @@
 
 ## Présentation
 
-Éditeur de grilles jazz en ligne, 100% HTML/JS/CSS, sans dépendances, sans build.  
+Éditeur de grilles jazz en ligne, 100% HTML/JS/CSS, sans build. JSZip chargé depuis CDN (import/export MXL nécessite internet).  
 Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 ## Architecture
@@ -40,7 +40,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Impression/PDF** — thème clair/sombre, contraste ajustable, réduction police auto
 - **Sauvegarde JSON**
 - **4 langues** — FR, ES, IT, EN
-- **Zéro dépendance** — fonctionne hors ligne, aucun build requis
+- **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL et IA nécessitent internet
 
 ## Points techniques importants
 
@@ -62,10 +62,18 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 ### Transposition (`diagrams.js`)
 - Fonction `transposeModesvg` — gère les degrés altérés (b2, #4, b7…)
 
+### Sécurité (XSS)
+- `escHtml()` définie dans `theory.js:107` — à utiliser sur **tout** `innerHTML` avec données utilisateur
+- `fmtChord()` ne fait PAS d'échappement HTML — toujours wrapper : `escHtml(fmtChord(...))`
+- Clés API stockées en clair dans `localStorage['jgg_ai_settings']` — cible prioritaire en cas de XSS
+- Données importées (JSON, MusicXML, réponses IA) sont non fiables — ne jamais les injecter sans `escHtml`
+
 ## Développement
 
 Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur.
 
-## Version en cours (v4.2)
-- Suppression du provider Infomaniak
+## Version en cours (v4.3)
+- ID unique par section (`#xxxx`), persisté en JSON, masqué à l'impression
+- Nouvel outil IA `toggle_all_diagrams` ; `set_annotation` expose `showSvg`
 - Rendu Markdown dans les bulles de réponse IA (`_aiMdToHtml`)
+- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v3.0)
