@@ -628,7 +628,7 @@
           <li>Duplique sections et mesures avec contenu complet</li>
           <li>Transpose tout le chart</li>
           <li>Aperçu avant application : Appliquer / Annuler</li>
-          <li>Claude, OpenAI &amp; Infomaniak</li>
+          <li>Claude &amp; OpenAI</li>
           <li>Clé API stockée en localStorage</li>
         </ul>
       </div>
@@ -722,24 +722,26 @@
       </div>
     </div>
 
-    <h3>Structure de la version splittée</h3>
-    <pre>Split/
-├── index.html
-├── css/
-│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo + panneau IA
-│   ├── modals.css       ← styles des modales
-│   └── print.css        ← styles impression, réduction police multi-accords
-└── js/
-    ├── i18n.js          ← dictionnaire de traductions (FR/ES/IT/EN)
-    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg(), getModesvg()
-    ├── theory.js        ← moteur de théorie (gammes, arpèges, tensions)
-    ├── state.js         ← variables globales, window.bassStrings, setBassStrings()
-    ├── render.js        ← rendu DOM de la grille
-    ├── modals.js        ← modales accord et annotation
-    ├── actions.js       ← mutations de la grille, auto-annotation à l'import
-    ├── print.js         ← thème impression et système de couleurs par section
-    ├── init.js          ← initialisation, restauration localStorage
-    └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)</pre>
+    <h3>Structure du projet</h3>
+    <pre>index.html
+css/
+├── app.css
+├── modals.css
+└── print.css
+js/
+├── i18n.js
+├── diagrams.js
+├── theory.js
+├── state.js
+├── render.js
+├── modals.js
+├── actions.js
+├── print.js
+├── touch.js
+├── ai.js
+└── init.js
+doc/
+└── doc.html</pre>
   </section>
 
   <!-- ASSISTANT IA -->
@@ -753,11 +755,10 @@
 
     <div class="config-grid">
       <div class="config-row config-header"><div>Paramètre</div><div>Valeurs</div></div>
-      <div class="config-row"><div>Provider</div><div>Claude (Anthropic) · OpenAI · Infomaniak</div></div>
+      <div class="config-row"><div>Provider</div><div>Claude (Anthropic) · OpenAI</div></div>
       <div class="config-row"><div>Modèle Claude</div><div><code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></div></div>
       <div class="config-row"><div>Modèle OpenAI</div><div><code>gpt-4o</code>, <code>gpt-4o-mini</code></div></div>
-      <div class="config-row"><div>Modèle Infomaniak</div><div><code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></div></div>
-      <div class="config-row"><div>Product ID Infomaniak</div><div>Identifiant du produit AI Tools sur votre compte Infomaniak</div></div>
+
       <div class="config-row"><div>Clé API</div><div>Saisie dans l'app, stockée en <code>localStorage</code></div></div>
     </div>
 
@@ -866,15 +867,6 @@
     <h2>📋 Changelog</h2>
 
     <div class="changelog-entry latest">
-      <h3><span class="version-tag">v4.1</span> mai 2026</h3>
-      <ul>
-        <li>Provider Infomaniak — API souveraine hébergée en Europe (compatible OpenAI)</li>
-        <li>5 modèles disponibles : <code>euria</code>, <code>Ministral-3B</code>, <code>Qwen3.5-122B</code>, <code>Gemma-4-31B</code>, <code>Kimi-K2.6</code></li>
-        <li>Authentification Bearer + Product ID saisi dans le panneau de config</li>
-      </ul>
-    </div>
-
-    <div class="changelog-entry">
       <h3><span class="version-tag">v4.0</span> mai 2026</h3>
       <ul>
         <li>Assistant IA conversationnel — Claude (Sonnet / Opus) et OpenAI (GPT-4o)</li>

@@ -194,24 +194,26 @@
 <h2 id="demarrage-rapide">🚀 Démarrage rapide</h2>
 <h3 id="option-1-directement-dans-le-navigateur">Option 1 — Directement dans le navigateur</h3>
 <p>Ouvrir <code>Jazz_grid_generator.html</code> dans n'importe quel navigateur moderne. Aucun serveur requis.</p>
-<h3 id="option-2-version-splittee-developpement">Option 2 — Version splittée (développement)</h3>
-<pre><code>Split/
-├── index.html
-├── css/
-│   ├── app.css          ← styles UI + toggle 4/5 cordes + undo/redo + panneau IA
-│   ├── modals.css       ← styles des modales
-│   └── print.css        ← styles impression, réduction police multi-accords
-└── js/
-    ├── i18n.js          ← dictionnaire de traductions (FR/ES/IT/EN)
-    ├── diagrams.js      ← SVG 4 et 5 cordes, transposeModesvg(), getModesvg()
-    ├── theory.js        ← moteur de théorie (gammes, arpèges, tensions)
-    ├── state.js         ← variables globales, window.bassStrings, setBassStrings()
-    ├── render.js        ← rendu DOM de la grille
-    ├── modals.js        ← modales accord et annotation
-    ├── actions.js       ← mutations de la grille, auto-annotation à l'import
-    ├── print.js         ← thème impression et système de couleurs par section
-    ├── init.js          ← initialisation, restauration localStorage
-    └── ai.js            ← assistant IA (providers, outils, draft, chat, settings)
+<h3 id="option-2-architecture-du-projet">Option 2 — Architecture du projet</h3>
+<pre><code>index.html
+css/
+├── app.css
+├── modals.css
+└── print.css
+js/
+├── i18n.js
+├── diagrams.js
+├── theory.js
+├── state.js
+├── render.js
+├── modals.js
+├── actions.js
+├── print.js
+├── touch.js
+├── ai.js
+└── init.js
+doc/
+└── doc.html
 </code></pre>
 <h3 id="option-3-hebergement-statique">Option 3 — Hébergement statique</h3>
 <p>Uploader les fichiers sur n'importe quel hébergeur statique (Apache, Nginx, Netlify, Vercel, Cloudflare Pages…). Aucune configuration requise.</p>
