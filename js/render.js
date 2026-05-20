@@ -17,7 +17,7 @@ function renderSection(section,si){const cols=parseInt(document.getElementById('
   const hdr=document.createElement('div');hdr.className='section-header';const topRow=document.createElement('div');topRow.className='section-header-top';
   // drag handle
   const handle=document.createElement('span');handle.className='section-drag-handle';handle.textContent='⠿';handle.title='Glisser pour déplacer';handle.addEventListener('mousedown',()=>div.draggable=true);
-  const li=document.createElement('button');li.className='section-label';li.innerHTML=`<span class="sec-label-text">${section.label||'A'}</span><span class="sec-label-edit"> ✎</span>`;li.onclick=()=>openLabelModal(si);const idBadge=document.createElement('span');idBadge.className='section-id-badge';idBadge.textContent=section.id?'#'+section.id:'';idBadge.title='ID unique de section';const acts=document.createElement('div');acts.className='section-actions';
+  const li=document.createElement('button');li.className='section-label';li.innerHTML=`<span class="sec-label-text">${escHtml(section.label||'A')}</span><span class="sec-label-edit"> ✎</span>`;li.onclick=()=>openLabelModal(si);const idBadge=document.createElement('span');idBadge.className='section-id-badge';idBadge.textContent=section.id?'#'+section.id:'';idBadge.title='ID unique de section';const acts=document.createElement('div');acts.className='section-actions';
   // ▲▼ move buttons
   const btnUp=document.createElement('button');btnUp.textContent='▲';btnUp.title='Monter';btnUp.disabled=si===0;btnUp.style.opacity=si===0?'0.3':'1';btnUp.onclick=()=>moveSection(si,-1);
   const btnDn=document.createElement('button');btnDn.textContent='▼';btnDn.title='Descendre';btnDn.disabled=si===chartData.sections.length-1;btnDn.style.opacity=si===chartData.sections.length-1?'0.3':'1';btnDn.onclick=()=>moveSection(si,+1);
@@ -136,7 +136,7 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
   altBtn.textContent='♯±';altBtn.title='Ajouter un accord alternatif';
   altBtn.onclick=e=>{e.stopPropagation();openAltChordPopup(e,si,mi,ci,chord);};
   hdr.appendChild(altBtn);
-  hdr.innerHTML+=`<div class="chord-symbol">${fmtChord(chord.symbol)}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;
+  hdr.innerHTML+=`<div class="chord-symbol">${escHtml(fmtChord(chord.symbol))}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;
   hdr.querySelector('.chord-symbol').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
   hdr.querySelector('.chord-duration').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
   hdr.querySelector('.chord-edit-hint').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
