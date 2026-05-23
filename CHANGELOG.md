@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.4 (mai 2026)
+- ✅ Avertissement avant fermeture de l'onglet si des modifications non sauvegardées sont en cours (flag `_isDirty`, listener `beforeunload`)
+
 ## v3.0 (avril 2026)
 - ✅ Diagrammes 5 cordes (BEADG) pour les 17 modes
 - ✅ Toggle 🎸 4/5 cordes dans la toolbar, persisté en localStorage

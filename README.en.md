@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.3-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.4-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -213,6 +213,9 @@ Depth: **10 levels**.
 ---
 
 ## 📋 Changelog
+
+### v4.4 (May 2026)
+- ✅ Browser warns before closing the tab if unsaved changes are present (`_isDirty` flag, `beforeunload` listener)
 
 ### v4.3 (May 2026)
 - ✅ Unique section IDs (`#xxxx`), persisted in JSON, hidden when printing; automatic migration for legacy files

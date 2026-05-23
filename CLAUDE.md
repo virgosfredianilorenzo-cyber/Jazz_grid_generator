@@ -78,8 +78,6 @@ Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
 
-## Version en cours (v4.3)
-- ID unique par section (`#xxxx`), persisté en JSON, masqué à l'impression
-- Nouvel outil IA `toggle_all_diagrams` ; `set_annotation` expose `showSvg`
-- Rendu Markdown dans les bulles de réponse IA (`_aiMdToHtml`)
-- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v3.0)
+## Version en cours (v4.4)
+- Avertissement `beforeunload` si modifications non sauvegardées (`_isDirty` dans `state.js`)
+- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v4.3)
