@@ -18,3 +18,4 @@ function updateTimestamp(){const n=new Date();const pad=v=>String(v).padStart(2,
 updateTimestamp();
 setInterval(updateTimestamp,1000);
 updateUndoButtons();
+window.addEventListener('beforeunload',e=>{if(_isDirty){e.preventDefault();e.returnValue='';}});

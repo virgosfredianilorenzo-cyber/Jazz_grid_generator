@@ -57,6 +57,7 @@ function transposeToKey(destKeyStr){if(!destKeyStr)return;snapshotOriginalChords
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const UNDO_MAX=10;
 let undoStack=[],redoStack=[],_undoPaused=false;
+let _isDirty=false;
 
 function snapshotUndo(){
   if(_undoPaused)return;
@@ -65,6 +66,7 @@ function snapshotUndo(){
   undoStack.push(snap);
   if(undoStack.length>UNDO_MAX)undoStack.shift();
   redoStack=[];
+  _isDirty=true;
   updateUndoButtons();
 }
 
