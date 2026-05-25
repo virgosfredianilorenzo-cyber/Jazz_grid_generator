@@ -33,9 +33,8 @@
 
 #song-grid-container {
   flex: 1; overflow-y: auto; background: #fff;
-  -webkit-overflow-scrolling: touch;
 }
-#jgg-frame { width: 100%; border: none; display: block; min-height: 200px; }
+#jgg-frame { width: 100%; border: none; display: block; min-height: 200px; overflow: hidden; }
 
 #player-bar {
   display: flex; align-items: center; gap: 8px;

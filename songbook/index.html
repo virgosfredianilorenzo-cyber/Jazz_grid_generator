@@ -13,7 +13,7 @@
   <div id="view-library" class="view">
     <div id="library-header">
       <input type="text" id="library-search" placeholder="🔍 Rechercher...">
-      <button id="btn-add-song" title="Importer un morceau">+</button>
+      <button id="btn-add-song" title="Importer un morceau" aria-label="Importer un morceau">+</button>
     </div>
     <div id="song-list"></div>
   </div>
@@ -47,7 +47,7 @@
       <button id="btn-song-back">←</button>
       <span id="song-title"></span>
       <span id="song-meta"></span>
-      <button id="btn-scroll-toggle" title="Auto-scroll">⏵</button>
+      <button id="btn-scroll-toggle" title="Auto-scroll" aria-label="Auto-scroll">⏵</button>
       <div id="scroll-speed-panel">
         <label style="font-size:0.8rem">Vitesse</label>
         <input type="range" id="scroll-speed-input" min="5" max="150" value="30">
@@ -56,7 +56,7 @@
       <span id="ble-indicator" title="BLE-MIDI">●</span>
     </div>
     <div id="song-grid-container">
-      <iframe id="jgg-frame" src="" frameborder="0" scrolling="no"></iframe>
+      <iframe id="jgg-frame" src=""></iframe>
     </div>
     <div id="player-bar">
       <button id="btn-play">▶</button>
@@ -86,23 +86,23 @@
     <div class="modal-content">
       <h3>Importer un morceau</h3>
       <div class="form-group">
-        <label>Fichier JGG (.json) *</label>
+        <label for="import-json-file">Fichier JGG (.json) *</label>
         <input type="file" id="import-json-file" accept=".json">
       </div>
       <div class="form-group">
-        <label>Titre</label>
+        <label for="import-title">Titre</label>
         <input type="text" id="import-title" placeholder="Titre du morceau">
       </div>
       <div class="form-group">
-        <label>Tonalité</label>
+        <label for="import-key">Tonalité</label>
         <input type="text" id="import-key" placeholder="ex: Cm, F#">
       </div>
       <div class="form-group">
-        <label>BPM</label>
+        <label for="import-tempo">BPM</label>
         <input type="number" id="import-tempo" placeholder="120" min="20" max="300">
       </div>
       <div class="form-group">
-        <label>Tags (séparés par virgule)</label>
+        <label for="import-tags">Tags (séparés par virgule)</label>
         <input type="text" id="import-tags" placeholder="swing, bebop">
       </div>
       <div class="modal-actions">
@@ -111,13 +111,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Navigation -->
-  <nav id="bottom-nav">
-    <button class="nav-btn active" data-view="library">📚 Biblio</button>
-    <button class="nav-btn" data-view="setlists">📋 Setlists</button>
-    <button class="nav-btn" data-view="ble">🎛 MIDI</button>
-  </nav>
 
   <!-- Vue BLE -->
   <div id="view-ble" class="view hidden">
@@ -132,6 +125,13 @@
       </button>
     </div>
   </div>
+
+  <!-- Navigation -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-view="library">📚 Biblio</button>
+    <button class="nav-btn" data-view="setlists">📋 Setlists</button>
+    <button class="nav-btn" data-view="ble">🎛 MIDI</button>
+  </nav>
 
   <!-- Scripts -->
   <script src="js/db.js"></script>
