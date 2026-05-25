@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.6 (mai 2026)
+- ✅ Import MusicXML (`.musicxml`, `.xml`, `.mxl`) dans le Songbook, au même titre que les `.json` JGG
+- ✅ Fix auto-scroll Songbook — la boucle rAF ne s'arrêtait plus immédiatement si l'iframe n'avait pas encore de contenu overflow
+
 ## v4.5 (mai 2026)
 - ✅ Jazz Songbook — application compagnon (`songbook/`) : bibliothèque de morceaux, setlists, lecteur audio, auto-scroll réglable
 - ✅ Intégration iframe JGG en mode view (`?mode=view`) depuis le Songbook

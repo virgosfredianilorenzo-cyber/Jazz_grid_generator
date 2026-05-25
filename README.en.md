@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.5-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.6-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -213,6 +213,10 @@ Depth: **10 levels**.
 ---
 
 ## 📋 Changelog
+
+### v4.6 (May 2026)
+- ✅ MusicXML import (`.musicxml`, `.xml`, `.mxl`) in the Songbook, alongside existing `.json` JGG import
+- ✅ Fix Songbook auto-scroll — rAF loop no longer stopped immediately when iframe had no overflow content yet
 
 ### v4.5 (May 2026)
 - ✅ Jazz Songbook — companion app (`songbook/`): song library, setlists, audio player, adjustable auto-scroll
