@@ -1,0 +1,62 @@
+#view-song { overflow: hidden; }
+
+#song-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  min-height: 50px; flex-shrink: 0; position: relative;
+}
+#song-title {
+  flex: 1; font-size: 1.05rem; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#song-meta { font-size: 0.78rem; color: #888; white-space: nowrap; }
+
+#btn-scroll-toggle {
+  background: none; border: 1px solid #444; color: #e0e0e0;
+  border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 1rem;
+}
+#btn-scroll-toggle.active { background: #e94560; border-color: #e94560; }
+
+#ble-indicator { font-size: 1rem; cursor: pointer; }
+#ble-indicator.connected { color: #4caf50; }
+#ble-indicator.disconnected { color: #f44336; }
+
+#scroll-speed-panel {
+  position: absolute; top: 52px; right: 8px; z-index: 20;
+  background: #16213e; border: 1px solid #0f3460; border-radius: 8px;
+  padding: 8px 12px; display: none; align-items: center; gap: 8px;
+  font-size: 0.82rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+#scroll-speed-panel.visible { display: flex; }
+#scroll-speed-input { width: 90px; accent-color: #e94560; }
+
+#song-grid-container {
+  flex: 1; overflow-y: auto; background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+#jgg-frame { width: 100%; border: none; display: block; min-height: 200px; }
+
+#player-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: #16213e;
+  border-top: 1px solid #0f3460;
+  flex-shrink: 0; flex-wrap: wrap; min-height: 52px;
+}
+#btn-play {
+  background: #e94560; border: none; color: white;
+  border-radius: 50%; width: 38px; height: 38px;
+  font-size: 1rem; cursor: pointer; flex-shrink: 0;
+}
+#player-time, #player-duration {
+  font-size: 0.78rem; color: #888; white-space: nowrap;
+}
+#player-seek { flex: 1; min-width: 60px; accent-color: #e94560; }
+#player-volume { width: 64px; accent-color: #888; }
+
+#setlist-nav { display: flex; gap: 6px; }
+#btn-prev, #btn-next {
+  background: #0f3460; border: none; color: #e0e0e0;
+  border-radius: 6px; padding: 7px 12px;
+  cursor: pointer; font-size: 0.85rem; white-space: nowrap;
+}
