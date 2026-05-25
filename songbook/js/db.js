@@ -20,6 +20,7 @@ function dbOpen() {
 }
 
 function _txGet(store, id) {
+  if (!_db) return Promise.reject(new Error('DB not open'));
   return new Promise((resolve, reject) => {
     const req = _db.transaction(store, 'readonly').objectStore(store).get(id);
     req.onsuccess = e => resolve(e.target.result);
@@ -27,6 +28,7 @@ function _txGet(store, id) {
   });
 }
 function _txPut(store, obj) {
+  if (!_db) return Promise.reject(new Error('DB not open'));
   return new Promise((resolve, reject) => {
     const req = _db.transaction(store, 'readwrite').objectStore(store).put(obj);
     req.onsuccess = e => resolve(e.target.result);
@@ -34,6 +36,7 @@ function _txPut(store, obj) {
   });
 }
 function _txDelete(store, id) {
+  if (!_db) return Promise.reject(new Error('DB not open'));
   return new Promise((resolve, reject) => {
     const req = _db.transaction(store, 'readwrite').objectStore(store).delete(id);
     req.onsuccess = () => resolve();
@@ -41,6 +44,7 @@ function _txDelete(store, id) {
   });
 }
 function _txGetAll(store) {
+  if (!_db) return Promise.reject(new Error('DB not open'));
   return new Promise((resolve, reject) => {
     const req = _db.transaction(store, 'readonly').objectStore(store).getAll();
     req.onsuccess = e => resolve(e.target.result);
