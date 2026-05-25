@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-4.4-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.5-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -213,6 +213,13 @@ Profondeur : **10 niveaux**.
 ---
 
 ## 📋 Changelog
+
+### v4.5 (mai 2026)
+- ✅ Jazz Songbook — application compagnon (`songbook/`) : bibliothèque de morceaux, setlists, lecteur audio, auto-scroll réglable
+- ✅ Intégration iframe JGG en mode view (`?mode=view`) depuis le Songbook
+- ✅ BLE-MIDI — connexion HX Stomp, envoi Program Change + CC via Web Bluetooth
+- ✅ IndexedDB — persistance locale songs/setlists/audioblobs
+- ✅ Mode view JGG : masquage UI d'édition, navigation setlist précédent/suivant
 
 ### v4.4 (mai 2026)
 - ✅ Avertissement avant fermeture de l'onglet si des modifications non sauvegardées sont en cours (flag `_isDirty`, listener `beforeunload`)

@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.5 (mai 2026)
+- ✅ Jazz Songbook — application compagnon (`songbook/`) : bibliothèque de morceaux, setlists, lecteur audio, auto-scroll réglable
+- ✅ Intégration iframe JGG en mode view (`?mode=view`) depuis le Songbook
+- ✅ BLE-MIDI — connexion HX Stomp, envoi Program Change + CC via Web Bluetooth
+- ✅ IndexedDB — persistance locale songs/setlists/audioblobs
+- ✅ Mode view JGG : masquage UI d'édition, navigation setlist précédent/suivant
+
 ## v4.4 (mai 2026)
 - ✅ Avertissement avant fermeture de l'onglet si des modifications non sauvegardées sont en cours (flag `_isDirty`, listener `beforeunload`)
 
