@@ -262,7 +262,132 @@ document.getElementById('scroll-speed-input').addEventListener('input', async e 
   }
 });
 
-function openSongEdit(songId) { /* Task 10 */ }
+let _editingSongId = null;
+
+async function openSongEdit(songId) {
+  _editingSongId = songId;
+  const song = await dbGetSong(songId);
+  if (!song) return;
+
+  const form = document.getElementById('song-edit-form');
+  const mp = song.midiPreset || { channel: 1, programChange: null, cc: [] };
+
+  form.innerHTML = `
+    <div class="form-group">
+      <label for="edit-title">Titre</label>
+      <input type="text" id="edit-title" value="${_esc(_fmt(song.title))}">
+    </div>
+    <div class="form-group">
+      <label for="edit-key">Tonalité</label>
+      <input type="text" id="edit-key" value="${_esc(_fmt(song.key))}">
+    </div>
+    <div class="form-group">
+      <label for="edit-tempo">BPM</label>
+      <input type="number" id="edit-tempo" value="${song.tempo||120}" min="20" max="300">
+    </div>
+    <div class="form-group">
+      <label for="edit-tags">Tags (virgule)</label>
+      <input type="text" id="edit-tags" value="${_esc((song.tags||[]).join(', '))}">
+    </div>
+    <hr style="border-color:#0f3460;margin:16px 0">
+    <div style="font-weight:700;margin-bottom:12px">Preset MIDI (HX Stomp)</div>
+    <div class="form-group">
+      <label for="edit-midi-ch">Canal MIDI (1-16)</label>
+      <input type="number" id="edit-midi-ch" value="${mp.channel||1}" min="1" max="16">
+    </div>
+    <div class="form-group">
+      <label for="edit-midi-pc">Program Change (0-127, vide = aucun)</label>
+      <input type="number" id="edit-midi-pc" value="${mp.programChange !== null && mp.programChange !== undefined ? mp.programChange : ''}" min="0" max="127" placeholder="Aucun">
+    </div>
+    <div id="cc-list">
+      ${(mp.cc||[]).map((c,i) => `
+        <div class="form-group" style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1"><label>CC#</label><input type="number" class="cc-num" data-i="${i}" value="${c.number}" min="0" max="127"></div>
+          <div style="flex:1"><label>Valeur</label><input type="number" class="cc-val" data-i="${i}" value="${c.value}" min="0" max="127"></div>
+          <button class="btn-rm-cc" data-i="${i}" style="margin-bottom:1px;padding:8px">×</button>
+        </div>
+      `).join('')}
+    </div>
+    <button id="btn-add-cc" style="margin:8px 0;padding:8px 14px;background:#0f3460;border:none;color:#e0e0e0;border-radius:6px;cursor:pointer">+ Ajouter CC</button>
+    <hr style="border-color:#0f3460;margin:16px 0">
+    <div style="font-weight:700;margin-bottom:12px">Backing track</div>
+    ${song.audioFileId
+      ? `<p style="color:#4caf50;margin-bottom:8px">✓ Fichier audio chargé</p>
+         <button id="btn-rm-audio" style="padding:8px 14px;background:#333;border:none;color:#e0e0e0;border-radius:6px;cursor:pointer;margin-bottom:8px">Supprimer l'audio</button><br>`
+      : ''}
+    <div class="form-group">
+      <label for="edit-audio-file">Importer MP3/WAV</label>
+      <input type="file" id="edit-audio-file" accept=".mp3,.wav,audio/mpeg,audio/wav">
+    </div>
+  `;
+
+  document.getElementById('btn-add-cc').addEventListener('click', () => {
+    const list = document.getElementById('cc-list');
+    const i = list.children.length;
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    div.style.cssText = 'display:flex;gap:8px;align-items:flex-end';
+    div.innerHTML = `
+      <div style="flex:1"><label>CC#</label><input type="number" class="cc-num" data-i="${i}" value="64" min="0" max="127"></div>
+      <div style="flex:1"><label>Valeur</label><input type="number" class="cc-val" data-i="${i}" value="127" min="0" max="127"></div>
+      <button class="btn-rm-cc" data-i="${i}" style="margin-bottom:1px;padding:8px">×</button>`;
+    list.appendChild(div);
+    div.querySelector('.btn-rm-cc').addEventListener('click', () => div.remove());
+  });
+
+  form.querySelectorAll('.btn-rm-cc').forEach(btn =>
+    btn.addEventListener('click', () => btn.closest('.form-group').remove()));
+
+  if (song.audioFileId) {
+    document.getElementById('btn-rm-audio').addEventListener('click', async () => {
+      await dbDeleteAudio(song.audioFileId);
+      song.audioFileId = null;
+      await dbSaveSong(song);
+      openSongEdit(songId);
+    });
+  }
+
+  showView('song-edit');
+}
+
+document.getElementById('btn-song-edit-back').addEventListener('click', () => renderLibrary());
+
+document.getElementById('btn-song-edit-save').addEventListener('click', async () => {
+  if (!_editingSongId) return;
+  const song = await dbGetSong(_editingSongId);
+  if (!song) return;
+
+  song.title = document.getElementById('edit-title').value.trim() || song.title;
+  song.key = document.getElementById('edit-key').value.trim();
+  song.tempo = parseInt(document.getElementById('edit-tempo').value) || song.tempo;
+  song.tags = document.getElementById('edit-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  song.updatedAt = new Date().toISOString();
+
+  const pcVal = document.getElementById('edit-midi-pc').value.trim();
+  const ccNums = [...document.querySelectorAll('.cc-num')];
+  const ccVals = [...document.querySelectorAll('.cc-val')];
+  song.midiPreset = {
+    channel: parseInt(document.getElementById('edit-midi-ch').value) || 1,
+    programChange: pcVal !== '' ? parseInt(pcVal) : null,
+    cc: ccNums.map((n, i) => ({
+      number: parseInt(n.value) || 0,
+      value: parseInt(ccVals[i].value) || 0
+    }))
+  };
+
+  const audioFile = document.getElementById('edit-audio-file').files[0];
+  if (audioFile) {
+    const arrayBuffer = await audioFile.arrayBuffer();
+    const audioId = _uuid();
+    await dbSaveAudio({ id: audioId, songId: song.id, filename: audioFile.name,
+      mimeType: audioFile.type, data: arrayBuffer });
+    if (song.audioFileId) await dbDeleteAudio(song.audioFileId);
+    song.audioFileId = audioId;
+  }
+
+  await dbSaveSong(song);
+  renderLibrary();
+});
 
 let _currentSetlistId = null;
 
