@@ -175,7 +175,7 @@ async function openSong(songId, setlistContext) {
 
   frame.onload = () => {
     frame.contentWindow.postMessage(
-      { type: 'loadChart', chart: song.jggJson, bassStrings: 4 }, '*'
+      { type: 'loadChart', chart: song.jggJson, bassStrings: 4 }, window.location.origin
     );
   };
   frame.src = '../index.html?mode=view';
@@ -231,9 +231,7 @@ document.getElementById('btn-scroll-toggle').addEventListener('click', async () 
     btn.classList.remove('active');
     panel.classList.remove('visible');
   } else {
-    const speed = _songContext
-      ? ((await dbGetSong(_songContext.songId)) || {}).scrollSpeed || 30
-      : 30;
+    const speed = parseInt(document.getElementById('scroll-speed-input').value) || 30;
     scrollStart(document.getElementById('song-grid-container'), speed);
     btn.classList.add('active');
   }
