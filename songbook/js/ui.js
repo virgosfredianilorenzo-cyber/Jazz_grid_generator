@@ -263,4 +263,116 @@ document.getElementById('scroll-speed-input').addEventListener('input', async e 
 });
 
 function openSongEdit(songId) { /* Task 10 */ }
-function renderSetlists() { showView('setlists'); /* Task 9 */ }
+
+async function renderSetlists() {
+  showView('setlists');
+  const setlists = await dbGetAllSetlists();
+  const list = document.getElementById('setlist-list');
+  if (!setlists.length) {
+    list.innerHTML = '<p style="text-align:center;color:#888;padding:40px">Aucune setlist.</p>';
+    return;
+  }
+  list.innerHTML = setlists.map(sl => `
+    <div class="setlist-card" data-id="${_esc(sl.id)}">
+      <div>
+        <div class="setlist-card-title">${_esc(sl.name)}</div>
+        <div class="setlist-card-meta">${sl.songIds.length} morceau(x)${sl.date ? ' · ' + _esc(sl.date) : ''}</div>
+      </div>
+      <div class="song-card-actions">
+        <button class="btn-delete-setlist" data-id="${_esc(sl.id)}">🗑</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.setlist-card').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('.song-card-actions')) return;
+      renderSetlistDetail(card.dataset.id);
+    });
+  });
+  list.querySelectorAll('.btn-delete-setlist').forEach(btn =>
+    btn.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette setlist ?')) return;
+      await dbDeleteSetlist(btn.dataset.id);
+      renderSetlists();
+    }));
+}
+
+document.getElementById('btn-new-setlist').addEventListener('click', async () => {
+  const name = prompt('Nom de la setlist :');
+  if (!name || !name.trim()) return;
+  const sl = { id: _uuid(), name: name.trim(), date: null, songIds: [] };
+  await dbSaveSetlist(sl);
+  renderSetlists();
+});
+
+async function renderSetlistDetail(setlistId) {
+  const sl = await dbGetSetlist(setlistId);
+  if (!sl) return;
+  showView('setlist-detail');
+  document.getElementById('setlist-detail-title').textContent = sl.name;
+
+  const container = document.getElementById('setlist-detail-songs');
+  const songs = await Promise.all(sl.songIds.map(id => dbGetSong(id)));
+
+  if (!songs.length) {
+    container.innerHTML = '<p style="text-align:center;color:#888;padding:24px">Aucun morceau.</p>';
+  } else {
+    container.innerHTML = songs.map((s, i) => s ? `
+      <div class="setlist-song-row" data-idx="${i}">
+        <span class="ss-num">${i + 1}.</span>
+        <span class="ss-title">${_esc(s.title)}</span>
+        <span class="ss-meta">${_esc(s.key||'')} · ${_esc(String(s.tempo||'?'))} BPM</span>
+        <button class="btn-ss-up" data-idx="${i}" ${i===0?'disabled':''}>▲</button>
+        <button class="btn-ss-dn" data-idx="${i}" ${i===songs.length-1?'disabled':''}>▼</button>
+        <button class="btn-ss-rm" data-idx="${i}">×</button>
+      </div>
+    ` : '').join('');
+
+    container.querySelectorAll('.btn-ss-up').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.idx);
+        if (i <= 0) return;
+        [sl.songIds[i-1], sl.songIds[i]] = [sl.songIds[i], sl.songIds[i-1]];
+        await dbSaveSetlist(sl); renderSetlistDetail(setlistId);
+      }));
+    container.querySelectorAll('.btn-ss-dn').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.idx);
+        if (i >= sl.songIds.length - 1) return;
+        [sl.songIds[i], sl.songIds[i+1]] = [sl.songIds[i+1], sl.songIds[i]];
+        await dbSaveSetlist(sl); renderSetlistDetail(setlistId);
+      }));
+    container.querySelectorAll('.btn-ss-rm').forEach(btn =>
+      btn.addEventListener('click', async () => {
+        const i = parseInt(btn.dataset.idx);
+        sl.songIds.splice(i, 1);
+        await dbSaveSetlist(sl); renderSetlistDetail(setlistId);
+      }));
+  }
+
+  const allSongs = await dbGetAllSongs();
+  const picker = document.getElementById('setlist-song-picker');
+  picker.innerHTML = '<option value="">-- Ajouter --</option>' +
+    allSongs.map(s => `<option value="${_esc(s.id)}">${_esc(s.title)}</option>`).join('');
+
+  document.getElementById('btn-setlist-play').onclick = async () => {
+    if (!sl.songIds.length) return;
+    await openSong(sl.songIds[0], { setlistId, songIds: sl.songIds, index: 0 });
+  };
+
+  document.getElementById('btn-setlist-back').onclick = () => renderSetlists();
+}
+
+document.getElementById('btn-setlist-add-song').addEventListener('click', async () => {
+  const picker = document.getElementById('setlist-song-picker');
+  const songId = picker.value;
+  if (!songId) return;
+  const title = document.getElementById('setlist-detail-title').textContent;
+  const all = await dbGetAllSetlists();
+  const sl = all.find(s => s.name === title);
+  if (!sl || sl.songIds.includes(songId)) return;
+  sl.songIds.push(songId);
+  await dbSaveSetlist(sl);
+  renderSetlistDetail(sl.id);
+});
