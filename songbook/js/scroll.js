@@ -41,7 +41,8 @@ function _scrollTick(ts) {
       _scrollEl.scrollTop += _scrollSpeed * delta;
     }
     _lastTs = ts;
-    const atBottom = _scrollEl.scrollTop + _scrollEl.clientHeight >= _scrollEl.scrollHeight - 4;
+    const atBottom = _scrollEl.scrollHeight > _scrollEl.clientHeight &&
+      _scrollEl.scrollTop + _scrollEl.clientHeight >= _scrollEl.scrollHeight - 4;
     if (atBottom) {
       scrollStop();
       document.getElementById('btn-scroll-toggle').classList.remove('active');
