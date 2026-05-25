@@ -334,7 +334,12 @@ body.view-mode .section-actions,
 body.view-mode .add-measure-btn,
 body.view-mode .section-drag-handle,
 body.view-mode .section-annot-badge,
-body.view-mode .section-annot-input { display: none !important; }
+body.view-mode .section-annot-input,
+body.view-mode .measure-drag-handle,
+body.view-mode .add-chord-btn,
+body.view-mode .chord-del-btn,
+body.view-mode .barline-btn,
+body.view-mode .nav-add-btn { display: none !important; }
 body.view-mode .measure { cursor: default !important; }
 body.view-mode .chord-symbol { pointer-events: none; }
 body.view-mode #sections-container { padding: 8px; }

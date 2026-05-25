@@ -10,8 +10,11 @@
   });
   window.addEventListener('message',e=>{
     if(!e.data||e.data.type!=='loadChart')return;
+    if(!e.data.chart)return;
     chartData=JSON.parse(JSON.stringify(e.data.chart));
     window.bassStrings=e.data.bassStrings||4;
+    const ed=document.getElementById('chart-editor');
+    if(ed)ed.style.display='block';
     if(typeof render==='function'){
       render();
       requestAnimationFrame(()=>{
