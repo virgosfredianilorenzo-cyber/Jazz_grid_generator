@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Jazz Songbook</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/song-view.css">
+</head>
+<body>
+
+  <!-- Vue : Bibliothèque -->
+  <div id="view-library" class="view">
+    <div id="library-header">
+      <input type="text" id="library-search" placeholder="🔍 Rechercher...">
+      <button id="btn-add-song" title="Importer un morceau" aria-label="Importer un morceau">+</button>
+    </div>
+    <div id="song-list"></div>
+  </div>
+
+  <!-- Vue : Setlists -->
+  <div id="view-setlists" class="view hidden">
+    <div id="setlist-header">
+      <span style="font-size:1.1rem;font-weight:700">Setlists</span>
+      <button id="btn-new-setlist">+ Nouvelle</button>
+    </div>
+    <div id="setlist-list"></div>
+  </div>
+
+  <!-- Vue : Détail setlist -->
+  <div id="view-setlist-detail" class="view hidden">
+    <div id="setlist-detail-header">
+      <button id="btn-setlist-back">←</button>
+      <span id="setlist-detail-title"></span>
+      <button id="btn-setlist-play">▶ Jouer</button>
+    </div>
+    <div id="setlist-detail-songs"></div>
+    <div id="setlist-add-song-bar">
+      <select id="setlist-song-picker"><option value="">-- Ajouter un morceau --</option></select>
+      <button id="btn-setlist-add-song">Ajouter</button>
+    </div>
+  </div>
+
+  <!-- Vue : Morceau -->
+  <div id="view-song" class="view hidden">
+    <div id="song-header">
+      <button id="btn-song-back">←</button>
+      <span id="song-title"></span>
+      <span id="song-meta"></span>
+      <button id="btn-scroll-toggle" title="Auto-scroll" aria-label="Auto-scroll">⏵</button>
+      <div id="scroll-speed-panel">
+        <label style="font-size:0.8rem">Vitesse</label>
+        <input type="range" id="scroll-speed-input" min="5" max="150" value="30">
+        <span id="scroll-speed-value">30</span>
+      </div>
+      <span id="ble-indicator" title="BLE-MIDI">●</span>
+    </div>
+    <div id="song-grid-container">
+      <iframe id="jgg-frame" src=""></iframe>
+    </div>
+    <div id="player-bar">
+      <button id="btn-play">▶</button>
+      <span id="player-time">0:00</span>
+      <input type="range" id="player-seek" min="0" max="100" value="0" step="0.1">
+      <span id="player-duration">0:00</span>
+      <input type="range" id="player-volume" min="0" max="1" value="0.8" step="0.05">
+      <div id="setlist-nav">
+        <button id="btn-prev">← Préc</button>
+        <button id="btn-next">Suiv →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue : Édition morceau -->
+  <div id="view-song-edit" class="view hidden">
+    <div id="song-edit-header">
+      <button id="btn-song-edit-back">←</button>
+      <span>Éditer le morceau</span>
+      <button id="btn-song-edit-save">💾 Sauver</button>
+    </div>
+    <div id="song-edit-form"></div>
+  </div>
+
+  <!-- Modal import -->
+  <div id="modal-import" class="modal hidden">
+    <div class="modal-content">
+      <h3>Importer un morceau</h3>
+      <div class="form-group">
+        <label for="import-json-file">Fichier JGG (.json) *</label>
+        <input type="file" id="import-json-file" accept=".json">
+      </div>
+      <div class="form-group">
+        <label for="import-title">Titre</label>
+        <input type="text" id="import-title" placeholder="Titre du morceau">
+      </div>
+      <div class="form-group">
+        <label for="import-key">Tonalité</label>
+        <input type="text" id="import-key" placeholder="ex: Cm, F#">
+      </div>
+      <div class="form-group">
+        <label for="import-tempo">BPM</label>
+        <input type="number" id="import-tempo" placeholder="120" min="20" max="300">
+      </div>
+      <div class="form-group">
+        <label for="import-tags">Tags (séparés par virgule)</label>
+        <input type="text" id="import-tags" placeholder="swing, bebop">
+      </div>
+      <div class="modal-actions">
+        <button id="btn-import-cancel">Annuler</button>
+        <button id="btn-import-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue BLE -->
+  <div id="view-ble" class="view hidden">
+    <div style="padding:20px">
+      <h3 style="margin-bottom:16px">Connexion BLE-MIDI</h3>
+      <p id="ble-status-text" style="margin-bottom:16px;color:#888">Non connecté</p>
+      <button id="btn-ble-connect" style="padding:12px 24px;background:#e94560;border:none;color:white;border-radius:8px;font-size:1rem;cursor:pointer">
+        Connecter HX Stomp
+      </button>
+      <button id="btn-ble-disconnect" class="hidden" style="padding:12px 24px;background:#333;border:none;color:white;border-radius:8px;font-size:1rem;cursor:pointer;margin-left:8px">
+        Déconnecter
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-view="library">📚 Biblio</button>
+    <button class="nav-btn" data-view="setlists">📋 Setlists</button>
+    <button class="nav-btn" data-view="ble">🎛 MIDI</button>
+  </nav>
+
+  <!-- Scripts -->
+  <script src="js/db.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/scroll.js"></script>
+  <script src="js/midi.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/init.js"></script>
+</body>
+</html>

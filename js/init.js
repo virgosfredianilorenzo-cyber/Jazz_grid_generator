@@ -3,6 +3,27 @@
    Initialisation : event listeners globaux, premier render
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
+(function(){
+  if(new URLSearchParams(location.search).get('mode')!=='view')return;
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.body.classList.add('view-mode');
+  });
+  window.addEventListener('message',e=>{
+    if(!e.data||e.data.type!=='loadChart')return;
+    if(!e.data.chart)return;
+    chartData=JSON.parse(JSON.stringify(e.data.chart));
+    window.bassStrings=e.data.bassStrings||4;
+    const ed=document.getElementById('chart-editor');
+    if(ed)ed.style.display='block';
+    if(typeof render==='function'){
+      render();
+      requestAnimationFrame(()=>{
+        const h=document.documentElement.scrollHeight;
+        (e.source||window.parent).postMessage({type:'contentHeight',height:h}, e.origin||window.location.origin);
+      });
+    }
+  });
+})();
 
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
 document.getElementById('annot-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('annot-overlay'))closeAnnotModal();});

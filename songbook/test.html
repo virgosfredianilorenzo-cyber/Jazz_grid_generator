@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Songbook Tests</title>
+  <style>
+    body { font-family: monospace; background: #1a1a2e; color: #e0e0e0; padding: 20px; }
+    .pass { color: #4caf50; } .fail { color: #f44336; }
+    button { margin: 8px 0; padding: 8px 16px; cursor: pointer; background: #16213e;
+      color: #e0e0e0; border: 1px solid #444; border-radius: 6px; }
+    h2 { margin-bottom: 16px; }
+    #output { margin-top: 16px; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <h2>Songbook Tests</h2>
+  <button onclick="runDbTests()">▶ DB Tests</button>
+  <button onclick="runMidiTests()">▶ MIDI Tests</button>
+  <pre id="output"></pre>
+  <script src="js/db.js"></script>
+  <script src="js/midi.js"></script>
+  <script>
+    const out = document.getElementById('output');
+    function log(msg, ok) {
+      out.innerHTML += `<span class="${ok?'pass':'fail'}">${ok?'✓':'✗'} ${msg}</span>\n`;
+    }
+    async function runDbTests() {
+      out.innerHTML = '';
+      try { await dbOpen(); log('dbOpen()', true); } catch(e) { log('dbOpen(): ' + e, false); return; }
+
+      const id = 'test-' + Date.now();
+      const song = { id, title: 'Test Song', key: 'Cm', tempo: 120, style: 'Swing',
+        jggJson: {}, audioFileId: null, scrollSpeed: 30,
+        midiPreset: { channel: 1, programChange: 12, cc: [] },
+        tags: ['test'], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+
+      await dbSaveSong(song);
+      const fetched = await dbGetSong(id);
+      log('dbSaveSong + dbGetSong', fetched && fetched.title === 'Test Song');
+
+      const all = await dbGetAllSongs();
+      log('dbGetAllSongs returns array', Array.isArray(all) && all.length > 0);
+
+      song.title = 'Updated'; await dbSaveSong(song);
+      const updated = await dbGetSong(id);
+      log('dbSaveSong update', updated && updated.title === 'Updated');
+
+      await dbDeleteSong(id);
+      const gone = await dbGetSong(id);
+      log('dbDeleteSong', gone === undefined);
+
+      const slId = 'sl-' + Date.now();
+      const sl = { id: slId, name: 'Gig Test', date: null, songIds: [] };
+      await dbSaveSetlist(sl);
+      const slFetched = await dbGetSetlist(slId);
+      log('dbSaveSetlist + dbGetSetlist', slFetched && slFetched.name === 'Gig Test');
+      await dbDeleteSetlist(slId);
+      log('dbDeleteSetlist', (await dbGetSetlist(slId)) === undefined);
+    }
+    function runMidiTests() {
+      out.innerHTML = '';
+      try {
+        const pc = midiPCBytes(1, 12);
+        log('PC ch1 prog12 → [0xC0, 0x0C]', pc[0]===0xC0 && pc[1]===0x0C);
+        const pc2 = midiPCBytes(2, 0);
+        log('PC ch2 prog0 → [0xC1, 0x00]', pc2[0]===0xC1 && pc2[1]===0x00);
+        const cc = midiCCBytes(1, 64, 127);
+        log('CC ch1 #64 val127 → [0xB0, 0x40, 0x7F]', cc[0]===0xB0 && cc[1]===0x40 && cc[2]===0x7F);
+        const cc2 = midiCCBytes(2, 69, 0);
+        log('CC ch2 #69 val0 → [0xB1, 0x45, 0x00]', cc2[0]===0xB1 && cc2[1]===0x45 && cc2[2]===0x00);
+      } catch(e) {
+        log('MIDI functions not yet implemented: ' + e, false);
+      }
+    }
+  </script>
+</body>
+</html>
