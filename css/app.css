@@ -326,10 +326,10 @@ label { font-size:0.85rem; color:#aaa; }
 
 /* ── Mode lecture seule (Songbook iframe) ── */
 body.view-mode { overflow: visible !important; height: auto !important; }
-body.view-mode .toolbar,
-body.view-mode .meta-bar,
-body.view-mode #controls-bar,
-body.view-mode .sidebar,
+body.view-mode #toolbar,
+body.view-mode #chart-header,
+body.view-mode #dropzone,
+body.view-mode #ai-panel,
 body.view-mode .section-actions,
 body.view-mode .add-measure-btn,
 body.view-mode .section-drag-handle,
