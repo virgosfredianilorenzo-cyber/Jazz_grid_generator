@@ -302,8 +302,8 @@ async function openSongEdit(songId) {
     <div id="cc-list">
       ${(mp.cc||[]).map((c,i) => `
         <div class="form-group" style="display:flex;gap:8px;align-items:flex-end">
-          <div style="flex:1"><label>CC#</label><input type="number" class="cc-num" data-i="${i}" value="${c.number}" min="0" max="127"></div>
-          <div style="flex:1"><label>Valeur</label><input type="number" class="cc-val" data-i="${i}" value="${c.value}" min="0" max="127"></div>
+          <div style="flex:1"><label>CC#</label><input type="number" class="cc-num" data-i="${i}" value="${_esc(String(c.number))}" min="0" max="127"></div>
+          <div style="flex:1"><label>Valeur</label><input type="number" class="cc-val" data-i="${i}" value="${_esc(String(c.value))}" min="0" max="127"></div>
           <button class="btn-rm-cc" data-i="${i}" style="margin-bottom:1px;padding:8px">×</button>
         </div>
       `).join('')}
@@ -364,8 +364,8 @@ document.getElementById('btn-song-edit-save').addEventListener('click', async ()
   song.updatedAt = new Date().toISOString();
 
   const pcVal = document.getElementById('edit-midi-pc').value.trim();
-  const ccNums = [...document.querySelectorAll('.cc-num')];
-  const ccVals = [...document.querySelectorAll('.cc-val')];
+  const ccNums = [...document.getElementById('cc-list').querySelectorAll('.cc-num')];
+  const ccVals = [...document.getElementById('cc-list').querySelectorAll('.cc-val')];
   song.midiPreset = {
     channel: parseInt(document.getElementById('edit-midi-ch').value) || 1,
     programChange: pcVal !== '' ? parseInt(pcVal) : null,
