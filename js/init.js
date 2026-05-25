@@ -19,7 +19,7 @@
       render();
       requestAnimationFrame(()=>{
         const h=document.documentElement.scrollHeight;
-        (e.source||window.parent).postMessage({type:'contentHeight',height:h},'*');
+        (e.source||window.parent).postMessage({type:'contentHeight',height:h}, e.origin||window.location.origin);
       });
     }
   });
