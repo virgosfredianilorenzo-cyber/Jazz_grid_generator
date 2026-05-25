@@ -264,6 +264,8 @@ document.getElementById('scroll-speed-input').addEventListener('input', async e 
 
 function openSongEdit(songId) { /* Task 10 */ }
 
+let _currentSetlistId = null;
+
 async function renderSetlists() {
   showView('setlists');
   const setlists = await dbGetAllSetlists();
@@ -309,6 +311,7 @@ document.getElementById('btn-new-setlist').addEventListener('click', async () =>
 async function renderSetlistDetail(setlistId) {
   const sl = await dbGetSetlist(setlistId);
   if (!sl) return;
+  _currentSetlistId = setlistId;
   showView('setlist-detail');
   document.getElementById('setlist-detail-title').textContent = sl.name;
 
@@ -367,10 +370,8 @@ async function renderSetlistDetail(setlistId) {
 document.getElementById('btn-setlist-add-song').addEventListener('click', async () => {
   const picker = document.getElementById('setlist-song-picker');
   const songId = picker.value;
-  if (!songId) return;
-  const title = document.getElementById('setlist-detail-title').textContent;
-  const all = await dbGetAllSetlists();
-  const sl = all.find(s => s.name === title);
+  if (!songId || !_currentSetlistId) return;
+  const sl = await dbGetSetlist(_currentSetlistId);
   if (!sl || sl.songIds.includes(songId)) return;
   sl.songIds.push(songId);
   await dbSaveSetlist(sl);
