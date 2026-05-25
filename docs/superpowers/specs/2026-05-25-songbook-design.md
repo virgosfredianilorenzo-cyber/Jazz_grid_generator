@@ -79,6 +79,7 @@ JGG reste intact sur son URL actuelle. Le Songbook **réutilise les modules JS d
   style: string,        // ex: "Swing", "Bossa"
   jggJson: object,      // contenu JSON JGG complet
   audioFileId: string,  // référence vers store audioblobs (nullable)
+  scrollSpeed: number,  // px/s pour l'auto-scroll (défaut: 30)
   midiPreset: {
     channel: number,    // 1–16
     programChange: number | null,  // 0–127
@@ -189,6 +190,12 @@ Program Change : [12]    (laisser vide = pas de PC)
 - Contrôles : play/pause, seek (barre de progression), volume
 - Le player continue lors du scroll de la grille
 - Pas de sync tempo/grille en v4.5
+
+### Auto-scroll de la grille
+- Bouton ⏵ dans le header de la vue morceau pour activer/désactiver le défilement automatique
+- Vitesse réglable par morceau (px/s), persistée dans le store `songs`
+- Contrôle inline : curseur glissant accessible sans quitter la vue (tap long sur ⏵ ou panneau dédié)
+- Pause automatique du scroll quand l'utilisateur touche la grille ; reprise au relâchement
 
 ---
 
