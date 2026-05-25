@@ -98,21 +98,35 @@ document.getElementById('btn-add-song').addEventListener('click', () => {
   document.getElementById('modal-import').classList.remove('hidden');
 });
 
-document.getElementById('import-json-file').addEventListener('change', e => {
+document.getElementById('import-json-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      _pendingJson = JSON.parse(ev.target.result);
-      document.getElementById('import-title').value = _pendingJson.title || file.name.replace(/\.json$/i,'');
-      document.getElementById('import-key').value = _pendingJson.key || '';
-      document.getElementById('import-tempo').value = _pendingJson.tempo || 120;
-    } catch {
-      alert('Fichier JSON invalide.'); _pendingJson = null;
+  const ext = file.name.split('.').pop().toLowerCase();
+  try {
+    if (ext === 'json') {
+      const text = await file.text();
+      _pendingJson = JSON.parse(text);
+    } else {
+      const xmlStr = await loadFileAsXML(file);
+      _pendingJson = parseMusicXML(xmlStr);
     }
-  };
-  reader.readAsText(file);
+    document.getElementById('import-title').value =
+      _pendingJson.title || file.name.replace(/\.[^.]+$/, '');
+    document.getElementById('import-key').value = _pendingJson.key || '';
+    document.getElementById('import-tempo').value = _pendingJson.tempo || 120;
+  } catch (err) {
+    console.error(err);
+    if (ext === 'json') {
+      alert('Fichier JSON invalide.');
+    } else if (err.message === 'JSZip not loaded') {
+      alert('JSZip non disponible. Connexion internet requise pour les fichiers .mxl.');
+    } else if (err.message === 'No MusicXML found in MXL') {
+      alert('Aucun MusicXML trouvé dans le fichier .mxl.');
+    } else {
+      alert('Fichier MusicXML invalide.');
+    }
+    _pendingJson = null;
+  }
 });
 
 document.getElementById('btn-import-cancel').addEventListener('click', () =>
