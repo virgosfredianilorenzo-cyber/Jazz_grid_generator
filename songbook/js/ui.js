@@ -55,7 +55,7 @@ async function renderLibrary() {
     <div class="song-card" data-id="${_esc(s.id)}">
       <div>
         <div class="song-card-title">${_esc(s.title)}</div>
-        <div class="song-card-meta">${_esc(s.key||'—')} · ${s.tempo||'?'} BPM · ${_esc(s.style||'')}</div>
+        <div class="song-card-meta">${_esc(s.key||'—')} · ${_esc(String(s.tempo||'?'))} BPM · ${_esc(s.style||'')}</div>
         ${(s.tags||[]).length ? `<div class="song-card-meta">${s.tags.map(_esc).join(', ')}</div>` : ''}
       </div>
       <div class="song-card-actions">
