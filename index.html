@@ -47,6 +47,7 @@
   <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
   <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
   <button class="btn secondary" id="btn-export-midi" onclick="openMidiDialog()"></button>
+  <button class="btn secondary" id="btn-play" onclick="openPlayerDialog()">▶</button>
   <!-- Toggle basse 4/5 cordes -->
   <div id="bass-strings-selector" style="display:flex;align-items:center;gap:4px;background:#0f3460;border:1px solid #f0a500;border-radius:6px;padding:4px 8px;">
     <label style="color:#f0a500;font-size:0.78rem;font-weight:bold;">🎸</label>
@@ -248,21 +249,22 @@
 </div>
 
 
-<!-- JS — LIBRAIRIES EXTERNES : JSZip -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-<script src="js/i18n.js"></script>
-<script src="js/diagrams.js"></script>
-<script src="js/theory.js"></script>
-<script src="js/state.js"></script>
-<script src="js/render.js"></script>
-<script src="js/modals.js"></script>
-<script src="js/actions.js"></script>
-<script src="js/midi.js"></script>
-<script src="js/print.js"></script>
-<script src="js/touch.js"></script>
-<script src="js/init.js"></script>
-<script src="js/ai.js"></script>
+<!-- Player dialog -->
+<div id="player-dialog" class="midi-dialog-overlay">
+  <div class="midi-dialog-box">
+    <span id="player-dialog-title" style="font-weight:bold;display:block;margin-bottom:10px;"></span>
+    <label style="display:flex;align-items:center;gap:8px;">
+      <span id="player-dialog-label"></span>
+      <input type="number" id="player-loops" min="1" max="16" value="1"
+             style="width:60px;padding:4px;font-size:1rem;text-align:center;
+                    background:#0f3460;color:#e2e8f0;border:1px solid #f0a500;border-radius:4px;">
+    </label>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closePlayerDialog()" id="player-btn-cancel"></button>
+      <button class="btn" onclick="confirmPlay()" id="player-btn-ok"></button>
+    </div>
+  </div>
+</div>
 
 <!-- MIDI export dialog -->
 <div id="midi-dialog" class="midi-dialog-overlay">
@@ -280,5 +282,22 @@
     </div>
   </div>
 </div>
+
+<!-- JS — LIBRAIRIES EXTERNES : JSZip -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script src="js/i18n.js"></script>
+<script src="js/diagrams.js"></script>
+<script src="js/theory.js"></script>
+<script src="js/state.js"></script>
+<script src="js/render.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/midi.js"></script>
+<script src="js/player.js"></script>
+<script src="js/print.js"></script>
+<script src="js/touch.js"></script>
+<script src="js/init.js"></script>
+<script src="js/ai.js"></script>
 </body>
 </html>

@@ -364,3 +364,11 @@ body.view-mode #sections-container { padding: 8px; }
   box-shadow: 0 4px 24px rgba(0,0,0,0.5);
   color: #e2e8f0;
 }
+/* Playback: current measure highlight */
+.measure.playing {
+  outline: 2px solid #f0a500;
+  outline-offset: -2px;
+  background: rgba(240,165,0,0.12);
+}
+/* Play button: red when playing */
+#btn-play.playing { color: #f87171; border-color: #f87171; }
