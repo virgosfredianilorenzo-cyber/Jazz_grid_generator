@@ -150,16 +150,38 @@ function _midiNote(name, octave) {
 
 function _scheduleChord(sym, t0, dur) {
   if (!sym) return;
-  const parsed = parseChordSym(sym);
+
+  // Slash chord: "Cmaj7/E" → chordPart="Cmaj7", bassOverride="E"
+  let chordPart    = sym;
+  let bassOverride = null;
+  const slashIdx   = sym.lastIndexOf('/');
+  if (slashIdx > 0) {
+    const candidate = sym.slice(slashIdx + 1).trim();
+    if (noteIdx(candidate) !== -1) {
+      chordPart    = sym.slice(0, slashIdx).trim();
+      bassOverride = candidate;
+    }
+  }
+
+  const parsed = parseChordSym(chordPart);
   if (!parsed) return;
 
   const { root, quality } = parsed;
   const def     = ARP_DEF[quality] || ARP_DEF[''] || { i: [0, 4, 7] };
-  const noteDur = dur * 0.88; // slight gap between chords avoids blur
+  const noteDur = dur * 0.88;
 
-  PLAYER.bass.play(_midiNote(root, 2), t0, { duration: noteDur, gain: 0.9 });
-  def.i.slice(0, 4).forEach(s => {
-    PLAYER.piano.play(_midiNote(tr(root, s), 4), t0, { duration: noteDur, gain: 0.6 });
+  // Bass: slash note or root at octave 2
+  PLAYER.bass.play(_midiNote(bassOverride || root, 2), t0, { duration: noteDur, gain: 0.9 });
+
+  // Piano: spread voicing — each note strictly above the previous.
+  // Reference starts one octave below oct 4 so root lands at oct 4.
+  let prevMidi = _midiNote(root, 3);
+  def.i.forEach(s => {
+    let midi = _midiNote(tr(root, s), 4);
+    while (midi <= prevMidi) midi += 12;
+    if (midi > 96) midi -= 12; // cap near C7
+    PLAYER.piano.play(midi, t0, { duration: noteDur, gain: 0.55 });
+    prevMidi = midi;
   });
 }
 
