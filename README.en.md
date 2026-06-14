@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.7-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.8-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -37,7 +37,7 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 - 💾 **Save work in progress (JSON)** — exact restore of chords, annotations and sections
 - 🎼 **MusicXML export** — compatible with MuseScore®, Sibelius, Finale, iReal Pro®
 - 🎹 **MIDI export** — Standard MIDI File (Type 0): piano chord voicings (ch 0) + bass (ch 1); choose number of repetitions
-- ▶ **Built-in player** — listen to the chart in your browser via SoundFont (acoustic piano + bass, CDN); follows repeat barlines, voltas, D.C./D.S. al Coda, Fine; current measure highlighted in real time; Space bar to play/stop; choose number of loops
+- ▶ **Built-in player** — listen to the chart in your browser via SoundFont (acoustic piano + bass, CDN); follows repeat barlines, voltas, D.C./D.S. al Coda, Fine; current measure highlighted in real time; Space bar to play/stop; choose number of loops; jazz spread voicing across 2 octaves (9th/11th/13th extensions included); slash chords (e.g. `C/E`) respected in the bass
 - 🗂️ **Streamlined toolbar** — 📁 File menu (New, Open, Import, Save) and ⬆ Export menu (MusicXML, MXL, MIDI, Print)
 - 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
 - ⚡ **No build step** — open `index.html` directly in a browser; the core app works offline (MXL, AI and SoundFont require a connection)
@@ -217,6 +217,14 @@ Depth: **10 levels**.
 
 ## 📋 Changelog
 
+### v4.8 (June 2026)
+- ✅ Jazz voicings in the player — spread across 2 octaves (each note strictly above the previous), all extensions (9th, 11th, 13th) included, slash chords (`C/E`, `Dm7/F`…) respected in the bass
+
+### v4.7 (June 2026)
+- ✅ MIDI export — Standard MIDI File (Type 0): piano chord voicings + bass, repetitions selector
+- ✅ Built-in player — Web Audio + SoundFont (acoustic piano + bass from CDN); full navigation (repeats, voltas, D.C./D.S. al Coda, Fine); current measure highlighted; Space bar play/stop
+- ✅ Streamlined toolbar — 📁 File and ⬆ Export dropdown menus; 7 distinct zones instead of 17 scattered buttons
+
 ### v4.6 (May 2026)
 - ✅ MusicXML import (`.musicxml`, `.xml`, `.mxl`) in the Songbook, alongside existing `.json` JGG import
 - ✅ Fix Songbook auto-scroll — rAF loop no longer stopped immediately when iframe had no overflow content yet
@@ -252,9 +260,9 @@ Depth: **10 levels**.
 
 ## 📋 Roadmap
 
-- [ ] MIDI playback of root notes
 - [ ] Custom color picker per section
 - [ ] Import iReal Pro® `.irealbook`
+- [ ] Percussion / metronome track in the player
 
 ---
 

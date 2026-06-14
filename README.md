@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-4.7-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.8-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -37,7 +37,7 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - 💾 **Sauvegarde du travail en cours (JSON)** — reprise exacte à l'identique, accords, annotations et sections inclus
 - 🎼 **Export MusicXML** — compatible MuseScore®, Sibelius, Finale, iReal Pro®
 - 🎹 **Export MIDI** — Standard MIDI File (Type 0) : voicings d'accords piano (ch 0) + basse (ch 1) ; choix du nombre de répétitions
-- ▶ **Lecteur intégré** — écoute la grille dans le navigateur via SoundFont (piano acoustique + basse, CDN) ; suit barres de reprise, voltas, D.C./D.S. al Coda, Fine ; mesure surlignée en temps réel ; barre d'espace pour play/stop ; choix du nombre de boucles
+- ▶ **Lecteur intégré** — écoute la grille dans le navigateur via SoundFont (piano acoustique + basse, CDN) ; suit barres de reprise, voltas, D.C./D.S. al Coda, Fine ; mesure surlignée en temps réel ; barre d'espace pour play/stop ; choix du nombre de boucles ; voicings jazz étalés sur 2 octaves (extensions 9/11/13 incluses) ; accords slash (ex. `C/E`) respectés à la basse
 - 🗂️ **Toolbar rationalisée** — menu 📁 Fichier (Nouveau, Ouvrir, Importer, Sauvegarder) et menu ⬆ Exporter (MusicXML, MXL, MIDI, Imprimer)
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
 - ⚡ **Sans build** — ouvre `index.html` directement dans un navigateur ; le cœur de l'app fonctionne hors ligne (MXL, IA et SoundFont nécessitent une connexion)
@@ -217,6 +217,9 @@ Profondeur : **10 niveaux**.
 
 ## 📋 Changelog
 
+### v4.8 (juin 2026)
+- ✅ Voicings jazz dans le lecteur — étalement sur 2 octaves (chaque note strictement au-dessus de la précédente), toutes les extensions (9e, 11e, 13e) incluses, accords slash (`C/E`, `Dm7/F`…) respectés à la basse
+
 ### v4.7 (juin 2026)
 - ✅ Export MIDI — Standard MIDI File (Type 0) avec voicings piano + basse, sélecteur de répétitions
 - ✅ Lecteur intégré — Web Audio + SoundFont (piano acoustique + basse depuis CDN) ; navigation complète (repeats, voltas, D.C./D.S. al Coda, Fine) ; highlight mesure en cours ; barre d'espace play/stop
@@ -259,6 +262,7 @@ Profondeur : **10 niveaux**.
 
 - [ ] Sélecteur de couleur personnalisé par section
 - [ ] Import iReal Pro® `.irealbook`
+- [ ] Instrument de percussion / métronome dans le lecteur
 
 ---
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## v4.8 (juin 2026)
+- ✅ Voicings jazz dans le lecteur intégré — étalement sur 2 octaves : chaque note du piano est placée strictement au-dessus de la précédente (ex. Cmaj9 → C4 E4 G4 B4 D5, C13 → C4 E4 G4 Bb4 D5 A5) ; toutes les extensions (`ARP_DEF`) incluses (plus de limite à 4 sons) ; accords slash (`C/E`, `Dm7/F#`…) : la note de basse est envoyée au canal basse au lieu de la fondamentale, validée via `noteIdx()`
+
 ## v4.7 (juin 2026)
 - ✅ Export MIDI — Standard MIDI File (Type 0) ; voicings accords piano (canal 0, octave 4) + basse (canal 1, octave 2) ; sélecteur de répétitions (1–16) ; `N.C.` / `%` gérés
 - ✅ Lecteur intégré — Web Audio API + soundfont-player CDN (piano acoustique + basse acoustique) ; résolveur de navigation complet : barres de reprise, volta 1/2, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Segno ; `%` / `/` résolus vers l'accord précédent ; mesure en cours surlignée (amber) avec scroll auto ; barre d'espace play/stop (ignoré dans les champs texte) ; instruments mis en cache après premier chargement
