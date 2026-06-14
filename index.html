@@ -16,9 +16,36 @@
 
 <div id="toolbar">
   <h1><span id="toolbar-title">𝄢 Jazz Grid Generator</span><span id="toolbar-ts"></span></h1>
-  <input type="file" id="file-input" accept=".musicxml,.xml,.mxl">
-  <button class="btn" id="btn-open" onclick="document.getElementById('file-input').click()"></button>
-  <button class="btn secondary" id="btn-new" onclick="newChart()"></button>
+
+  <!-- Inputs fichiers cachés -->
+  <input type="file" id="file-input" accept=".musicxml,.xml,.mxl" style="display:none">
+  <input type="file" id="import-json" accept=".json" style="display:none">
+
+  <!-- 📁 Fichier -->
+  <div class="dropdown" id="dd-file">
+    <button class="btn dropdown-trigger" id="btn-menu-file" onclick="toggleDropdown('dd-file')"></button>
+    <div class="dropdown-menu">
+      <button id="btn-new" onclick="newChart();closeDropdowns()"></button>
+      <button id="btn-open" onclick="document.getElementById('file-input').click();closeDropdowns()"></button>
+      <div class="dropdown-sep"></div>
+      <button id="btn-import-json" onclick="document.getElementById('import-json').click();closeDropdowns()"></button>
+      <button id="btn-export-json" onclick="exportJSON();closeDropdowns()"></button>
+    </div>
+  </div>
+
+  <!-- ⬆ Exporter -->
+  <div class="dropdown" id="dd-export">
+    <button class="btn secondary dropdown-trigger" id="btn-menu-export" onclick="toggleDropdown('dd-export')"></button>
+    <div class="dropdown-menu">
+      <button id="btn-export-xml" onclick="exportMusicXML();closeDropdowns()"></button>
+      <button id="btn-export-mxl" onclick="exportMXL();closeDropdowns()"></button>
+      <button id="btn-export-midi" onclick="openMidiDialog();closeDropdowns()"></button>
+      <div class="dropdown-sep"></div>
+      <button id="btn-print" onclick="openPrintPanel();closeDropdowns()"></button>
+    </div>
+  </div>
+
+  <!-- Transposer -->
   <div id="transpose-group">
     <label id="lbl-transpose"></label>
     <div id="transpose-semitones">
@@ -32,7 +59,10 @@
     </select>
     <button class="btn secondary" onclick="resetTranspose()" style="padding:4px 8px;font-size:0.75rem;">↺</button>
   </div>
+
   <span style="flex:1"></span>
+
+  <!-- Colonnes + Undo/Redo -->
   <label id="lbl-cols"></label>
   <select class="cols-select" id="global-cols" onchange="render()">
     <option value="4" selected>4</option><option value="3">3</option>
@@ -40,21 +70,18 @@
   </select>
   <button class="btn secondary" id="btn-undo" onclick="undo()" disabled title="Annuler (Ctrl+Z)">↩</button>
   <button class="btn secondary" id="btn-redo" onclick="redo()" disabled title="Rétablir (Ctrl+Y)">↪</button>
-  <button class="btn secondary" id="btn-print" onclick="openPrintPanel()"></button>
-  <button class="btn" id="btn-export-json" onclick="exportJSON()"></button>
-  <input type="file" id="import-json" accept=".json" style="display:none">
-  <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
-  <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
-  <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
-  <button class="btn secondary" id="btn-export-midi" onclick="openMidiDialog()"></button>
+
+  <!-- Lecture -->
   <button class="btn secondary" id="btn-play" onclick="openPlayerDialog()">▶</button>
-  <!-- Toggle basse 4/5 cordes -->
+
+  <!-- Basse 4/5 cordes -->
   <div id="bass-strings-selector" style="display:flex;align-items:center;gap:4px;background:#0f3460;border:1px solid #f0a500;border-radius:6px;padding:4px 8px;">
     <label style="color:#f0a500;font-size:0.78rem;font-weight:bold;">🎸</label>
     <button id="btn-4str" class="semi-btn" style="font-size:0.75rem;padding:2px 6px;width:auto;" onclick="setBassStrings(4)">4</button>
     <button id="btn-5str" class="semi-btn" style="font-size:0.75rem;padding:2px 6px;width:auto;" onclick="setBassStrings(5)">5</button>
   </div>
-  <!-- Sélecteur de langue intégré à la fin de la toolbar -->
+
+  <!-- Langue -->
   <div id="lang-selector">
     <label>🌐</label>
     <select id="lang-select" onchange="setLang(this.value)">
@@ -64,6 +91,7 @@
       <option value="en">🇬🇧 EN</option>
     </select>
   </div>
+
   <div id="kofi-wrap">
     <a href="https://ko-fi.com/lorenzovirgosfrediani" target="_blank" rel="noopener" id="kofi-btn" title="Soutenir ce projet sur Ko-fi">☕ Ko-fi</a>
   </div>

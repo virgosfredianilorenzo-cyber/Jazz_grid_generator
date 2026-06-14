@@ -18,6 +18,39 @@ body { font-family: 'Georgia', serif; background: #1a1a2e; color: #eee; min-heig
 select, input[type="text"], input[type="number"] { background:#2d4a7a; color:#eee; border:1px solid #f0a500; padding:6px 10px; border-radius:4px; font-size:0.85rem; }
 label { font-size:0.85rem; color:#aaa; }
 
+/* ── Dropdown menus ──────────────────────────────────────────────────────── */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-trigger::after { content: ' ▾'; font-size: 0.7em; opacity: 0.8; }
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  z-index: 200;
+  min-width: 190px;
+  background: #16213e;
+  border: 1px solid #f0a500;
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  padding: 5px 0;
+}
+.dropdown.open .dropdown-menu { display: block; }
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #e2e8f0;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dropdown-menu button:hover { background: rgba(240,165,0,0.15); color: #f0a500; }
+.dropdown-sep { border-top: 1px solid #2a3a5a; margin: 4px 0; }
+
 /* Sélecteur de langue — intégré dans la toolbar, en fin de ligne */
 #lang-selector { display:flex; align-items:center; gap:6px; background:#0f3460; border:1px solid #f0a500; border-radius:6px; padding:4px 10px; }
 #lang-selector label { color:#f0a500; font-size:0.78rem; font-weight:bold; }
