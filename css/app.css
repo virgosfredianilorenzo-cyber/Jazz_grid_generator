@@ -343,3 +343,24 @@ body.view-mode .nav-add-btn { display: none !important; }
 body.view-mode .measure { cursor: default !important; }
 body.view-mode .chord-symbol { pointer-events: none; }
 body.view-mode #sections-container { padding: 8px; }
+
+/* MIDI export dialog */
+.midi-dialog-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.midi-dialog-overlay.active { display: flex; }
+.midi-dialog-box {
+  background: #1a2a4a;
+  border: 1px solid #f0a500;
+  border-radius: 8px;
+  padding: 20px 24px;
+  min-width: 240px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  color: #e2e8f0;
+}

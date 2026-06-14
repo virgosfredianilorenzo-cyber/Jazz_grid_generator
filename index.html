@@ -46,6 +46,7 @@
   <button class="btn secondary" id="btn-import-json" onclick="document.getElementById('import-json').click()"></button>
   <button class="btn secondary" id="btn-export-xml" onclick="exportMusicXML()"></button>
   <button class="btn secondary" id="btn-export-mxl" onclick="exportMXL()"></button>
+  <button class="btn secondary" id="btn-export-midi" onclick="openMidiDialog()"></button>
   <!-- Toggle basse 4/5 cordes -->
   <div id="bass-strings-selector" style="display:flex;align-items:center;gap:4px;background:#0f3460;border:1px solid #f0a500;border-radius:6px;padding:4px 8px;">
     <label style="color:#f0a500;font-size:0.78rem;font-weight:bold;">🎸</label>
@@ -257,9 +258,27 @@
 <script src="js/render.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/actions.js"></script>
+<script src="js/midi.js"></script>
 <script src="js/print.js"></script>
 <script src="js/touch.js"></script>
 <script src="js/init.js"></script>
 <script src="js/ai.js"></script>
+
+<!-- MIDI export dialog -->
+<div id="midi-dialog" class="midi-dialog-overlay">
+  <div class="midi-dialog-box">
+    <span id="midi-dialog-title" style="font-weight:bold;display:block;margin-bottom:10px;"></span>
+    <label style="display:flex;align-items:center;gap:8px;">
+      <span id="midi-dialog-label"></span>
+      <input type="number" id="midi-reps" min="1" max="16" value="1"
+             style="width:60px;padding:4px;font-size:1rem;text-align:center;
+                    background:#0f3460;color:#e2e8f0;border:1px solid #f0a500;border-radius:4px;">
+    </label>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closeMidiDialog()" id="midi-btn-cancel"></button>
+      <button class="btn" onclick="confirmMidiExport()" id="midi-btn-ok"></button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

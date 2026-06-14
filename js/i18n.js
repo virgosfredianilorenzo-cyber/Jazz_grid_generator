@@ -6,7 +6,7 @@
 
 const LANGS = {
   fr: {
-    btnOpen:'📂 Ouvrir MusicXML',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
+    btnOpen:'📂 Ouvrir MusicXML',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',btnExportMIDI:'🎹 Export MIDI',midiDialogTitle:'Export MIDI',midiDialogLabel:'Répétitions :',midiCancel:'Annuler',midiOk:'Exporter',
     dzTitle:'Déposer un fichier MusicXML',dzSub:'ou cliquer pour choisir un fichier .musicxml / .xml',
     metaKey:'Tonalité :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Mesure :',metaStyle:'Style :',
     btnAddSection:'+ Ajouter une section',secAddMeasure:'+ Mesure',secDuplicate:'⧉ Dupliquer',secDelete:'✕ Supprimer',secAnnotPlaceholder:'Annotation de section…',
@@ -21,7 +21,7 @@ const LANGS = {
     lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',
   },
   es: {
-    btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',
+    btnOpen:'📂 Abrir MusicXML',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Exportar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',btnExportMIDI:'🎹 Exportar MIDI',midiDialogTitle:'Exportar MIDI',midiDialogLabel:'Repeticiones :',midiCancel:'Cancelar',midiOk:'Exportar',
     dzTitle:'Arrastra un archivo MusicXML',dzSub:'o haz clic para elegir un archivo .musicxml / .xml',
     metaKey:'Tonalidad :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Compás :',metaStyle:'Estilo :',
     btnAddSection:'+ Agregar sección',secAddMeasure:'+ Compás',secDuplicate:'⧉ Duplicar',secDelete:'✕ Eliminar',secAnnotPlaceholder:'Anotación de sección…',
@@ -36,7 +36,7 @@ const LANGS = {
     lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',
   },
   it: {
-    btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',
+    btnOpen:'📂 Apri MusicXML',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Esporta JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',btnExportMIDI:'🎹 Esporta MIDI',midiDialogTitle:'Esporta MIDI',midiDialogLabel:'Ripetizioni :',midiCancel:'Annulla',midiOk:'Esporta',
     dzTitle:'Trascina un file MusicXML',dzSub:'o clicca per scegliere un file .musicxml / .xml',
     metaKey:'Tonalità :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Misura :',metaStyle:'Stile :',
     btnAddSection:'+ Aggiungi sezione',secAddMeasure:'+ Misura',secDuplicate:'⧉ Duplica',secDelete:'✕ Elimina',secAnnotPlaceholder:'Annotazione di sezione…',
@@ -51,7 +51,7 @@ const LANGS = {
     lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',
   },
   en: {
-    btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',
+    btnOpen:'📂 Open MusicXML',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Export JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',btnExportMIDI:'🎹 Export MIDI',midiDialogTitle:'Export MIDI',midiDialogLabel:'Repetitions:',midiCancel:'Cancel',midiOk:'Export',
     dzTitle:'Drop a MusicXML file here',dzSub:'or click to choose a .musicxml / .xml file',
     metaKey:'Key :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Time :',metaStyle:'Style :',
     btnAddSection:'+ Add section',secAddMeasure:'+ Measure',secDuplicate:'⧉ Duplicate',secDelete:'✕ Delete',secAnnotPlaceholder:'Section annotation…',
@@ -80,6 +80,11 @@ function applyTranslations(){
   document.getElementById('btn-import-json').textContent=t('btnImportJSON');
   document.getElementById('btn-export-xml').textContent=t('btnExportXML');
   document.getElementById('btn-export-mxl').textContent=t('btnExportMXL');
+  document.getElementById('btn-export-midi').textContent=t('btnExportMIDI');
+  document.getElementById('midi-dialog-title').textContent=t('midiDialogTitle');
+  document.getElementById('midi-dialog-label').textContent=t('midiDialogLabel');
+  document.getElementById('midi-btn-cancel').textContent=t('midiCancel');
+  document.getElementById('midi-btn-ok').textContent=t('midiOk');
   document.getElementById('dz-title').textContent=t('dzTitle');
   document.getElementById('dz-sub').textContent=t('dzSub');
   document.getElementById('meta-key-label').textContent=t('metaKey');
