@@ -1,5 +1,11 @@
 # Changelog
 
+## v4.7 (juin 2026)
+- ✅ Export MIDI — Standard MIDI File (Type 0) ; voicings accords piano (canal 0, octave 4) + basse (canal 1, octave 2) ; sélecteur de répétitions (1–16) ; `N.C.` / `%` gérés
+- ✅ Lecteur intégré — Web Audio API + soundfont-player CDN (piano acoustique + basse acoustique) ; résolveur de navigation complet : barres de reprise, volta 1/2, D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Segno ; `%` / `/` résolus vers l'accord précédent ; mesure en cours surlignée (amber) avec scroll auto ; barre d'espace play/stop (ignoré dans les champs texte) ; instruments mis en cache après premier chargement
+- ✅ Toolbar rationalisée — 17 éléments regroupés en 7 zones : menus déroulants 📁 Fichier (Nouveau · Ouvrir · Importer JSON · Sauvegarder JSON) et ⬆ Exporter (MusicXML · MXL · MIDI · Imprimer) ; fermeture au clic extérieur
+- ✅ Fix dialog MIDI — le div `#midi-dialog` était placé après les `<script>`, donc `applyTranslations()` ne trouvait pas les éléments au démarrage ; déplacé avant les scripts
+
 ## v4.6 (mai 2026)
 - ✅ Import MusicXML (`.musicxml`, `.xml`, `.mxl`) dans le Songbook, au même titre que les `.json` JGG
 - ✅ Fix auto-scroll Songbook — la boucle rAF ne s'arrêtait plus immédiatement si l'iframe n'avait pas encore de contenu overflow

@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-4.6-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.7-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -36,8 +36,11 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - 🖨️ **Impression / PDF avancée** — thème clair/sombre, contraste ajustable, colorisation par section, réduction de police automatique sur mesures multi-accords
 - 💾 **Sauvegarde du travail en cours (JSON)** — reprise exacte à l'identique, accords, annotations et sections inclus
 - 🎼 **Export MusicXML** — compatible MuseScore®, Sibelius, Finale, iReal Pro®
+- 🎹 **Export MIDI** — Standard MIDI File (Type 0) : voicings d'accords piano (ch 0) + basse (ch 1) ; choix du nombre de répétitions
+- ▶ **Lecteur intégré** — écoute la grille dans le navigateur via SoundFont (piano acoustique + basse, CDN) ; suit barres de reprise, voltas, D.C./D.S. al Coda, Fine ; mesure surlignée en temps réel ; barre d'espace pour play/stop ; choix du nombre de boucles
+- 🗂️ **Toolbar rationalisée** — menu 📁 Fichier (Nouveau, Ouvrir, Importer, Sauvegarder) et menu ⬆ Exporter (MusicXML, MXL, MIDI, Imprimer)
 - 🌐 **4 langues** — Français 🇫🇷, Espagnol 🇪🇸, Italien 🇮🇹, Anglais 🇬🇧
-- ⚡ **Sans build** — ouvre `index.html` directement dans un navigateur ; le cœur de l'app fonctionne hors ligne (MXL et IA nécessitent une connexion)
+- ⚡ **Sans build** — ouvre `index.html` directement dans un navigateur ; le cœur de l'app fonctionne hors ligne (MXL, IA et SoundFont nécessitent une connexion)
 
 ---
 
@@ -214,6 +217,11 @@ Profondeur : **10 niveaux**.
 
 ## 📋 Changelog
 
+### v4.7 (juin 2026)
+- ✅ Export MIDI — Standard MIDI File (Type 0) avec voicings piano + basse, sélecteur de répétitions
+- ✅ Lecteur intégré — Web Audio + SoundFont (piano acoustique + basse depuis CDN) ; navigation complète (repeats, voltas, D.C./D.S. al Coda, Fine) ; highlight mesure en cours ; barre d'espace play/stop
+- ✅ Toolbar rationalisée — menus déroulants 📁 Fichier et ⬆ Exporter ; 7 zones distinctes au lieu de 17 boutons éparpillés
+
 ### v4.6 (mai 2026)
 - ✅ Import MusicXML (`.musicxml`, `.xml`, `.mxl`) dans le Songbook, au même titre que les `.json` JGG
 - ✅ Fix auto-scroll Songbook — la boucle rAF ne s'arrêtait plus immédiatement si l'iframe n'avait pas encore de contenu overflow
@@ -249,7 +257,6 @@ Profondeur : **10 niveaux**.
 
 ## 📋 Feuille de route
 
-- [ ] Lecture MIDI des notes fondamentales
 - [ ] Sélecteur de couleur personnalisé par section
 - [ ] Import iReal Pro® `.irealbook`
 

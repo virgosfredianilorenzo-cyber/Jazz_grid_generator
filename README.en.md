@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.6-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.7-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -36,8 +36,11 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 - 🖨️ **Advanced print/PDF** — light/dark theme, adjustable contrast, per-section colors, automatic font scaling on multi-chord measures
 - 💾 **Save work in progress (JSON)** — exact restore of chords, annotations and sections
 - 🎼 **MusicXML export** — compatible with MuseScore®, Sibelius, Finale, iReal Pro®
+- 🎹 **MIDI export** — Standard MIDI File (Type 0): piano chord voicings (ch 0) + bass (ch 1); choose number of repetitions
+- ▶ **Built-in player** — listen to the chart in your browser via SoundFont (acoustic piano + bass, CDN); follows repeat barlines, voltas, D.C./D.S. al Coda, Fine; current measure highlighted in real time; Space bar to play/stop; choose number of loops
+- 🗂️ **Streamlined toolbar** — 📁 File menu (New, Open, Import, Save) and ⬆ Export menu (MusicXML, MXL, MIDI, Print)
 - 🌐 **4 languages** — French 🇫🇷, Spanish 🇪🇸, Italian 🇮🇹, English 🇬🇧
-- ⚡ **No build step** — open `index.html` directly in a browser; the core app works offline (MXL and AI features require a connection)
+- ⚡ **No build step** — open `index.html` directly in a browser; the core app works offline (MXL, AI and SoundFont require a connection)
 
 ---
 
