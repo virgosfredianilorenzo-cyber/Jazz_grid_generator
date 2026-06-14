@@ -1,12 +1,13 @@
 'use strict';
-// In-browser playback via Web Audio API (no dependencies).
-// Depends on theory.js globals: noteIdx, tr, parseChordSym, ARP_DEF, chartData.
+// In-browser playback via soundfont-player (CDN) + Web Audio API.
+// Depends on: theory.js globals (noteIdx, tr, parseChordSym, ARP_DEF, chartData),
+//             Soundfont global loaded from CDN before this script.
 
-const PLAYER = { ctx: null, timers: [], playing: false };
+const PLAYER = { ctx: null, timers: [], playing: false, piano: null, bass: null };
 
 // ── Navigation resolver ───────────────────────────────────────────────────
 // Flattens chartData following: repeat bars, volta brackets,
-// D.C. al Coda, D.S. al Coda, D.C. al Fine, Fine, Segno.
+// D.C./D.S. al Coda, D.C. al Fine, Fine, Segno.
 
 function _flatMeasures() {
   const out = [];
@@ -22,46 +23,38 @@ function _resolvePlayOrder() {
   if (!n) return [];
 
   const segnoIdx = measures.findIndex(({ m }) => m.navSymbol === 'segno');
-  // codaIdx: index of the 𝄌 coda section header
   const codaIdx  = measures.findIndex(({ m }) => m.navSymbol === 'coda');
 
   const playOrder   = [];
-  const repeatCount = {}; // 'r<startIdx>' → how many times repeat-end was hit
+  const repeatCount = {};
 
-  let pc           = 0;
-  let goingToCoda  = false; // after D.C./D.S., skip until coda mark
-  let stopAtFine   = false; // after D.C. al Fine, stop at Fine mark
-  let guard        = 0;
-  const MAX        = n * 40;
+  let pc          = 0;
+  let goingToCoda = false;
+  let stopAtFine  = false;
+  let guard       = 0;
+  const MAX       = n * 40;
 
   while (guard++ < MAX && pc < n) {
     const { si, mi, m } = measures[pc];
 
-    // ── Volta bracket: skip wrong pass ───────────────────────────────────
+    // Volta bracket: skip wrong pass
     if (m.volta && !goingToCoda && !stopAtFine) {
       const voltaNum = parseInt(m.volta) || 1;
-      // Find the nearest repeat-start before this measure
       let startIdx = 0;
       for (let i = pc - 1; i >= 0; i--) {
         if (measures[i].m.barlineLeft === 'repeat-start') { startIdx = i; break; }
       }
       const pass = repeatCount['r' + startIdx] || 0;
-      // voltaNum 1 plays on pass 1 (count=0 before first jump-back), 2 on pass 2, etc.
       if (voltaNum !== pass + 1) { pc++; continue; }
     }
 
-    // ── goingToCoda: skip until 𝄌 coda mark ─────────────────────────────
+    // goingToCoda: skip until 𝄌 coda mark
     if (goingToCoda) {
-      if (m.navSymbol === 'coda') {
-        goingToCoda = false;
-        // fall through: this is the coda start, include it
-      } else {
-        pc++;
-        continue;
-      }
+      if (m.navSymbol === 'coda') goingToCoda = false;
+      else { pc++; continue; }
     }
 
-    // ── stopAtFine: stop here when Fine is reached ───────────────────────
+    // stopAtFine: stop here when Fine reached
     if (stopAtFine && m.navSymbol === 'fine') {
       playOrder.push({ si, mi });
       break;
@@ -69,7 +62,7 @@ function _resolvePlayOrder() {
 
     playOrder.push({ si, mi });
 
-    // ── Repeat-end: jump back ────────────────────────────────────────────
+    // Repeat-end: jump back
     if (m.barlineRight === 'repeat-end' && !goingToCoda && !stopAtFine) {
       let startIdx = 0;
       for (let i = pc - 1; i >= 0; i--) {
@@ -80,7 +73,7 @@ function _resolvePlayOrder() {
       if (repeatCount[key] < 2) { pc = startIdx; continue; }
     }
 
-    // ── Nav symbols ──────────────────────────────────────────────────────
+    // Nav symbols
     if (!goingToCoda && !stopAtFine) {
       if (m.navSymbol === 'dc-coda') {
         goingToCoda = true;
@@ -106,7 +99,6 @@ function _resolvePlayOrder() {
 }
 
 // ── Build linear chord event list ─────────────────────────────────────────
-// Resolves %, /beat → previous chord symbol. N.C. / — → null (silence).
 
 function _buildEvents(playOrder, loops) {
   const onePass = [];
@@ -117,66 +109,57 @@ function _buildEvents(playOrder, loops) {
     if (!measure) return;
     (measure.chords || []).forEach(chord => {
       let sym = chord.symbol;
-      if (sym === '%' || sym === '/beat') sym = prevSym;
-      else if (sym === '%%')              sym = prevSym;
-      else if (sym === '—' || sym === '') sym = null;
-      if (sym && sym !== 'N.C.')          prevSym = sym;
-      else if (sym === 'N.C.')            sym = null;
+      if (sym === '%' || sym === '/beat' || sym === '%%') sym = prevSym;
+      else if (sym === '—' || sym === '')                 sym = null;
+      if (sym && sym !== 'N.C.')                          prevSym = sym;
+      else if (sym === 'N.C.')                            sym = null;
       onePass.push({ si, mi, sym, beats: chord.beats || 1 });
     });
   });
 
-  // Repeat the resolved sequence `loops` times
   const events = [];
   for (let i = 0; i < loops; i++) events.push(...onePass);
   return events;
 }
 
-// ── Web Audio synthesis ───────────────────────────────────────────────────
+// ── Instrument loading ────────────────────────────────────────────────────
+// AudioContext and instruments are kept alive between plays to avoid
+// reloading soundfonts on every play press.
 
-function _freq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
+async function _ensureInstruments() {
+  if (!PLAYER.ctx || PLAYER.ctx.state === 'closed') {
+    PLAYER.ctx   = new AudioContext();
+    PLAYER.piano = null;
+    PLAYER.bass  = null;
+  }
+  if (PLAYER.ctx.state === 'suspended') await PLAYER.ctx.resume();
+  if (!PLAYER.piano || !PLAYER.bass) {
+    [PLAYER.piano, PLAYER.bass] = await Promise.all([
+      Soundfont.instrument(PLAYER.ctx, 'acoustic_grand_piano'),
+      Soundfont.instrument(PLAYER.ctx, 'acoustic_bass'),
+    ]);
+  }
+}
+
+// ── Chord scheduling ──────────────────────────────────────────────────────
 
 function _midiNote(name, octave) {
   const idx = noteIdx(name);
   return idx === -1 ? 60 : Math.min(127, Math.max(0, (octave + 1) * 12 + idx));
 }
 
-function _scheduleNote(ctx, midi, t0, dur, vol) {
-  const osc  = ctx.createOscillator();
-  const gain = ctx.createGain();
-  const t1   = t0 + 0.015;                    // attack end
-  const t2   = t0 + Math.min(0.12, dur * 0.3); // decay end
-  const t3   = Math.max(t1, t0 + dur - 0.05); // release start
-  const t4   = t0 + dur + 0.02;               // release end
-
-  osc.type = 'triangle';
-  osc.frequency.value = _freq(midi);
-  gain.gain.setValueAtTime(0, t0);
-  gain.gain.linearRampToValueAtTime(vol, t1);
-  gain.gain.exponentialRampToValueAtTime(vol * 0.45, t2);
-  gain.gain.setValueAtTime(vol * 0.45, t3);
-  gain.gain.linearRampToValueAtTime(0.0001, t4);
-
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(t0);
-  osc.stop(t4 + 0.01);
-}
-
-function _scheduleChord(ctx, sym, t0, dur) {
+function _scheduleChord(sym, t0, dur) {
   if (!sym) return;
   const parsed = parseChordSym(sym);
   if (!parsed) return;
 
   const { root, quality } = parsed;
-  const def = ARP_DEF[quality] || ARP_DEF[''] || { i: [0, 4, 7] };
+  const def     = ARP_DEF[quality] || ARP_DEF[''] || { i: [0, 4, 7] };
+  const noteDur = dur * 0.88; // slight gap between chords avoids blur
 
-  // Bass: root at octave 2, sawtooth-like mix (triangle is smoother)
-  _scheduleNote(ctx, _midiNote(root, 2), t0, dur, 0.55);
-
-  // Chord voicing: octave 4, up to 4 notes
+  PLAYER.bass.play(_midiNote(root, 2), t0, { duration: noteDur, gain: 0.9 });
   def.i.slice(0, 4).forEach(s => {
-    _scheduleNote(ctx, _midiNote(tr(root, s), 4), t0, dur, 0.28);
+    PLAYER.piano.play(_midiNote(tr(root, s), 4), t0, { duration: noteDur, gain: 0.6 });
   });
 }
 
@@ -197,46 +180,52 @@ function _highlight(si, mi) {
 
 // ── Public API ────────────────────────────────────────────────────────────
 
-function startPlayback(loops) {
-  if (PLAYER.playing) stopPlayback();
+async function startPlayback(loops) {
+  if (PLAYER.playing) { stopPlayback(); return; }
 
   loops = Math.max(1, Math.min(16, parseInt(loops) || 1));
-  const bpm     = chartData.tempo || 120;
-  const spb     = 60 / bpm; // seconds per beat
+  const bpm = chartData.tempo || 120;
+  const spb = 60 / bpm;
 
   const playOrder = _resolvePlayOrder();
   const events    = _buildEvents(playOrder, loops);
   if (!events.length) return;
 
-  PLAYER.ctx     = new AudioContext();
-  PLAYER.playing = true;
-
   const btn = document.getElementById('btn-play');
+  if (btn) btn.textContent = '⏳';
+
+  try {
+    await _ensureInstruments();
+  } catch (e) {
+    console.error('SoundFont load failed:', e);
+    if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+    return;
+  }
+
+  PLAYER.playing = true;
   if (btn) { btn.textContent = '⏹'; btn.classList.add('playing'); }
 
-  let t = PLAYER.ctx.currentTime + 0.08;
+  let t = PLAYER.ctx.currentTime + 0.1;
 
   events.forEach(ev => {
     const dur = ev.beats * spb;
-    _scheduleChord(PLAYER.ctx, ev.sym, t, dur);
+    _scheduleChord(ev.sym, t, dur);
 
-    // Visual: fire slightly early so UI updates on the beat
     const delay = Math.max(0, (t - PLAYER.ctx.currentTime) * 1000 - 30);
-    const id = setTimeout(() => _highlight(ev.si, ev.mi), delay);
-    PLAYER.timers.push(id);
+    PLAYER.timers.push(setTimeout(() => _highlight(ev.si, ev.mi), delay));
 
     t += dur;
   });
 
-  // Auto-stop
-  const total = (t - PLAYER.ctx.currentTime + 0.15) * 1000;
+  const total = (t - PLAYER.ctx.currentTime + 0.2) * 1000;
   PLAYER.timers.push(setTimeout(stopPlayback, total));
 }
 
 function stopPlayback() {
   PLAYER.timers.forEach(clearTimeout);
   PLAYER.timers = [];
-  if (PLAYER.ctx) { PLAYER.ctx.close(); PLAYER.ctx = null; }
+  if (PLAYER.piano) PLAYER.piano.stop();
+  if (PLAYER.bass)  PLAYER.bass.stop();
   PLAYER.playing = false;
   _clearHighlight();
   const btn = document.getElementById('btn-play');
@@ -257,3 +246,12 @@ function confirmPlay() {
   closePlayerDialog();
   startPlayback(loops);
 }
+
+// Space bar: toggle play/stop (ignored when focus is on an input/textarea/select)
+document.addEventListener('keydown', e => {
+  if (e.code !== 'Space') return;
+  const tag = document.activeElement && document.activeElement.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+  e.preventDefault();
+  openPlayerDialog();
+});
