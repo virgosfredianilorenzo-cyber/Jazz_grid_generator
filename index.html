@@ -272,6 +272,14 @@
   <span id="contrast-preview"></span>
   <span style="margin-left:8px;" id="lbl-section-colors"></span>
   <div style="display:flex;gap:4px;align-items:center;" id="section-color-preview"></div>
+  <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;">
+    <input type="checkbox" id="cb-onepage" onchange="setOnepage(this.checked)">
+    <span id="lbl-onepage"></span>
+  </label>
+  <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;">
+    <input type="checkbox" id="cb-show-nav" onchange="setShowNav(this.checked)">
+    <span id="lbl-show-nav"></span>
+  </label>
   <button class="btn" id="btn-do-print" onclick="doPrint()" style="padding:5px 14px;"></button>
   <button class="btn secondary" onclick="closePrintPanel()" style="padding:5px 10px;">✕</button>
 </div>
