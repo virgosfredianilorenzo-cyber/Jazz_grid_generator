@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-4.8-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-4.9-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -33,7 +33,9 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - 🎼 **Voltas et symboles de navigation** — 1ère/2ème/3ème fois, Segno, Coda, D.C., D.S., Fine
 - ↩️ **Annuler / Rétablir** — 10 niveaux, raccourcis Ctrl+Z / Ctrl+Y, couverture complète de toutes les actions
 - 📱 **Support tactile tablette** — drag & drop au doigt, pinch-to-zoom, cibles agrandies
-- 🖨️ **Impression / PDF avancée** — thème clair/sombre, contraste ajustable, colorisation par section, réduction de police automatique sur mesures multi-accords
+- 🖨️ **Impression / PDF avancée** — thème clair/sombre, contraste ajustable, colorisation par section, réduction de police automatique sur mesures multi-accords ; option 1-page (fonte réduite pour tenir sur A4) ; masquage optionnel des symboles de navigation (barres de reprise, voltas, segno/coda/fine)
+- 🎭 **Mode concert** — au démarrage du play, l'interface se masque entièrement (sauf la grille) ; barre flottante en bas avec compteur de mesure et bouton stop ; clic sur la grille pour revenir
+- 🥁 **Métronome** — bouton ♩ indépendant dans la toolbar (calé sur le tempo et la métrique du chart) ; activable aussi depuis la dialog de lecture pour jouer synchronisé avec les accords ; volume ajustable, persisté entre sessions
 - 💾 **Sauvegarde du travail en cours (JSON)** — reprise exacte à l'identique, accords, annotations et sections inclus
 - 🎼 **Export MusicXML** — compatible MuseScore®, Sibelius, Finale, iReal Pro®
 - 🎹 **Export MIDI** — Standard MIDI File (Type 0) : voicings d'accords piano (ch 0) + basse (ch 1) ; choix du nombre de répétitions
@@ -216,6 +218,12 @@ Profondeur : **10 niveaux**.
 ---
 
 ## 📋 Changelog
+
+### v4.9 (juin 2026)
+- ✅ Mode concert — au play, l'UI se masque (sauf la grille) ; barre flottante avec compteur de mesure et stop ; clic grille pour revenir
+- ✅ Métronome — bouton ♩ dans la toolbar (indépendant) + option dans la dialog de lecture (synchronisé aux accords) ; calé sur tempo et métrique ; volume ajustable et persisté
+- ✅ Impression 1-page — option pour réduire la fonte et faire tenir toute la grille sur une page A4
+- ✅ Symboles nav à l'impression — masqués par défaut, affichables via option ; couleur d'impression forcée en noir pour visibilité optimale
 
 ### v4.8 (juin 2026)
 - ✅ Voicings jazz dans le lecteur — étalement sur 2 octaves (chaque note strictement au-dessus de la précédente), toutes les extensions (9e, 11e, 13e) incluses, accords slash (`C/E`, `Dm7/F`…) respectés à la basse
