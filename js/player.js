@@ -4,6 +4,63 @@
 //             Soundfont global loaded from CDN before this script.
 
 const PLAYER = { ctx: null, timers: [], playing: false, piano: null, bass: null };
+const METRO  = { timers: [], running: false, volume: 0.5, nextBeat: 0, beat: 0 };
+
+// ── Metronome engine ──────────────────────────────────────────────────────
+
+function _metroClick(t, isDown) {
+  if (!PLAYER.ctx) return;
+  const osc = PLAYER.ctx.createOscillator();
+  const env = PLAYER.ctx.createGain();
+  osc.connect(env);
+  env.connect(PLAYER.ctx.destination);
+  osc.frequency.value = isDown ? 1000 : 800;
+  const g = (isDown ? 0.7 : 0.5) * METRO.volume;
+  env.gain.setValueAtTime(g, t);
+  env.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
+  osc.start(t);
+  osc.stop(t + 0.055);
+}
+
+function _metroSchedule() {
+  if (!METRO.running || !PLAYER.ctx) return;
+  const bpm   = chartData.tempo || 120;
+  const [num] = (chartData.timeSig || '4/4').split('/').map(Number);
+  const spb   = 60 / bpm;
+  while (METRO.nextBeat < PLAYER.ctx.currentTime + 0.4) {
+    _metroClick(METRO.nextBeat, (METRO.beat % num) === 0);
+    METRO.nextBeat += spb;
+    METRO.beat++;
+  }
+  METRO.timers.push(setTimeout(_metroSchedule, 100));
+}
+
+function startMetro(t0) {
+  METRO.running  = true;
+  METRO.beat     = 0;
+  METRO.nextBeat = (t0 !== undefined) ? t0 : PLAYER.ctx.currentTime + 0.05;
+  METRO.timers   = [];
+  _metroSchedule();
+  const btn = document.getElementById('btn-metro');
+  if (btn) btn.classList.add('active');
+}
+
+function stopMetro() {
+  METRO.timers.forEach(clearTimeout);
+  METRO.timers   = [];
+  METRO.running  = false;
+  METRO.beat     = 0;
+  METRO.nextBeat = 0;
+  const btn = document.getElementById('btn-metro');
+  if (btn) btn.classList.remove('active');
+}
+
+function toggleMetro() {
+  if (METRO.running) { stopMetro(); return; }
+  _ensureInstruments()
+    .then(() => startMetro())
+    .catch(e => console.error('Metro init failed:', e));
+}
 
 // ── Navigation resolver ───────────────────────────────────────────────────
 // Flattens chartData following: repeat bars, volta brackets,
@@ -249,6 +306,10 @@ async function startPlayback(loops) {
   const totalMeas = playOrder.length * loops;
   _enterConcertMode(totalMeas);
 
+  // Métronome synchronisé avec le play
+  if (METRO.running) stopMetro();
+  if (document.getElementById('cb-metro')?.checked) startMetro(PLAYER.ctx.currentTime + 0.1);
+
   let t        = PLAYER.ctx.currentTime + 0.1;
   let lastSiMi = null;
   let measIdx  = 0;
@@ -285,6 +346,7 @@ function stopPlayback() {
   const btn = document.getElementById('btn-play');
   if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
   _exitConcertMode();
+  stopMetro();
 }
 
 function openPlayerDialog() {
