@@ -405,3 +405,21 @@ body.view-mode #sections-container { padding: 8px; }
 }
 /* Play button: red when playing */
 #btn-play.playing { color: #f87171; border-color: #f87171; }
+
+/* ── Concert mode (play avec UI masquée) ── */
+#concert-bar {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.78);
+  color: #fff;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 18px;
+  z-index: 9999;
+  font-size: 0.92rem;
+  gap: 12px;
+}
+body.concert-mode #concert-bar { display: flex; }
+body.concert-mode > *:not(#chart-editor):not(#concert-bar) { display: none !important; }
+body.concert-mode #chart-editor { cursor: pointer; }
