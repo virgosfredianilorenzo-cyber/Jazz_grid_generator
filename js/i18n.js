@@ -18,7 +18,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Thème :',themeLight:'☀️ Clair',themeDark:'🌙 Sombre',lblContrast:'Contraste :',lblSectionColors:'Couleurs sections :',btnDoPrint:'Imprimer',contrastLabels:['Léger','Standard','Soutenu','Fort','Maximum'],
     alertLastSection:'Impossible de supprimer la dernière section.',alertBadJSON:'JSON invalide.',alertBadXML:'Erreur MusicXML.',
     defaultTitle:'Mon Thème Jazz',editHint:'clic: éditer',tipDeleteMeasure:'Supprimer mesure',tipDupMeasure:'Dupliquer mesure',tipAddChord:'Ajouter un accord',sectionDefault:'Section',
-    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',
+    lblSymbols:'SYMBOLES RAPIDES',symRepeat:'% (répéter)',symRepeat2:'𝄎 (2 mes.)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (aucun)',printOnepage:'1 page',printShowNav:'Repères nav.',metroLabel:'Métronome',metroVolume:'Volume :',
   },
   es: {
     menuFile:'📁 Archivo',menuExport:'⬆ Exportar',btnOpen:'📂 Abrir…',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Guardar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',btnExportMIDI:'🎹 Exportar MIDI',midiDialogTitle:'Exportar MIDI',midiDialogLabel:'Repeticiones :',midiCancel:'Cancelar',midiOk:'Exportar',btnPlay:'▶ Reproducir',playerDialogTitle:'Reproducir',playerDialogLabel:'Bucles :',playerCancel:'Cancelar',playerOk:'▶ Reproducir',
@@ -33,7 +33,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Claro',themeDark:'🌙 Oscuro',lblContrast:'Contraste :',lblSectionColors:'Colores secciones :',btnDoPrint:'Imprimir',contrastLabels:['Suave','Estándar','Medio','Fuerte','Máximo'],
     alertLastSection:'No se puede eliminar la última sección.',alertBadJSON:'JSON inválido.',alertBadXML:'Error MusicXML.',
     defaultTitle:'Mi Tema Jazz',editHint:'clic: editar',tipDeleteMeasure:'Eliminar compás',tipDupMeasure:'Duplicar compás',tipAddChord:'Agregar acorde',sectionDefault:'Sección',
-    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',
+    lblSymbols:'SÍMBOLOS RÁPIDOS',symRepeat:'% (repetir)',symRepeat2:'𝄎 (2 comp.)',symNC:'N.C.',symSlash:'/ (pulso)',symNone:'— (ninguno)',printOnepage:'1 página',printShowNav:'Signos nav.',metroLabel:'Metrónomo',metroVolume:'Volumen :',
   },
   it: {
     menuFile:'📁 File',menuExport:'⬆ Esporta',btnOpen:'📂 Apri…',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Salva JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',btnExportMIDI:'🎹 Esporta MIDI',midiDialogTitle:'Esporta MIDI',midiDialogLabel:'Ripetizioni :',midiCancel:'Annulla',midiOk:'Esporta',btnPlay:'▶ Riproduci',playerDialogTitle:'Riproduzione',playerDialogLabel:'Loop :',playerCancel:'Annulla',playerOk:'▶ Riproduci',
@@ -48,7 +48,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Tema :',themeLight:'☀️ Chiaro',themeDark:'🌙 Scuro',lblContrast:'Contrasto :',lblSectionColors:'Colori sezioni :',btnDoPrint:'Stampa',contrastLabels:['Leggero','Standard','Sostenuto','Forte','Massimo'],
     alertLastSection:"Impossibile eliminare l'ultima sezione.",alertBadJSON:'JSON non valido.',alertBadXML:'Errore MusicXML.',
     defaultTitle:'Il Mio Tema Jazz',editHint:'clic: modifica',tipDeleteMeasure:'Elimina misura',tipDupMeasure:'Duplica misura',tipAddChord:'Aggiungi accordo',sectionDefault:'Sezione',
-    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',
+    lblSymbols:'SIMBOLI RAPIDI',symRepeat:'% (ripeti)',symRepeat2:'𝄎 (2 mis.)',symNC:'N.C.',symSlash:'/ (battuta)',symNone:'— (nessuno)',printOnepage:'1 pagina',printShowNav:'Segni nav.',metroLabel:'Metronomo',metroVolume:'Volume :',
   },
   en: {
     menuFile:'📁 File',menuExport:'⬆ Export',btnOpen:'📂 Open…',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Save JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',btnExportMIDI:'🎹 Export MIDI',midiDialogTitle:'Export MIDI',midiDialogLabel:'Repetitions:',midiCancel:'Cancel',midiOk:'Export',btnPlay:'▶ Play',playerDialogTitle:'Playback',playerDialogLabel:'Loops:',playerCancel:'Cancel',playerOk:'▶ Play',
@@ -63,7 +63,7 @@ const LANGS = {
     lblPrintTheme:'🖨️ Theme :',themeLight:'☀️ Light',themeDark:'🌙 Dark',lblContrast:'Contrast :',lblSectionColors:'Section colors :',btnDoPrint:'Print',contrastLabels:['Light','Standard','Medium','Strong','Maximum'],
     alertLastSection:'Cannot delete the last section.',alertBadJSON:'Invalid JSON.',alertBadXML:'MusicXML error.',
     defaultTitle:'My Jazz Theme',editHint:'click: edit',tipDeleteMeasure:'Delete measure',tipDupMeasure:'Duplicate measure',tipAddChord:'Add chord',sectionDefault:'Section',
-    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',
+    lblSymbols:'QUICK SYMBOLS',symRepeat:'% (repeat)',symRepeat2:'𝄎 (2 bars)',symNC:'N.C.',symSlash:'/ (beat)',symNone:'— (none)',printOnepage:'1 page',printShowNav:'Nav marks',metroLabel:'Metronome',metroVolume:'Volume :',
   }
 };
 
@@ -145,6 +145,10 @@ function applyTranslations(){
   document.getElementById('lbl-contrast').textContent=t('lblContrast');
   document.getElementById('lbl-section-colors').textContent=t('lblSectionColors');
   document.getElementById('btn-do-print').textContent=t('btnDoPrint');
+  if(document.getElementById('lbl-onepage'))document.getElementById('lbl-onepage').textContent=t('printOnepage');
+  if(document.getElementById('lbl-show-nav'))document.getElementById('lbl-show-nav').textContent=t('printShowNav');
+  if(document.getElementById('lbl-metro'))document.getElementById('lbl-metro').textContent=t('metroLabel');
+  if(document.getElementById('lbl-metro-vol'))document.getElementById('lbl-metro-vol').textContent=t('metroVolume');
   document.getElementById('transpose-key-select').options[0].textContent=t('keyPlaceholder');
   if(document.getElementById('chart-editor').style.display!=='none')render();
 }
