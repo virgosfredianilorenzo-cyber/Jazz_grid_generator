@@ -23,6 +23,7 @@ function injectPrintStyle(v) {
   let css = buildSectionColorCSS(v);
   if (printOnepage) css += buildOnepageCSS();
   if (!printShowNav) css += buildNavHideCSS();
+  else               css += buildNavPrintCSS();
   const el = document.createElement('style');
   el.id = 'dps';
   el.media = 'print';
@@ -35,6 +36,13 @@ function buildOnepageCSS() {
     '.measures-grid{gap:2px!important;}.chord-symbol{font-size:0.38rem!important;}' +
     '.theory-info{font-size:0.32rem!important;}.measure{min-height:1.4em!important;padding:1px!important;}' +
     '.section-header{padding:2px 4px!important;font-size:0.6rem!important;}';
+}
+function buildNavPrintCSS() {
+  const ink = printTheme === 'dark' ? '#fff' : '#111';
+  return `.barline-repeat-start{border-left:4px double ${ink}!important;}` +
+         `.barline-repeat-end{border-right:4px double ${ink}!important;}` +
+         `.nav-symbol{color:${ink}!important;}` +
+         `.volta-bracket{border-color:${ink}!important;}`;
 }
 function buildNavHideCSS() {
   return '.nav-symbol{display:none!important;}.volta-bracket{display:none!important;}' +
