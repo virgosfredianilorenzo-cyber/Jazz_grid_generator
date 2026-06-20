@@ -200,6 +200,24 @@ function _highlight(si, mi) {
   }
 }
 
+// ── Concert mode ──────────────────────────────────────────────────────────
+
+function _onChartConcertClick() { stopPlayback(); }
+
+function _enterConcertMode(totalMeas) {
+  const prog = document.getElementById('concert-progress');
+  if (prog) prog.textContent = '1 / ' + totalMeas;
+  document.body.classList.add('concert-mode');
+  const chart = document.getElementById('chart-editor');
+  if (chart) chart.addEventListener('click', _onChartConcertClick);
+}
+
+function _exitConcertMode() {
+  document.body.classList.remove('concert-mode');
+  const chart = document.getElementById('chart-editor');
+  if (chart) chart.removeEventListener('click', _onChartConcertClick);
+}
+
 // ── Public API ────────────────────────────────────────────────────────────
 
 async function startPlayback(loops) {
@@ -227,14 +245,28 @@ async function startPlayback(loops) {
   PLAYER.playing = true;
   if (btn) { btn.textContent = '⏹'; btn.classList.add('playing'); }
 
-  let t = PLAYER.ctx.currentTime + 0.1;
+  // Concert mode
+  const totalMeas = playOrder.length * loops;
+  _enterConcertMode(totalMeas);
+
+  let t        = PLAYER.ctx.currentTime + 0.1;
+  let lastSiMi = null;
+  let measIdx  = 0;
 
   events.forEach(ev => {
-    const dur = ev.beats * spb;
+    const dur     = ev.beats * spb;
     _scheduleChord(ev.sym, t, dur);
 
+    const siMiKey = `${ev.si},${ev.mi}`;
+    if (siMiKey !== lastSiMi) { measIdx++; lastSiMi = siMiKey; }
+    const captured = measIdx;
+
     const delay = Math.max(0, (t - PLAYER.ctx.currentTime) * 1000 - 30);
-    PLAYER.timers.push(setTimeout(() => _highlight(ev.si, ev.mi), delay));
+    PLAYER.timers.push(setTimeout(() => {
+      _highlight(ev.si, ev.mi);
+      const prog = document.getElementById('concert-progress');
+      if (prog) prog.textContent = captured + ' / ' + totalMeas;
+    }, delay));
 
     t += dur;
   });
@@ -252,6 +284,7 @@ function stopPlayback() {
   _clearHighlight();
   const btn = document.getElementById('btn-play');
   if (btn) { btn.textContent = '▶'; btn.classList.remove('playing'); }
+  _exitConcertMode();
 }
 
 function openPlayerDialog() {
