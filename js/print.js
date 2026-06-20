@@ -5,6 +5,10 @@
 
 
 let printTheme='light';
+let printOnepage = false;
+let printShowNav = false;
+function setOnepage(v) { printOnepage = v; }
+function setShowNav(v) { printShowNav = v; }
 const SECTION_PALETTES_LIGHT=[{bg:'#fff9e6',border:'#d4a500',header:'#ffedb3',text:'#7a5800',chord:'#1a1a1a'},{bg:'#e8f4ff',border:'#2d7ab8',header:'#bee3f8',text:'#1a4a7a',chord:'#1a1a1a'},{bg:'#edfff0',border:'#2a9a4a',header:'#c3f0cc',text:'#1a5a2a',chord:'#1a1a1a'},{bg:'#ffeef8',border:'#b83aaa',header:'#f5c6f0',text:'#6a1a5a',chord:'#1a1a1a'},{bg:'#fff0e8',border:'#c05820',header:'#ffd6b8',text:'#7a2800',chord:'#1a1a1a'},{bg:'#f0edff',border:'#5a3ab8',header:'#d4ccf8',text:'#2a1a7a',chord:'#1a1a1a'},{bg:'#e8fffe',border:'#1a9a8a',header:'#b8f0ec',text:'#0a5a50',chord:'#1a1a1a'},{bg:'#fff4f4',border:'#b82a2a',header:'#ffd0d0',text:'#7a1a1a',chord:'#1a1a1a'}];
 const SECTION_PALETTES_DARK=[{bg:'#2a2000',border:'#f0c040',header:'#3a2e00',text:'#ffd060',chord:'#ffffff'},{bg:'#001a30',border:'#4ab0f0',header:'#002040',text:'#7dd3fc',chord:'#ffffff'},{bg:'#001a08',border:'#3aaa5a',header:'#002010',text:'#86efac',chord:'#ffffff'},{bg:'#280020',border:'#d060c8',header:'#350028',text:'#f0a8ec',chord:'#ffffff'},{bg:'#280e00',border:'#e07838',header:'#341200',text:'#fbb060',chord:'#ffffff'},{bg:'#180030',border:'#8060e8',header:'#200038',text:'#c4b5fd',chord:'#ffffff'},{bg:'#001a18',border:'#28c8b0',header:'#002020',text:'#5eead4',chord:'#ffffff'},{bg:'#280000',border:'#e04040',header:'#340000',text:'#fca5a5',chord:'#ffffff'}];
 function getSectionColorMap(){const palettes=printTheme==='light'?SECTION_PALETTES_LIGHT:SECTION_PALETTES_DARK;const m={};let i=0;chartData.sections.forEach(s=>{const l=s.label||'';if(!(l in m)){m[l]=i%palettes.length;i++;}});return m;}
@@ -14,6 +18,26 @@ function setPrintTheme(theme){printTheme=theme;document.getElementById('theme-li
 function openPrintPanel(){document.getElementById('print-contrast-bar').style.display='flex';updateContrastPreview();updateSectionColorPreview();}
 function closePrintPanel(){document.getElementById('print-contrast-bar').style.display='none';removePrintStyle();}
 function updateContrastPreview(){document.getElementById('contrast-preview').textContent=t('contrastLabels')[parseInt(document.getElementById('contrast-slider').value)-1];}
-function injectPrintStyle(v){removePrintStyle();const el=document.createElement('style');el.id='dps';el.media='print';el.textContent=buildSectionColorCSS(v);document.head.appendChild(el);}
+function injectPrintStyle(v) {
+  removePrintStyle();
+  let css = buildSectionColorCSS(v);
+  if (printOnepage) css += buildOnepageCSS();
+  if (!printShowNav) css += buildNavHideCSS();
+  const el = document.createElement('style');
+  el.id = 'dps';
+  el.media = 'print';
+  el.textContent = css;
+  document.head.appendChild(el);
+}
 function removePrintStyle(){const el=document.getElementById('dps');if(el)el.remove();}
+function buildOnepageCSS() {
+  return '@page{size:A4;margin:8mm;}.section{gap:2px!important;margin:2px 0!important;}' +
+    '.measures-grid{gap:2px!important;}.chord-symbol{font-size:0.38rem!important;}' +
+    '.theory-info{font-size:0.32rem!important;}.measure{min-height:1.4em!important;padding:1px!important;}' +
+    '.section-header{padding:2px 4px!important;font-size:0.6rem!important;}';
+}
+function buildNavHideCSS() {
+  return '.nav-symbol{display:none!important;}.volta-bracket{display:none!important;}' +
+    '.barline-repeat-start{border-left:none!important;}.barline-repeat-end{border-right:none!important;}';
+}
 function doPrint(){injectPrintStyle(parseInt(document.getElementById('contrast-slider').value));setTimeout(()=>{window.print();setTimeout(removePrintStyle,1000);},80);}
