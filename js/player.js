@@ -4,7 +4,7 @@
 //             Soundfont global loaded from CDN before this script.
 
 const PLAYER = { ctx: null, timers: [], playing: false, piano: null, bass: null };
-const METRO  = { timers: [], running: false, volume: 0.5, nextBeat: 0, beat: 0 };
+const METRO  = { timers: [], running: false, volume: 0.35, nextBeat: 0, beat: 0 };
 
 // ── Metronome engine ──────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ function _metroClick(t, isDown) {
   osc.connect(env);
   env.connect(PLAYER.ctx.destination);
   osc.frequency.value = isDown ? 1000 : 800;
-  const g = (isDown ? 0.7 : 0.5) * METRO.volume;
+  const g = (isDown ? 0.28 : 0.20) * METRO.volume;
   env.gain.setValueAtTime(g, t);
   env.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
   osc.start(t);

@@ -42,7 +42,7 @@ updateUndoButtons();
 window.addEventListener('beforeunload',e=>{if(_isDirty){e.preventDefault();e.returnValue='';}});
 (function(){
   const metroOn  = localStorage.getItem('jgg_metro_on') === 'true';
-  const metroVol = parseFloat(localStorage.getItem('jgg_metro_vol') || '0.5');
+  const metroVol = parseFloat(localStorage.getItem('jgg_metro_vol') || '0.35');
   METRO.volume = metroVol;
   const cbMetro = document.getElementById('cb-metro');
   if (cbMetro) cbMetro.checked = metroOn;
