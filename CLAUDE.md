@@ -78,6 +78,6 @@ Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
 
-## Version en cours (v4.4)
+## Version en cours (v4.8)
 - Avertissement `beforeunload` si modifications non sauvegardées (`_isDirty` dans `state.js`)
-- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v4.3)
+- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v4.7)
