@@ -73,6 +73,7 @@
 
   <!-- Lecture -->
   <button class="btn secondary" id="btn-play" onclick="openPlayerDialog()">▶</button>
+  <button class="btn secondary" id="btn-metro" onclick="toggleMetro()" title="Métronome">♩</button>
 
   <!-- Basse 4/5 cordes -->
   <div id="bass-strings-selector" style="display:flex;align-items:center;gap:4px;background:#0f3460;border:1px solid #f0a500;border-radius:6px;padding:4px 8px;">
@@ -294,6 +295,15 @@
       <input type="number" id="player-loops" min="1" max="16" value="1"
              style="width:60px;padding:4px;font-size:1rem;text-align:center;
                     background:#0f3460;color:#e2e8f0;border:1px solid #f0a500;border-radius:4px;">
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+      <input type="checkbox" id="cb-metro" onchange="localStorage.setItem('jgg_metro_on',this.checked)">
+      <span id="lbl-metro"></span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+      <span id="lbl-metro-vol"></span>
+      <input type="range" id="metro-vol-slider" min="0" max="100" value="50" style="flex:1;accent-color:#f0a500;"
+             oninput="METRO.volume=this.value/100;localStorage.setItem('jgg_metro_vol',METRO.volume)">
     </label>
     <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
       <button class="btn secondary" onclick="closePlayerDialog()" id="player-btn-cancel"></button>

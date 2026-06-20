@@ -40,3 +40,12 @@ updateTimestamp();
 setInterval(updateTimestamp,1000);
 updateUndoButtons();
 window.addEventListener('beforeunload',e=>{if(_isDirty){e.preventDefault();e.returnValue='';}});
+(function(){
+  const metroOn  = localStorage.getItem('jgg_metro_on') === 'true';
+  const metroVol = parseFloat(localStorage.getItem('jgg_metro_vol') || '0.5');
+  METRO.volume = metroVol;
+  const cbMetro = document.getElementById('cb-metro');
+  if (cbMetro) cbMetro.checked = metroOn;
+  const slider  = document.getElementById('metro-vol-slider');
+  if (slider)   slider.value  = Math.round(metroVol * 100);
+})();
