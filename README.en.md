@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-4.9-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.0-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -36,6 +36,8 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 - 🖨️ **Advanced print/PDF** — light/dark theme, adjustable contrast, per-section colors, automatic font scaling on multi-chord measures; 1-page option (reduced font to fit on A4); optional hiding of navigation symbols (repeat barlines, voltas, segno/coda/fine)
 - 🎭 **Concert mode** — when playback starts, the UI hides entirely (except the grid); floating bar at the bottom with measure counter and stop button; click the grid to return
 - 🥁 **Metronome** — independent ♩ button in the toolbar (synced to chart tempo and time signature); also activatable from the play dialog to run alongside chord playback; adjustable volume, persisted between sessions
+- 🖥️ **Fullscreen** — `⛶` button in the toolbar; hides the browser chrome (address bar, tabs); click again or press `Escape` to exit
+- 💡 **Wake lock** — prevents the screen from sleeping while in fullscreen; automatically re-acquired if the tab regains focus
 - 💾 **Save work in progress (JSON)** — exact restore of chords, annotations and sections
 - 🎼 **MusicXML export** — compatible with MuseScore®, Sibelius, Finale, iReal Pro®
 - 🎹 **MIDI export** — Standard MIDI File (Type 0): piano chord voicings (ch 0) + bass (ch 1); choose number of repetitions
@@ -218,6 +220,10 @@ Depth: **10 levels**.
 ---
 
 ## 📋 Changelog
+
+### v5.0 (July 2026)
+- ✅ Fullscreen — `⛶` button in the toolbar; hides browser chrome (address bar, tabs); click again or `Escape` to exit; synced with the browser's native fullscreen button via `fullscreenchange`
+- ✅ Wake lock — prevents screen sleep while in fullscreen; released on exit; re-acquired on tab focus (`visibilitychange`); silent fallback on unsupported browsers (Firefox)
 
 ### v4.9 (June 2026)
 - ✅ Concert mode — on playback start, UI hides (except grid); floating bar with measure counter and stop button; click grid to return
