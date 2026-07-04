@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-4.9-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.0-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -36,6 +36,8 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - 🖨️ **Impression / PDF avancée** — thème clair/sombre, contraste ajustable, colorisation par section, réduction de police automatique sur mesures multi-accords ; option 1-page (fonte réduite pour tenir sur A4) ; masquage optionnel des symboles de navigation (barres de reprise, voltas, segno/coda/fine)
 - 🎭 **Mode concert** — au démarrage du play, l'interface se masque entièrement (sauf la grille) ; barre flottante en bas avec compteur de mesure et bouton stop ; clic sur la grille pour revenir
 - 🥁 **Métronome** — bouton ♩ indépendant dans la toolbar (calé sur le tempo et la métrique du chart) ; activable aussi depuis la dialog de lecture pour jouer synchronisé avec les accords ; volume ajustable, persisté entre sessions
+- 🖥️ **Plein écran** — bouton `⛶` dans la toolbar ; masque le chrome du navigateur (barre d'adresse, onglets) ; second clic ou `Échap` pour sortir
+- 💡 **Wake lock** — désactive la mise en veille de l'écran en plein écran ; re-demandé automatiquement si l'onglet reprend le focus
 - 💾 **Sauvegarde du travail en cours (JSON)** — reprise exacte à l'identique, accords, annotations et sections inclus
 - 🎼 **Export MusicXML** — compatible MuseScore®, Sibelius, Finale, iReal Pro®
 - 🎹 **Export MIDI** — Standard MIDI File (Type 0) : voicings d'accords piano (ch 0) + basse (ch 1) ; choix du nombre de répétitions
@@ -284,6 +286,10 @@ Profondeur : **10 niveaux**.
 ---
 
 ## 📋 Changelog
+
+### v5.0 (juillet 2026)
+- ✅ Plein écran — bouton `⛶` dans la toolbar ; masque le chrome du navigateur ; second clic ou `Échap` pour sortir ; synchronisé avec le bouton natif du navigateur via `fullscreenchange`
+- ✅ Wake lock — désactive la mise en veille de l'écran en plein écran ; relâché à la sortie ; re-demandé si l'onglet reprend le focus ; échec silencieux sur Firefox
 
 ### v4.9 (juin 2026)
 - ✅ Mode concert — au play, l'UI se masque (sauf la grille) ; barre flottante avec compteur de mesure et stop ; clic grille pour revenir
