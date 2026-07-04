@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.0 (juillet 2026)
+- ✅ Plein écran — bouton `⛶` dans la toolbar ; masque le chrome du navigateur (barre d'adresse, onglets) ; toggle : second clic ou `Échap` pour sortir ; état actif reflété par la classe `.active` sur le bouton ; synchronisé avec le bouton natif du navigateur via `fullscreenchange`
+- ✅ Wake lock — désactive la mise en veille de l'écran à l'entrée en plein écran ; relâché automatiquement à la sortie ; re-demandé si l'onglet reprend le focus (`visibilitychange`) ; échec silencieux si le navigateur ne supporte pas l'API (Firefox)
+
 ## v4.8 (juin 2026)
 - ✅ Voicings jazz dans le lecteur intégré — étalement sur 2 octaves : chaque note du piano est placée strictement au-dessus de la précédente (ex. Cmaj9 → C4 E4 G4 B4 D5, C13 → C4 E4 G4 Bb4 D5 A5) ; toutes les extensions (`ARP_DEF`) incluses (plus de limite à 4 sons) ; accords slash (`C/E`, `Dm7/F#`…) : la note de basse est envoyée au canal basse au lieu de la fondamentale, validée via `noteIdx()`
 
