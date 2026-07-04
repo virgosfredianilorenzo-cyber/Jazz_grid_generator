@@ -46,20 +46,92 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 
 ---
 
-## 🤖 Assistant IA
+## 🚀 Démarrage
 
-Le panneau IA s'ouvre via l'onglet **✦ IA** en bas à droite de la page.
+> Ce projet est une application web statique : **aucune installation, aucun serveur, aucune dépendance**. Il suffit d'un navigateur.
 
-### Configuration
+### Option A — Utiliser la version en ligne (le plus simple)
 
-Cliquer **⚙** dans l'en-tête du panneau :
+Ouvre directement **https://www.virgos.fr/JazzGridGenerator/** dans ton navigateur.
 
-| Paramètre | Valeurs |
-|-----------|---------|
+Rien à installer. Fonctionne sur ordinateur, tablette et smartphone.
+
+---
+
+### Option B — Utiliser en local (fonctionne hors ligne)
+
+Si tu veux utiliser l'application sans connexion internet (les fonctions IA et le lecteur audio nécessitent quand même une connexion), tu peux télécharger le projet et l'ouvrir localement.
+
+#### Méthode 1 — Télécharger le ZIP (sans git)
+
+1. Ouvre la page du repo : https://github.com/virgosfredianilorenzo-cyber/Jazz_grid_generator
+2. Clique sur le bouton vert **`< > Code`**
+3. Clique sur **Download ZIP**
+4. Décompresse le fichier téléchargé où tu veux
+5. Entre dans le dossier décompressé, puis double-clique sur **`index.html`**
+
+> Le fichier s'ouvre dans ton navigateur par défaut. L'application est prête.
+
+#### Méthode 2 — Cloner avec git
+
+Si tu as `git` installé :
+
+```bash
+git clone https://github.com/virgosfredianilorenzo-cyber/Jazz_grid_generator.git
+cd Jazz_grid_generator
+```
+
+Puis ouvre `index.html` dans ton navigateur. Tu peux le faire de deux façons :
+- **Double-cliquer** sur le fichier `index.html` dans ton explorateur de fichiers
+- Ou depuis le terminal :
+  ```bash
+  xdg-open index.html        # Linux
+  open index.html            # macOS
+  start index.html           # Windows
+  ```
+
+> Si tu n'as pas `git` : `sudo apt install git` (Ubuntu/Debian) ou `sudo dnf install git` (Fedora).
+
+---
+
+### Option C — Héberger sur son propre serveur
+
+L'application est entièrement statique : dépose simplement les fichiers sur n'importe quel hébergeur web.
+
+```
+Netlify, Vercel, Cloudflare Pages, GitHub Pages, Apache, Nginx…
+```
+
+Il n'y a aucune configuration côté serveur. Aucun backend. Aucune base de données.
+
+---
+
+## 🤖 Configurer l'assistant IA
+
+L'assistant IA est optionnel. Si tu veux l'utiliser, il te faut une clé API (Claude ou OpenAI®).
+
+### Obtenir une clé API
+
+- **Claude (Anthropic)** — crée un compte sur [console.anthropic.com](https://console.anthropic.com), puis génère une clé dans *API Keys*
+- **OpenAI®** — crée un compte sur [platform.openai.com](https://platform.openai.com), puis génère une clé dans *API keys*
+
+> Les clés API sont payantes à l'usage, mais les tarifs sont très faibles pour un usage personnel.
+
+### Configurer dans l'application
+
+1. Ouvre l'application
+2. Clique sur l'onglet **✦ IA** en bas à droite
+3. Clique sur **⚙** (icône engrenage) dans l'en-tête du panneau
+4. Sélectionne ton provider (Claude ou OpenAI®) et le modèle souhaité
+5. Colle ta clé API dans le champ prévu
+
+> Ta clé est stockée **uniquement dans ton navigateur** (localStorage). Elle n'est jamais envoyée ailleurs que vers l'API du provider choisi.
+
+| Paramètre | Valeurs disponibles |
+|-----------|---------------------|
 | Provider | Claude (Anthropic) · OpenAI® |
-| Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-7` |
+| Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-8` |
 | Modèle OpenAI® | `gpt-4o`, `gpt-4o-mini` |
-| Clé API | Saisie dans l'app, stockée localement, jamais transmise ailleurs |
 
 <details>
 <summary>Outils disponibles</summary>
@@ -74,7 +146,7 @@ Cliquer **⚙** dans l'en-tête du panneau :
 
 </details>
 
-### Flux de travail
+### Flux de travail IA
 
 1. Écris une instruction en langage naturel
 2. L'IA résume ce qu'elle va faire, puis appelle les outils nécessaires
@@ -84,16 +156,10 @@ Cliquer **⚙** dans l'en-tête du panneau :
 
 ---
 
-## 🚀 Démarrage
-
-**En ligne** — ouvre directement https://www.virgos.fr/JazzGridGenerator/
-
-**En local** — clone le repo et ouvre `index.html` dans un navigateur. Aucun build, aucun serveur requis. MXL et IA nécessitent une connexion internet.
-
-**Sur ton hébergeur** — dépose les fichiers sur n'importe quel hébergeur statique (Netlify, Vercel, Cloudflare Pages, Apache, Nginx…).
+## Architecture du projet
 
 <details>
-<summary>Architecture du projet</summary>
+<summary>Voir l'arborescence</summary>
 
 ```
 index.html
