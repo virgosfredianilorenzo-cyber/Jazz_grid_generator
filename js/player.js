@@ -372,3 +372,45 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
   openPlayerDialog();
 });
+
+
+// ── Fullscreen + Wake Lock ────────────────────────────────────────────────
+
+let _wakeLock = null;
+
+async function _requestWakeLock() {
+  if (!navigator.wakeLock) return;
+  try { _wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+}
+
+function _releaseWakeLock() {
+  if (_wakeLock) { _wakeLock.release(); _wakeLock = null; }
+}
+
+// Re-acquire wake lock if tab regains focus while still in fullscreen
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && document.fullscreenElement) {
+    _requestWakeLock();
+  }
+});
+
+// Sync button state when user exits fullscreen via Escape or browser UI
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) {
+    _releaseWakeLock();
+    const btn = document.getElementById('btn-fullscreen');
+    if (btn) btn.classList.remove('active');
+  }
+});
+
+async function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen().catch(() => {});
+    await _requestWakeLock();
+    const btn = document.getElementById('btn-fullscreen');
+    if (btn) btn.classList.add('active');
+  } else {
+    await document.exitFullscreen().catch(() => {});
+    _releaseWakeLock();
+  }
+}
