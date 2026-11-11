@@ -45,39 +45,93 @@ function aiSettingsSave(patch) {
    tools format    : [{name, description, inputSchema:{type,properties,required}}]
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-async function aiProviderChat(systemPrompt, messages, tools, settings) {
-  return _aiCallClaude(systemPrompt, messages, tools, settings);
+async function aiProviderChat(systemPrompt, messages, tools, settings, opts) {
+  return _aiCallClaude(systemPrompt, messages, tools, settings, opts || {});
 }
 
-async function _aiCallClaude(systemPrompt, messages, tools, settings) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
+const _AI_WEB_SEARCH_TOOL = { type: 'web_search_20260209', name: 'web_search', max_uses: 5 };
+const _AI_FALLBACK_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5'];
+const _AI_MAX_PAUSES = 3;
+
+// Corps JSON de la requête /v1/messages.
+function aiBuildClaudeBody({ system, messages, tools, model, webSearch }) {
+  const body = {
+    model: model || AI_CLAUDE_MODELS[0],
+    max_tokens: 16000,
+    system,
+    messages: (messages || []).map(m => ({ role: m.role, content: m.content })),
+    tools: (tools || []).map(t => t.inputSchema
+      ? { name: t.name, description: t.description, input_schema: t.inputSchema }
+      : t)
+  };
+  if (webSearch) body.tools.push(Object.assign({}, _AI_WEB_SEARCH_TOOL));
+  if (_AI_FALLBACK_MODELS.includes(body.model)) body.fallbacks = 'default';
+  return body;
+}
+
+// Extrait texte, appels d'outils et sources d'un tableau de blocs `content`.
+function aiParseClaudeContent(content) {
+  let message = '';
+  const toolCalls = [];
+  const cited = [], searched = [];
+  const add = (list, url, title) => {
+    if (typeof url === 'string' && url && !list.some(x => x.url === url)) list.push({ url, title: title || url });
+  };
+  for (const block of content || []) {
+    if (!block) continue;
+    if (block.type === 'text') {
+      message += block.text || '';
+      for (const c of block.citations || []) add(cited, c.url, c.title);
+    } else if (block.type === 'tool_use') {
+      toolCalls.push({ id: block.id, name: block.name, args: block.input });
+    } else if (block.type === 'web_search_tool_result') {
+      // En cas d'erreur, `content` est un objet (HTTP 200) : ne pas l'itérer.
+      if (Array.isArray(block.content))
+        for (const r of block.content) if (r && r.type === 'web_search_result') add(searched, r.url, r.title);
+    }
+  }
+  return { message, toolCalls, sources: cited.length ? cited : searched };
+}
+
+function _aiErr(key, fallback) {
+  return typeof t === 'function' && t(key) !== key ? t(key) : fallback;
+}
+
+// Exécute un tour : relance sur pause_turn (max 3), lève sur refusal.
+async function aiRunClaudeTurn(body, doFetch) {
+  const usage = { in: 0, out: 0 };
+  let cur = body;
+  for (let pauses = 0; ; pauses++) {
+    const data = await doFetch(cur);
+    usage.in += data.usage?.input_tokens || 0;
+    usage.out += data.usage?.output_tokens || 0;
+    if (data.stop_reason === 'refusal') throw new Error(_aiErr('aiErrRefusal', 'Claude refused this request.'));
+    if (data.stop_reason === 'pause_turn' && pauses < _AI_MAX_PAUSES) {
+      cur = Object.assign({}, body, { messages: [...cur.messages, { role: 'assistant', content: data.content }] });
+      continue;
+    }
+    return Object.assign(aiParseClaudeContent(data.content), { usage });
+  }
+}
+
+async function _aiCallClaude(systemPrompt, messages, tools, settings, opts) {
+  const model = settings.claudeModel || AI_CLAUDE_MODELS[0];
+  const body = aiBuildClaudeBody({ system: systemPrompt, messages, tools, model, webSearch: !!opts.webSearch });
+  return aiRunClaudeTurn(body, async b => {
+    const headers = {
       'x-api-key': settings.claudeKey,
       'anthropic-version': '2023-06-01',
       'content-type': 'application/json',
       'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: settings.claudeModel || AI_CLAUDE_MODELS[0],
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
-      tools: tools.map(t => ({ name: t.name, description: t.description, input_schema: t.inputSchema }))
-    })
+    };
+    if (b.fallbacks) headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+    const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body: JSON.stringify(b) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error('Claude ' + res.status + ': ' + (err.error?.message || res.statusText));
+    }
+    return res.json();
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error('Claude ' + res.status + ': ' + (err.error?.message || res.statusText));
-  }
-  const data = await res.json();
-  let message = '';
-  const toolCalls = [];
-  for (const block of data.content || []) {
-    if (block.type === 'text') message += block.text;
-    else if (block.type === 'tool_use') toolCalls.push({ id: block.id, name: block.name, args: block.input });
-  }
-  return { message, toolCalls, usage: { in: data.usage?.input_tokens || 0, out: data.usage?.output_tokens || 0 } };
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -85,6 +139,28 @@ async function _aiCallClaude(systemPrompt, messages, tools, settings) {
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const AI_TOOLS = [
+  {
+    name: 'set_full_chart',
+    description: 'Remplace TOUTE la grille par une nouvelle grille complète (titre, tonalité, sections, mesures, accords). À utiliser pour proposer la grille d\'un morceau trouvé ou connu. L\'annotation de la première section peut citer les sources.',
+    inputSchema: { type: 'object', properties: {
+      title: { type: 'string' }, key: { type: 'string', description: 'Tonalité ex: Cm' },
+      tempo: { type: 'number' }, timeSig: { type: 'string', description: 'ex: 4/4' },
+      style: { type: 'string' }, composer: { type: 'string' },
+      sections: { type: 'array', items: { type: 'object', properties: {
+        label: { type: 'string', description: 'A, B, Intro…' },
+        annotation: { type: 'string' },
+        measures: { type: 'array', items: { type: 'object', properties: {
+          chords: { type: 'array', items: { type: 'object', properties: {
+            symbol: { type: 'string', description: 'ex: Cm7, F7, Bbmaj7' }, beats: { type: 'number' }
+          }, required: ['symbol'] } },
+          barlineLeft: { type: 'string', description: 'normal, repeat-start, double' },
+          barlineRight: { type: 'string', description: 'normal, repeat-end, double, final' },
+          volta: { type: 'string', description: '1, 2 ou 3' },
+          navSymbol: { type: 'string', description: 'segno, coda, dc-coda, ds-coda, dc-fine, fine, fermata' }
+        }, required: ['chords'] } }
+      }, required: ['label', 'measures'] } }
+    }, required: ['sections'] }
+  },
   {
     name: 'set_chart_metadata',
     description: 'Modifie les métadonnées du chart : titre, tonalité, tempo, mesure (timeSig), style. Tous les paramètres sont optionnels.',
@@ -255,6 +331,41 @@ const AI_TOOLS = [
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 const _AI_TOOL_EXECUTORS = {
+
+  set_full_chart(draft, a) {
+    if (!Array.isArray(a.sections) || !a.sections.length) throw new Error('sections required');
+    let n = 0;
+    const mkId = () => typeof _newSectionId === 'function' ? _newSectionId() : 'sec' + (++n);
+    const timeSig = a.timeSig || draft.timeSig || '4/4';
+    const defBeats = parseInt(timeSig.split('/')[0]) || 4;
+    const BARS = ['normal', 'repeat-start', 'repeat-end', 'double', 'final'];
+    const bar = (v, def) => BARS.includes(v) ? v : def;
+    const sections = a.sections.map(sec => {
+      const measures = (sec.measures || []).map((m, i) => {
+        const chords = (m.chords && m.chords.length ? m.chords : [{ symbol: '%' }]).map(c => {
+          const ch = { symbol: String(c.symbol), beats: parseInt(c.beats) || defBeats, annot: null };
+          if (c.altChord) ch.altChord = c.altChord;
+          return ch;
+        });
+        const left = bar(m.barlineLeft, 'normal'), right = bar(m.barlineRight, 'normal');
+        return {
+          number: i + 1, chords,
+          repeatStart: left === 'repeat-start', repeatEnd: right === 'repeat-end',
+          barlineLeft: left, barlineRight: right,
+          volta: ['1', '2', '3'].includes(String(m.volta)) ? String(m.volta) : null,
+          navSymbol: m.navSymbol || null
+        };
+      });
+      return { id: mkId(), label: sec.label || 'A', annotation: sec.annotation || '', measures: measures.length ? measures : [{ number: 1, chords: [{ symbol: '%', beats: defBeats, annot: null }], repeatStart: false, repeatEnd: false, barlineLeft: 'normal', barlineRight: 'normal', volta: null, navSymbol: null }] };
+    });
+    if (a.title !== undefined) draft.title = a.title;
+    if (a.key !== undefined) draft.key = a.key;
+    if (a.tempo !== undefined) draft.tempo = parseInt(a.tempo) || draft.tempo;
+    draft.timeSig = timeSig;
+    if (a.style !== undefined) draft.style = a.style;
+    if (a.composer !== undefined) draft.composer = a.composer;
+    draft.sections = sections;
+  },
 
   set_chart_metadata(draft, a) {
     if (a.title !== undefined) draft.title = a.title;
@@ -508,7 +619,9 @@ function aiChatToggle() {
   }
 }
 
-function _aiSystemPrompt() {
+function _aiT(key, fb) { return typeof t === 'function' && t(key) !== key ? t(key) : fb; }
+
+function _aiSystemPrompt(webSearch) {
   const lang = (typeof currentLang !== 'undefined' ? currentLang : null)
     || document.getElementById('lang-select')?.value || 'fr';
   const prompts = {
@@ -517,7 +630,13 @@ function _aiSystemPrompt() {
     es: "Eres un asistente musical integrado en Jazz Grid Generator. Ayuda al usuario con sus grillas jazz usando las herramientas disponibles. Antes de actuar, resume en 1-2 frases lo que harás. Si algo es ambiguo, pregunta. Responde en español.\nRegla importante: para duplicar una sección → duplicate_section; para duplicar un compás → duplicate_bar. Para colocar la copia después de una sección específica, usar el parámetro afterIndex de duplicate_section.\n\nEstado actual:\n",
     it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\nRegola importante: per duplicare una sezione → duplicate_section; per duplicare una misura → duplicate_bar. Per inserire la copia dopo una sezione specifica, usare il parametro afterIndex di duplicate_section.\n\nGriglia attuale:\n"
   };
-  return (prompts[lang] || prompts.en) + JSON.stringify(chartData);
+  const web = {
+    fr: "\n\nRECHERCHE WEB ACTIVE : cherche sur le web la grille du morceau demandé, de préférence une grille partagée (forum iReal Pro, partitions libres), et cite tes sources. Construis la grille avec set_full_chart ; dans l'annotation de la première section, écris « " + _aiT('aiGridSourceNote', "Grille proposée par l'IA à partir de :") + " » suivi des titres des sources. Si rien de fiable n'est trouvé, dis-le clairement au lieu d'inventer. Si tu trouves un lien irealb://, donne-le tel quel.",
+    en: "\n\nWEB SEARCH ENABLED: search the web for the chord chart of the requested tune, preferring shared charts (iReal Pro forum, free lead sheets), and cite your sources. Build the chart with set_full_chart; in the first section's annotation write \"" + _aiT('aiGridSourceNote', 'Chart proposed by AI from:') + "\" followed by the source titles. If nothing reliable is found, say so clearly instead of inventing. If you find an irealb:// link, give it verbatim.",
+    es: "\n\nBÚSQUEDA WEB ACTIVA: busca en la web la cuadrícula del tema pedido, preferiblemente una cuadrícula compartida (foro iReal Pro, partituras libres), y cita tus fuentes. Construye la cuadrícula con set_full_chart; en la anotación de la primera sección escribe «" + _aiT('aiGridSourceNote', 'Cuadrícula propuesta por la IA a partir de:') + "» seguido de los títulos de las fuentes. Si no encuentras nada fiable, dilo claramente en lugar de inventar. Si encuentras un enlace irealb://, dalo tal cual.",
+    it: "\n\nRICERCA WEB ATTIVA: cerca sul web la griglia del brano richiesto, di preferenza una griglia condivisa (forum iReal Pro, spartiti liberi), e cita le fonti. Costruisci la griglia con set_full_chart; nell'annotazione della prima sezione scrivi «" + _aiT('aiGridSourceNote', "Griglia proposta dall'IA a partire da:") + "» seguito dai titoli delle fonti. Se non trovi nulla di affidabile, dillo chiaramente invece di inventare. Se trovi un link irealb://, forniscilo così com'è."
+  };
+  return (prompts[lang] || prompts.en) + JSON.stringify(chartData) + (webSearch ? (web[lang] || web.en) : '');
 }
 
 async function aiChatSend(text) {
@@ -525,6 +644,11 @@ async function aiChatSend(text) {
   if (!text) return;
   const settings = aiSettingsLoad();
   if (!settings.claudeKey) { _aiMsg('error', 'Clé API non configurée — cliquer ⚙'); return; }
+
+  // Interrupteur lu une fois, puis remis à off quelle que soit l'issue.
+  const wsEl = document.getElementById('ai-websearch');
+  const webSearch = !!(wsEl && wsEl.checked);
+  if (wsEl) wsEl.checked = false;
 
   document.getElementById('ai-input').value = '';
   _aiMsg('user', text);
@@ -534,9 +658,9 @@ async function aiChatSend(text) {
 
   try {
     const resp = await aiProviderChat(
-      _aiSystemPrompt(),
+      _aiSystemPrompt(webSearch),
       _aiHistory.slice(-_AI_MAX_HISTORY),
-      AI_TOOLS, settings
+      AI_TOOLS, settings, { webSearch }
     );
     _aiHistory.push({ role: 'assistant', content: resp.message });
 
@@ -550,9 +674,10 @@ async function aiChatSend(text) {
         try { aiDraftApplyTool(tc.name, tc.args); }
         catch (e) { errors.push(tc.name + ': ' + e.message); }
       }
-      _aiRenderPreview(resp.message, aiDraftDiff(), errors);
+      _aiRenderPreview(resp.message, aiDraftDiff(), errors, resp.sources);
     } else {
       if (resp.message) _aiMsg('assistant', resp.message);
+      _aiRenderSources(resp.sources);
     }
   } catch (err) {
     _aiMsg('error', 'Erreur : ' + err.message);
@@ -590,7 +715,30 @@ function _aiMsg(role, text) {
   return div;
 }
 
-function _aiRenderPreview(message, diff, errors) {
+// Liste de liens de sources : texte échappé, href seulement si http(s).
+function _aiSourcesHtml(sources) {
+  const items = (sources || []).map(s => {
+    const url = String(s.url || ''), title = escHtml(String(s.title || url));
+    if (!/^https?:\/\//i.test(url)) return '<li>' + title + '</li>';
+    const href = escHtml(url).replace(/"/g, '&quot;');
+    return '<li><a href="' + href + '" target="_blank" rel="noopener noreferrer">' + title + '</a></li>';
+  });
+  if (!items.length) return '';
+  return '<div class="ai-sources"><span class="ai-sources-lbl">' + escHtml(_aiT('aiSources', 'Sources :')) + '</span><ul>' + items.join('') + '</ul></div>';
+}
+
+function _aiRenderSources(sources) {
+  const html = _aiSourcesHtml(sources);
+  if (!html) return;
+  const log = document.getElementById('ai-log');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ai-msg-sources';
+  div.innerHTML = html;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function _aiRenderPreview(message, diff, errors, sources) {
   const log = document.getElementById('ai-log');
   const card = document.createElement('div');
   card.className = 'ai-preview-card';
@@ -598,6 +746,7 @@ function _aiRenderPreview(message, diff, errors) {
   if (message) html += '<div class="ai-preview-msg">' + _aiMdToHtml(message) + '</div>';
   if (diff.length) html += '<ul class="ai-preview-diff">' + diff.map(l => '<li>' + escHtml(l) + '</li>').join('') + '</ul>';
   if (errors.length) html += '<p class="ai-preview-err">⚠ ' + escHtml(errors.join(', ')) + '</p>';
+  html += _aiSourcesHtml(sources);
   html += '<div class="ai-preview-btns"><button class="ai-btn-apply" onclick="aiChatApply(this)">✅ Appliquer</button><button class="ai-btn-cancel" onclick="aiChatCancel(this)">✕ Annuler</button></div>';
   card.innerHTML = html;
   log.appendChild(card);
@@ -645,4 +794,4 @@ if (typeof document !== 'undefined') {
   else _aiStartupMigrate();
 }
 
-if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS };
+if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS, aiBuildClaudeBody, aiParseClaudeContent, aiRunClaudeTurn, AI_TOOLS, _AI_TOOL_EXECUTORS };
