@@ -15,6 +15,12 @@ function _lsDsp() {
   return require('./listen-dsp.js');
 }
 
+// Fonctions de théorie (js/theory.js) : globals du navigateur, sinon require sous Node.
+function _lsTheory() {
+  if (typeof transposeChordSymbol === 'function') return { keySpelling, transposeKeyName, transposeChordSymbol };
+  return require('./theory.js');
+}
+
 function _lsNewId() {
   if (typeof _newSectionId === 'function') return _newSectionId();
   const c = 'BCDFGHJKMNPQRSTVWXZ23456789';
@@ -98,6 +104,26 @@ function listenTempoSetting(value, tapBpm) {
   const v = parseFloat(value);
   if (!(v >= 30 && v <= 300)) return null;
   return tapBpm && Math.round(tapBpm) === v ? tapBpm : v;
+}
+
+// Orthographe : le moteur écrit tout en bémols. Nom de tonalité selon les conventions de l'appli
+// (transposeKeyName : C#m, F#m…) ; accords en dièses seulement dans une tonalité à dièses (G, D, A, E, B, F#
+// et leurs relatives) — en Do et dans les tonalités à bémols, les accords d'emprunt restent en bémols (Bb7).
+const LISTEN_SHARP_KEYS = ['G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+function listenKeyName(key) {
+  return key ? _lsTheory().transposeKeyName(key, 0) : key;
+}
+function listenRespellChord(symbol, key) {
+  const th = _lsTheory();
+  const spell = key ? th.keySpelling(listenKeyName(key)) : null;
+  if (!spell || !LISTEN_SHARP_KEYS.includes(spell)) return symbol;
+  return th.transposeChordSymbol(symbol, 0, spell);
+}
+function listenRespellSections(sections, key) {
+  (sections || []).forEach(sec => (sec.measures || []).forEach(m => (m.chords || []).forEach(c => {
+    c.symbol = listenRespellChord(c.symbol, key);
+  })));
+  return sections;
 }
 
 // Facteur de tempo après ×2 (op = 2) ou ÷2 (op = 0.5) depuis `factor` : 0.5, 1 ou 2 ; null si hors limites
@@ -307,7 +333,7 @@ function _lsBegin(kind, title, settings) {
   Object.assign(_ls, {
     active: true, done: false, kind, chart: chartData,
     beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, userBpm: settings.bpm,
-    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null, tempoFactor: 1
+    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null, tempoFactor: 1, key: null
   });
   _ls.state = listenCreateProcessor({ beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, bpm: settings.bpm, sampleRate: _ls.sampleRate });
   _ls.queue = listenCreateEventQueue(fn => setTimeout(fn, 0), evs => { if (_ls.active) _lsHandleEvents(evs); });
@@ -487,8 +513,10 @@ function listenStop() {
   const secs = chartData.sections;
   if (secs.length > 1 && !secs[secs.length - 1].measures.length) secs.pop();
   _ls.data = st ? st.assembler.data() : null;
-  const key = _ls.data && _lsDsp().estimateKey(_ls.data.beatChroma);
-  if (key) { chartData.key = key; originalKey = key; }
+  // Tonalité estimée, accords réorthographiés (dièses dans une tonalité à dièses).
+  const key = listenKeyName(_ls.data && _lsDsp().estimateKey(_ls.data.beatChroma));
+  _ls.key = key || null;
+  if (key) { chartData.key = key; originalKey = key; listenRespellSections(chartData.sections, key); }
   if (_ls.data && _ls.data.bpm) chartData.tempo = Math.round(_ls.data.bpm);
   _isDirty = true;
   _ls.done = true;
@@ -522,7 +550,7 @@ function _lsRebuild(offsetDelta, chordsPerBar, tempoFactor) {
   const bars = _lsDsp().rebuildBars(_ls.data, {
     beatsPerBar: _ls.beatsPerBar, chordsPerBar: _ls.chordsPerBar, beatOffset: _ls.offset, tempoFactor: _ls.tempoFactor
   });
-  chartData.sections = listenDistributeBars(chartData.sections, bars);
+  chartData.sections = listenRespellSections(listenDistributeBars(chartData.sections, bars), _ls.key);
   if (tempoFactor && _ls.data.bpm) {
     chartData.tempo = Math.round(_ls.data.bpm * _ls.tempoFactor);
     _lsEl('meta-tempo').value = chartData.tempo;
@@ -644,7 +672,7 @@ _lsInit();
 
 if (typeof module !== 'undefined') module.exports = {
   listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
-  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenTempoSetting, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
+  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenTempoSetting, listenKeyName, listenRespellChord, listenRespellSections, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
   listenCreateProcessor, listenProcessFrame, listenFeedSamples,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };

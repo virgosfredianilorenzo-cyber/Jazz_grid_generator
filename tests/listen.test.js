@@ -266,3 +266,26 @@ test('listenScaleTempoFactor : ×2 / ÷2 entre 0,5 et 2', () => {
   assert.equal(L.listenScaleTempoFactor(0.5, 0.5), null);
   assert.equal(L.listenScaleTempoFactor(undefined, 2), 2);
 });
+
+test('orthographe : dièses dans les tonalités à dièses, bémols sinon', () => {
+  assert.equal(L.listenKeyName('E'), 'E');
+  assert.equal(L.listenKeyName('Dbm'), 'C#m');
+  assert.equal(L.listenKeyName('Gbm'), 'F#m');
+  assert.equal(L.listenKeyName('Ebm'), 'Ebm');
+  assert.equal(L.listenKeyName('Ab'), 'Ab');
+  assert.equal(L.listenKeyName(null), null);
+  // Mi majeur : C#m7, F#m7, G#7… ; la tonalité de référence est celle du nom affiché.
+  assert.equal(L.listenRespellChord('Dbm7', 'E'), 'C#m7');
+  assert.equal(L.listenRespellChord('Gbm7', 'E'), 'F#m7');
+  assert.equal(L.listenRespellChord('Ab7', 'E'), 'G#7');
+  assert.equal(L.listenRespellChord('Bmaj7', 'E'), 'Bmaj7');
+  assert.equal(L.listenRespellChord('Gb7', 'C#m'), 'F#7'); // relatif majeur : E
+  // Do majeur, tonalités à bémols : inchangé (Bb7, Db7…).
+  assert.equal(L.listenRespellChord('Bb7', 'C'), 'Bb7');
+  assert.equal(L.listenRespellChord('Db7', 'Ab'), 'Db7');
+  assert.equal(L.listenRespellChord('N.C.', 'E'), 'N.C.');
+  // Sections : tous les accords, champs internes gardés.
+  const secs = [{ measures: [{ chords: [{ symbol: 'Dbm7', beats: 4, _uncertain: true }, { symbol: 'N.C.', beats: 4 }] }] }];
+  L.listenRespellSections(secs, 'E');
+  assert.deepEqual(secs[0].measures[0].chords, [{ symbol: 'C#m7', beats: 4, _uncertain: true }, { symbol: 'N.C.', beats: 4 }]);
+});
