@@ -175,11 +175,12 @@ test('assembleur : 8 mesures Fm7 puis Bbm7', () => {
 });
 
 test('assembleur : les mesures sortent en direct, pas seulement au flush', () => {
-  const frames = framesFor(beatsOf(['Fm7', 'Fm7', 'Bbm7', 'Bbm7']), 120);
+  // Les premières mesures attendent le choix du premier temps (DOWNBEAT_DECIDE_BARS = 4 mesures).
+  const frames = framesFor(beatsOf(['Fm7', 'Fm7', 'Bbm7', 'Bbm7', 'Fm7', 'Fm7', 'Bbm7', 'Bbm7']), 120);
   const a = dsp.createBarAssembler({ beatsPerBar: 4, chordsPerBar: 1, bpm: 120, hopSec: HOP_SEC });
   const live = [];
   for (const f of frames) live.push(...a.pushFrame(f));
-  assert.ok(live.filter(e => e.type === 'bar').length >= 3);
+  assert.ok(live.filter(e => e.type === 'bar').length >= 6);
 });
 
 test('assembleur : 2 accords par mesure seulement si changement', () => {
@@ -277,25 +278,29 @@ test('accord incertain', () => {
 });
 
 test('rebuildBars décale d\'un temps', () => {
-  // Deux temps d'anacrouse (G7) puis Fm7 | Bb7 | Ebmaj7.
+  // Deux temps d'anacrouse (G7) puis Fm7 | Bb7 | Ebmaj7 : trop court (< 4 mesures) pour un choix automatique
+  // du premier temps, la première attaque reste le premier temps.
   const beats = ['G7', 'G7'].concat(beatsOf(['Fm7', 'Bb7', 'Ebmaj7']));
   const { a, bars } = runAssembler(framesFor(beats, 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
   const d = a.data();
   const same = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 });
   assert.deepEqual(same, bars.map(b => ({ chords: b.chords })));
+  assert.deepEqual(same.map(syms), ['G7 Fm7', 'Fm7 Bb7', 'Bb7 Ebmaj7', 'Ebmaj7']); // à cheval
+  // Décalage +2 : l'anacrouse de deux temps (une demi-mesure) forme une mesure complétée devant.
   const shifted = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 2 });
-  assert.deepEqual(shifted.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
-  assert.notDeepEqual(same.map(syms), shifted.map(syms)); // sans décalage, les mesures sont à cheval
+  assert.deepEqual(shifted.map(syms), ['G7', 'Fm7', 'Bb7', 'Ebmaj7']);
   shifted.forEach(b => assert.equal(b.chords[0].beats, 4));
   const one = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 2 });
-  assert.deepEqual(one.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
-  // Décalage −2 : la première mesure commence deux temps plus tôt (temps absents).
-  const back = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: -2 });
-  assert.deepEqual(back.map(syms), ['G7', 'Fm7', 'Bb7', 'Ebmaj7']);
-  back.forEach(b => assert.equal(b.chords[0].beats, 4));
-  // Métrique différente : 3/4 sur les mêmes données.
-  const b3 = dsp.rebuildBars(d, { beatsPerBar: 3, chordsPerBar: 1, beatOffset: 2 });
-  assert.equal(b3.length, 4);
+  assert.deepEqual(one.map(syms), ['G7', 'Fm7', 'Bb7', 'Ebmaj7']);
+  // Décalage −2 : même grille (décalage modulo la mesure).
+  assert.deepEqual(dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: -2 }), one);
+  // Décalage +3 : anacrouse de 3 temps (G7 G7 Fm7), complétée devant.
+  const three = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 3 });
+  assert.equal(three.length, 4);
+  three.forEach(b => assert.equal(b.chords[0].beats, 4));
+  // Métrique différente : 3/4 sur les mêmes données (14 temps → 4 mesures + 2 temps gardés).
+  const b3 = dsp.rebuildBars(d, { beatsPerBar: 3, chordsPerBar: 1, beatOffset: 0 });
+  assert.equal(b3.length, 5);
 });
 
 test('rebuildBars garde les pauses', () => {
@@ -358,4 +363,38 @@ test('mode 2 : pas de coupe sur des mesures à un accord, coupe sur un vrai chan
   const real = runAssembler(framesFor(beatsOf(['Fm7', ['Fm7', 'Fm7', 'Bb7', 'Bb7'], ['Ebmaj7', 'Ebmaj7', 'Cm7', 'Cm7']]), 120),
     { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
   assert.deepEqual(real.bars.map(syms), ['Fm7', 'Fm7 Bb7', 'Ebmaj7 Cm7']);
+});
+
+// Mesure à deux accords (2 + 2 temps).
+const H = (x, y) => [x, x, y, y];
+
+test('premier temps de mesure choisi par suite (début, reprise après pause), direct = reconstruction', () => {
+  // Suite 1 : un temps d'anacrouse ; suite 2 (après une pause) : trois temps avant le premier temps fort.
+  // Une mesure sur deux change au milieu : une grille décalée d'un temps rendrait les mesures fausses.
+  const f1 = framesFor(['Db7'].concat(beatsOf([H('Fm7', 'Bb7'), 'Ebmaj7', H('Dm7b5', 'G7'), 'Cm7', H('Fm7', 'Bb7'), 'Ebmaj7'])), 120);
+  const f2 = framesFor(['Gb7', 'Gb7', 'Gb7'].concat(beatsOf([H('Bm7', 'E7'), 'Amaj7', H('Abm7b5', 'Db7'), 'Gbm7', H('Bm7', 'E7'), 'Amaj7'])), 120);
+  const { a, ev, bars } = runAssembler(f1.concat(silentFrames(5.27), f2), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  const seq = ev.map(e => e.type === 'bar' ? syms(e) : e.type);
+  // L'anacrouse d'un temps est écartée (moins d'une demi-mesure), celle de trois temps forme une mesure.
+  assert.deepEqual(seq, ['Fm7 Bb7', 'Ebmaj7', 'Dm7b5 G7', 'Cm7', 'Fm7 Bb7', 'Ebmaj7', 'pause', 'resume',
+    'Gb7', 'Bm7 E7', 'Amaj7', 'Abm7b5 Db7', 'Gbm7', 'Bm7 E7', 'Amaj7']);
+  const d = a.data();
+  assert.deepEqual(dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 }), bars.map(b => ({ chords: b.chords })));
+  // ◀ ▶ : décalage global en plus du choix automatique.
+  const left = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: -2 });
+  assert.deepEqual(left.map(syms).slice(0, 3), ['Db7 Fm7', 'Bb7 Ebmaj7', 'Ebmaj7 Dm7b5']);
+});
+
+test('premier temps de mesure : recalage en cours de suite quand les changements glissent d\'un temps', () => {
+  // 8 mesures alignées, puis un temps manqué par le suivi (temps supprimé) : les accords changent sur le
+  // 4e temps de la grille. La grille de mesures se recale (la mesure courte de 3 temps est complétée).
+  const P = [H('Fm7', 'Bb7'), 'Ebmaj7', H('Dm7b5', 'G7'), 'Cm7'];
+  const exp = ['Fm7 Bb7', 'Ebmaj7', 'Dm7b5 G7', 'Cm7'];
+  const seq = beatsOf(P.concat(P)).concat(beatsOf(P.concat(P, P, P)).slice(1));
+  const { a, bars } = runAssembler(framesFor(seq, 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  const s = bars.map(syms);
+  assert.deepEqual(s.slice(0, 8), exp.concat(exp));
+  assert.deepEqual(s.slice(-8), exp.concat(exp), s.join(' | '));
+  assert.equal(s.length, 24, s.join(' | ')); // le compte des mesures est gardé
+  assert.deepEqual(dsp.rebuildBars(a.data(), { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 }), bars.map(b => ({ chords: b.chords })));
 });

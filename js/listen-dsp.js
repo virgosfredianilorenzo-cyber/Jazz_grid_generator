@@ -344,38 +344,129 @@ function _dspBar(beats, chordsPerBar) {
   return { chords: [{ symbol: whole.symbol, beats: n, uncertain: whole.uncertain }] };
 }
 
-// Mesures d'une suite de temps contigus qui se termine (fin d'écoute ou pause) : les silences longs
-// (≥ 2 mesures) coupent la suite et la grille de mesures repart au temps sonore suivant ; le silence
-// final est retiré ; la dernière mesure incomplète est gardée si au moins la moitié des temps sont là.
-function _dspBarsFromBeats(beats, beatsPerBar, chordsPerBar) {
-  const out = [];
-  const longRun = 2 * beatsPerBar;
-  const quiet = b => b.silent || b.absent;
-  const emitPart = (part) => {
-    let end = part.length;
-    while (end > 0 && quiet(part[end - 1])) end--;
-    let i = 0;
-    for (; i + beatsPerBar <= end; i += beatsPerBar) out.push(_dspBar(part.slice(i, i + beatsPerBar), chordsPerBar));
-    const rest = end - i;
-    if (rest > 0 && rest * 2 >= beatsPerBar) {
-      const bar = part.slice(i, end);
-      while (bar.length < beatsPerBar) bar.push({ absent: true, silent: true });
-      out.push(_dspBar(bar, chordsPerBar));
-    }
-  };
-  let start = 0, i = 0;
-  while (i < beats.length) {
-    if (!quiet(beats[i])) { i++; continue; }
-    let j = i;
-    while (j < beats.length && quiet(beats[j])) j++;
-    if (j - i >= longRun) {
-      emitPart(beats.slice(start, i));
-      start = j;
-    }
-    i = j;
+// ── Premier temps de mesure ──
+// Chaque suite de temps (début d'écoute, reprise après pause) choisit sa grille de mesures : le décalage
+// (0 … beatsPerBar − 1 temps) qui minimise la variance du chroma à l'intérieur des mesures (les accords
+// changent sur les barres de mesure), sur les DOWNBEAT_DECIDE_BARS premières mesures ; à égalité (vamp sur
+// un accord), la première attaque reste le premier temps. En cours de suite, toutes les mesures, la même
+// mesure est faite sur les DOWNBEAT_WINDOW_BARS dernières mesures ; si un autre décalage est nettement
+// meilleur deux fois de suite (temps perdu ou gagné par le suivi), la grille se recale : les temps sautés
+// forment une mesure complétée s'ils en font au moins la moitié, sinon ils sont écartés.
+// Limite : un morceau dont l'harmonie change toujours au milieu de la mesure (ou en avance, sur le 4e temps)
+// peut être calé à contretemps ; ◀ ▶ décalent alors toute la grille.
+const DOWNBEAT_DECIDE_BARS = 4;
+const DOWNBEAT_WINDOW_BARS = 8;
+const DOWNBEAT_MIN_BARS = 4;      // mesures depuis le dernier recalage avant d'en envisager un autre
+const DOWNBEAT_FIRST_RATIO = 0.7;  // premier choix : un décalage doit faire mieux que 0.7 × le coût sans décalage
+const DOWNBEAT_REPHASE_RATIO = 0.6;
+const DOWNBEAT_MIN_COST = 0.02;
+
+const _DSP_ABSENT = () => ({ absent: true, silent: true });
+
+// Variance (somme des écarts au carré) du chroma + 0.5 × basse des temps sonores d'une mesure.
+function _dspBarCost(beats, from, to) {
+  const vs = [];
+  for (let i = from; i < to; i++) {
+    const b = beats[i];
+    if (!b || b.silent || b.absent || !b.chroma) continue;
+    vs.push(b.chroma.concat((b.bass || []).map(x => 0.5 * x)));
   }
-  emitPart(beats.slice(start));
+  if (vs.length < 2) return 0;
+  const m = vs[0].map((_, k) => vs.reduce((s, v) => s + (v[k] || 0), 0) / vs.length);
+  let c = 0;
+  for (const v of vs) for (let k = 0; k < m.length; k++) c += ((v[k] || 0) - m[k]) ** 2;
+  return c;
+}
+
+// Coût moyen par mesure de chaque décalage o : K mesures [from + o + k·bpb, …), le même nombre K pour
+// tous les décalages (toutes entières dans [from, to)).
+function _dspPhaseCosts(beats, from, to, bpb) {
+  const K = Math.floor((to - from - (bpb - 1)) / bpb);
+  const out = [];
+  for (let o = 0; o < bpb; o++) {
+    let c = 0;
+    for (let k = 0; k < K; k++) { const s = from + o + k * bpb; c += _dspBarCost(beats, s, s + bpb); }
+    out.push(K > 0 ? c / K : 0);
+  }
   return out;
+}
+
+// Une mesure incomplète au début (complétée devant) ou à la fin (complétée derrière).
+function _dspPadBar(beats, bpb, front) {
+  const pad = Array.from({ length: bpb - beats.length }, _DSP_ABSENT);
+  return front ? pad.concat(beats) : beats.concat(pad);
+}
+
+// Assemble les mesures d'une suite de temps, temps par temps (même suite de décisions en direct et à la
+// reconstruction). shift : décalage global (◀ ▶) ajouté au premier temps choisi.
+// Un silence long (≥ 2 mesures) coupe la suite : la grille repart (nouveau choix) au temps sonore suivant ;
+// le silence final est retiré ; la dernière mesure incomplète est gardée si au moins la moitié des temps
+// sont là. Une mesure n'est émise que lorsqu'elle ne finit pas par un silence (il peut devenir une pause).
+function _dspBarBuilder(beatsPerBar, chordsPerBar, shift) {
+  const bpb = beatsPerBar, longRun = 2 * bpb;
+  let beats = [], pos = null, gridFrom = 0, cand = 0, quiet = 0, waitSound = false;
+  const isQuiet = b => b.silent || b.absent;
+  const bar = (bs, out) => out.push(_dspBar(bs, chordsPerBar));
+
+  function decide(end, out) {
+    let o = 0;
+    const c = _dspPhaseCosts(beats, 0, end, bpb);
+    if (end >= DOWNBEAT_DECIDE_BARS * bpb) for (let k = 1; k < bpb; k++) if (c[k] < c[o]) o = k;
+    if (o && !(c[0] > DOWNBEAT_MIN_COST && c[o] < DOWNBEAT_FIRST_RATIO * c[0])) o = 0;
+    const p = (((o + (shift | 0)) % bpb) + bpb) % bpb;
+    if (p && p * 2 >= bpb) bar(_dspPadBar(beats.slice(0, p), bpb, true), out);
+    pos = gridFrom = p; cand = 0;
+  }
+
+  // Mesures entières jusqu'à `end` ; recalage éventuel avant chacune.
+  function emit(end, out) {
+    while (pos + bpb <= end) {
+      const e = pos + bpb;
+      if (e - gridFrom >= DOWNBEAT_MIN_BARS * bpb) {
+        const c = _dspPhaseCosts(beats, Math.max(gridFrom, e - DOWNBEAT_WINDOW_BARS * bpb), e, bpb);
+        let o = 0;
+        for (let k = 1; k < bpb; k++) if (c[k] < c[o]) o = k;
+        if (o && c[0] > DOWNBEAT_MIN_COST && c[o] < DOWNBEAT_REPHASE_RATIO * c[0]) {
+          if (cand === o) {
+            if (o * 2 >= bpb) bar(_dspPadBar(beats.slice(pos, pos + o), bpb, true), out);
+            pos = gridFrom = pos + o; cand = 0;
+            continue;
+          }
+          cand = o;
+        } else cand = 0;
+      }
+      bar(beats.slice(pos, e), out);
+      pos = e;
+    }
+  }
+
+  function closePart(out) {
+    const end = beats.length - quiet;
+    if (end > 0) {
+      if (pos === null) decide(end, out);
+      emit(end, out);
+      const rest = end - pos;
+      if (rest > 0 && rest * 2 >= bpb) bar(_dspPadBar(beats.slice(pos, end), bpb, false), out);
+    }
+    beats = []; pos = null; quiet = 0; cand = 0;
+  }
+
+  return {
+    push(b) {
+      const out = [];
+      if (waitSound) { if (isQuiet(b)) return out; waitSound = false; }
+      beats.push(b);
+      quiet = isQuiet(b) ? quiet + 1 : 0;
+      if (quiet >= longRun) { closePart(out); waitSound = true; return out; }
+      if (pos === null) {
+        if (beats.length - quiet < DOWNBEAT_DECIDE_BARS * bpb) return out;
+        decide(beats.length - quiet, out);
+      }
+      emit(beats.length - quiet, out);
+      return out;
+    },
+    close() { const out = []; if (beats.length) closePart(out); waitSound = false; return out; }
+  };
 }
 
 // Suivi de temps (boucle à verrouillage de phase). La grille n'est pas figée : à chaque temps prédit, on
@@ -422,7 +513,7 @@ function createBarAssembler(opts) {
   let quietFrames = 0, lastGap = null; // court silence le plus récent {end, len} (trames)
   let firstBeatFrame = null;
   const beatChroma = [], beatLengths = [];
-  let seg = null;              // {start: index dans beatChroma, emitted: mesures émises}
+  let builder = null;          // mesures de la suite en cours (null : pas de suite ouverte)
   let silentRun = 0;
 
   const minSound = Math.round(TEMPO_MIN_SOUND_SEC / hopSec);
@@ -430,19 +521,13 @@ function createBarAssembler(opts) {
   const accept = Math.round(TEMPO_ACCEPT_SEC / hopSec);
   const onsetOf = it => it.f.onset || 0;
 
-  function segBeats(fromBar) { return beatChroma.slice(seg.start + fromBar * beatsPerBar); }
-
-  function closeSegment(ev) {
-    for (const bar of _dspBarsFromBeats(segBeats(seg.emitted), beatsPerBar, chordsPerBar)) ev.push(Object.assign({ type: 'bar' }, bar));
-    seg = null;
-  }
-
   function finishBeat(ev, frames, b0, b1) {
     const beat = _dspMakeBeat(frames.map(it => it.f), stats.threshold());
     beat.at = Math.round(b0 * 100) / 100;
     beatLengths.push(b1 - b0);
-    if (!seg) { seg = { start: beatChroma.length, emitted: 0 }; beat.start = true; }
+    if (!builder) { builder = _dspBarBuilder(beatsPerBar, chordsPerBar, 0); beat.start = true; }
     beatChroma.push(beat);
+    for (const bar of builder.push(beat)) ev.push(Object.assign({ type: 'bar' }, bar));
     silentRun = beat.silent ? silentRun + 1 : 0;
     if (silentRun >= 2 * beatsPerBar) {
       closeSegment(ev);
@@ -450,15 +535,12 @@ function createBarAssembler(opts) {
       paused = true;
       mode = 'waiting';
       silentRun = 0;
-      return;
     }
-    const len = beatChroma.length - seg.start;
-    const ready = Math.floor((len - silentRun) / beatsPerBar);
-    while (seg.emitted < ready) {
-      const s = seg.start + seg.emitted * beatsPerBar;
-      ev.push(Object.assign({ type: 'bar' }, _dspBar(beatChroma.slice(s, s + beatsPerBar), chordsPerBar)));
-      seg.emitted++;
-    }
+  }
+
+  function closeSegment(ev) {
+    for (const bar of builder.close()) ev.push(Object.assign({ type: 'bar' }, bar));
+    builder = null;
   }
 
   // Profil de phase du temps [b0, b1) (attaques normalisées par classe de phase) ; décrochage éventuel.
@@ -622,7 +704,7 @@ function createBarAssembler(opts) {
         const frames = pend.filter(it => it.g < end);
         if (frames.length && frames.length * 2 >= end - Math.round(cur)) finishBeat(ev, frames, cur, next);
         pend = [];
-        if (seg) closeSegment(ev);
+        if (builder) closeSegment(ev);
         mode = 'waiting';
       }
       return ev;
@@ -639,25 +721,25 @@ function createBarAssembler(opts) {
   };
 }
 
-// Reconstruit toutes les mesures depuis les temps gardés (mêmes règles que l'assembleur).
-// Les temps marqués `start` (début d'écoute, reprise après pause) recommencent une grille de mesures.
-// beatOffset > 0 : on saute les premiers temps de chaque suite ; < 0 : temps absents ajoutés devant.
+// Reconstruit toutes les mesures depuis les temps gardés : chaque suite (temps marqué `start` : début
+// d'écoute, reprise après pause) repasse dans un assembleur de mesures neuf, temps par temps, comme en direct
+// (sans décalage, même métrique et même mode : mesures identiques au direct).
+// beatOffset : décalage global (en temps) ajouté au premier temps choisi de chaque suite.
 function rebuildBars(data, opts) {
   const beatsPerBar = Math.max(1, opts.beatsPerBar | 0 || 4);
   const chordsPerBar = opts.chordsPerBar === 2 ? 2 : 1;
   const off = opts.beatOffset | 0;
   const beats = (data && data.beatChroma) || [];
-  const segments = [];
-  for (const b of beats) {
-    if (b.start || !segments.length) segments.push([]);
-    segments[segments.length - 1].push(b);
-  }
   const out = [];
-  for (let s of segments) {
-    if (off > 0) s = s.slice(off);
-    else if (off < 0) s = Array.from({ length: -off }, () => ({ absent: true, silent: true })).concat(s);
-    for (const bar of _dspBarsFromBeats(s, beatsPerBar, chordsPerBar)) out.push(bar);
+  let builder = null;
+  for (const b of beats) {
+    if (b.start || !builder) {
+      if (builder) out.push(...builder.close());
+      builder = _dspBarBuilder(beatsPerBar, chordsPerBar, off);
+    }
+    out.push(...builder.push(b));
   }
+  if (builder) out.push(...builder.close());
   return out;
 }
 
