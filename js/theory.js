@@ -10,7 +10,12 @@ const ALL_KEYS=['C','Db','D','Eb','E','F','F#','Gb','G','Ab','A','Bb','B'];
 function noteIdx(n){const i=CHROMATIC.indexOf(n);return i!==-1?i:(ENH[n]?CHROMATIC.indexOf(ENH[n]):-1);}
 function tr(root,s){const idx=noteIdx(root);if(idx===-1)return'?';const r=CHROMATIC[(idx+s+12)%12];return['F','Bb','Eb','Ab','Db','Gb'].includes(root)&&ENH[r]?ENH[r]:r;}
 function trToKey(note,s,destKey){const idx=noteIdx(note);if(idx===-1)return'?';const r=CHROMATIC[(idx+s+12)%12];return['F','Bb','Eb','Ab','Db','Gb','Cb'].includes(destKey)&&ENH[r]?ENH[r]:r;}
-function semitoneDiff(a,b){const x=noteIdx(a),y=noteIdx(b);if(x===-1||y===-1)return 0;return(y-x+12)%12;}
+// Tonalité « Cm » / « C- » : fondamentale + marque de mineur (noteIdx ne connaît que la fondamentale)
+function splitKey(k){const m=/^([A-G][#b]?)(m|-|min)?$/.exec(String(k||'').trim());return m?{root:m[1],minor:!!m[2]}:{root:String(k||''),minor:false};}
+function transposeKeyName(key,s){const k=splitKey(key),i=noteIdx(k.root);if(i===-1)return key;const n=(i+s+120)%12;const root=k.minor?['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'][n]:ALL_KEYS.find(x=>noteIdx(x)===n);return root+(k.minor?'m':'');}
+// Tonalité majeure qui sert à choisir dièses/bémols (relatif majeur pour une tonalité mineure)
+function keySpelling(key){const k=splitKey(key);return k.minor?transposeKeyName(k.root,3):k.root;}
+function semitoneDiff(a,b){const x=noteIdx(splitKey(a).root),y=noteIdx(splitKey(b).root);if(x===-1||y===-1)return 0;return(y-x+12)%12;}
 function transposeChordSymbol(sym,s,destKey){if(!sym||sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat'||sym==='–')return sym;const p=sym.split('/'),main=p[0],bass=p[1]||null;const rm=main.match(/^([A-G][#b]?)(.*)/);if(!rm)return sym;return trToKey(rm[1],s,destKey||tr(rm[1],s))+rm[2]+(bass?'/'+trToKey(bass,s,destKey||tr(bass,s)):'');}
 const ARP_DEF={'':    {i:[0,4,7,12],n:['1','3','5','8']},'maj7':{i:[0,4,7,11],n:['1','3','5','7']},'maj9':{i:[0,4,7,11],n:['1','3','5','7']},'maj13':{i:[0,4,7,11],n:['1','3','5','7']},'6':{i:[0,4,7,9],n:['1','3','5','6']},'6/9':{i:[0,4,7,9],n:['1','3','5','6']},'m':{i:[0,3,7,12],n:['1','b3','5','8']},'m6':{i:[0,3,7,9],n:['1','b3','5','6']},'m7':{i:[0,3,7,10],n:['1','b3','5','b7']},'m9':{i:[0,3,7,10],n:['1','b3','5','b7']},'m11':{i:[0,3,7,10],n:['1','b3','5','b7']},'m13':{i:[0,3,7,10],n:['1','b3','5','b7']},'mM7':{i:[0,3,7,11],n:['1','b3','5','7']},'7':{i:[0,4,7,10],n:['1','3','5','b7']},'9':{i:[0,4,7,10],n:['1','3','5','b7']},'11':{i:[0,4,7,10],n:['1','3','5','b7']},'13':{i:[0,4,7,10],n:['1','3','5','b7']},'dim':{i:[0,3,6,12],n:['1','b3','b5','8']},'dim7':{i:[0,3,6,9],n:['1','b3','b5','bb7']},'m7b5':{i:[0,3,6,10],n:['1','b3','b5','b7']},'aug':{i:[0,4,8,12],n:['1','3','#5','8']},'sus2':{i:[0,2,7,12],n:['1','2','5','8']},'sus4':{i:[0,5,7,12],n:['1','4','5','8']},'7sus4':{i:[0,5,7,10],n:['1','4','5','b7']}};
 function getInversions(root,quality){const def=ARP_DEF[quality]||ARP_DEF['maj7'];const base=def.i.map(s=>tr(root,s)),baseN=def.n;return t('invLabels').map((label,k)=>({label,notes:[...base.slice(k),...base.slice(0,k)],degrees:[...baseN.slice(k),...baseN.slice(0,k)]}));}
@@ -105,3 +110,5 @@ function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/b
 function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 'sym-repeat2';if(sym==='N.C.')return 'sym-nc';if(sym==='/beat')return 'sym-slash';return '';}
 function getSymLabel(sym){if(sym==='%')return t('symRepeat');if(sym==='%%')return t('symRepeat2');if(sym==='N.C.')return t('symNC');if(sym==='/beat')return t('symSlash');return '';}
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+if(typeof module!=='undefined')module.exports={CHROMATIC,ENH,ALL_KEYS,noteIdx,tr,trToKey,splitKey,transposeKeyName,keySpelling,semitoneDiff,transposeChordSymbol};

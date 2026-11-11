@@ -138,7 +138,6 @@ function _gsInit(){
   drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('drag-over');});
   drop.addEventListener('dragleave',()=>drop.classList.remove('drag-over'));
   drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('drag-over');gridSearchFile(e.dataTransfer.files[0]);});
-  _gsEl('gridsearch-dialog').addEventListener('keydown',e=>{if(e.key==='Escape')closeGridSearch();});
 }
 _gsInit();
 

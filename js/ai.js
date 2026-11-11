@@ -351,10 +351,18 @@ const _AI_TOOL_EXECUTORS = {
         const chords = (Array.isArray(m.chords) ? m.chords : [])
           .filter(c => c && str(c.symbol).trim())
           .map(c => {
-            const ch = { symbol: str(c.symbol).trim(), beats: parseInt(c.beats) || defBeats, annot: null };
+            const b = parseInt(c.beats);
+            const ch = { symbol: str(c.symbol).trim(), beats: b > 0 ? b : null, annot: null };
             if (c.altChord) ch.altChord = str(c.altChord);
             return ch;
           });
+        // Accords sans durée : temps restants de la mesure répartis comme irealToChart (min. 1)
+        const free = chords.filter(c => c.beats === null);
+        if (free.length) {
+          const rem = defBeats - chords.reduce((t, c) => t + (c.beats || 0), 0);
+          const base = Math.floor(rem / free.length), r = rem % free.length;
+          free.forEach((c, i) => { c.beats = Math.max(1, base + (i < r ? 1 : 0)); });
+        }
         if (!chords.length) chords.push({ symbol: 'N.C.', beats: defBeats, annot: null });
         const left = bar(m.barlineLeft, 'normal'), right = bar(m.barlineRight, 'normal');
         return {
@@ -387,11 +395,10 @@ const _AI_TOOL_EXECUTORS = {
   transpose_chart(draft, a) {
     const s = parseInt(a.semitones);
     if (!s) return;
-    const origKey = draft.key;
-    const destKey = ALL_KEYS.find(k => noteIdx(k) === (noteIdx(origKey) + s + 120) % 12) || origKey;
+    const destKey = transposeKeyName(draft.key, s), spell = keySpelling(destKey);
     draft.sections.forEach(sec => sec.measures.forEach(m => m.chords.forEach(c => {
       if (c.symbol && !['%', '%%', 'N.C.', '/', '–', '/beat'].includes(c.symbol))
-        c.symbol = transposeChordSymbol(c.symbol, s, destKey);
+        c.symbol = transposeChordSymbol(c.symbol, s, spell);
     })));
     draft.key = destKey;
   },
@@ -541,9 +548,11 @@ const _AI_TOOL_EXECUTORS = {
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 let _aiDraft = null;
+let _aiDraftFull = false; // le brouillon contient une grille complète (set_full_chart)
 
 function aiDraftCreate() {
   _aiDraft = JSON.parse(JSON.stringify(chartData));
+  _aiDraftFull = false;
   return _aiDraft;
 }
 
@@ -552,6 +561,21 @@ function aiDraftApplyTool(name, args) {
   const exec = _AI_TOOL_EXECUTORS[name];
   if (!exec) throw new Error('Unknown tool: ' + name);
   exec(_aiDraft, args);
+  if (name === 'set_full_chart') _aiDraftFull = true;
+}
+
+// Texte brut de la grille complète proposée (à échapper par l'appelant) : titre/compositeur,
+// une ligne par section (chartPreviewText de gridsearch.js), puis l'annotation de la 1re section.
+function aiFullChartPreviewLines(draft) {
+  const lines = [];
+  const head = [draft.title, draft.composer].map(v => String(v || '').trim()).filter(Boolean).join(' — ');
+  const meta = [draft.key, draft.timeSig, draft.tempo ? draft.tempo + ' BPM' : '', draft.style].map(v => String(v || '').trim()).filter(Boolean).join(' · ');
+  if (head) lines.push(head);
+  if (meta) lines.push(meta);
+  if (typeof chartPreviewText === 'function') lines.push(...chartPreviewText(draft));
+  const ann = String((draft.sections && draft.sections[0] && draft.sections[0].annotation) || '').trim();
+  if (ann) lines.push(ann);
+  return lines;
 }
 
 function aiDraftDiff() {
@@ -563,6 +587,7 @@ function aiDraftDiff() {
   if (String(d.tempo) !== String(c.tempo)) lines.push('Tempo : ' + c.tempo + ' → ' + d.tempo);
   if (d.timeSig !== c.timeSig) lines.push('Mesure : ' + c.timeSig + ' → ' + d.timeSig);
   if (d.style !== c.style) lines.push('Style : ' + c.style + ' → ' + d.style);
+  if ((d.composer || '') !== (c.composer || '')) lines.push('Compositeur : "' + (c.composer || '') + '" → "' + (d.composer || '') + '"');
   if (d.sections.length !== c.sections.length)
     lines.push('Sections : ' + c.sections.length + ' → ' + d.sections.length);
   const minS = Math.min(d.sections.length, c.sections.length);
@@ -596,12 +621,24 @@ function aiDraftApply() {
     if (sel) sel.value = _aiDraft._uiColumns;
     delete _aiDraft._uiColumns;
   }
+  const keyChanged = _aiDraft.key !== chartData.key;
   chartData = _aiDraft;
   _aiDraft = null;
+  // Nouvelle référence de transposition, comme à l'import
+  if (_aiDraftFull || keyChanged) {
+    chartData.sections.forEach(s => s.measures.forEach(m => m.chords.forEach(c => { delete c._originalSymbol; })));
+    originalKey = chartData.key; currentSemitoneOffset = 0;
+    const sd = document.getElementById('semitone-display'); if (sd) sd.textContent = '0';
+    const ks = document.getElementById('transpose-key-select'); if (ks) ks.value = '';
+  }
+  _aiDraftFull = false;
+  // Depuis l'écran d'accueil, la grille doit devenir visible
+  const dz = document.getElementById('dropzone'); if (dz) dz.style.display = 'none';
+  const ed = document.getElementById('chart-editor'); if (ed) ed.style.display = 'block';
   render();
 }
 
-function aiDraftDiscard() { _aiDraft = null; }
+function aiDraftDiscard() { _aiDraft = null; _aiDraftFull = false; }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    JS — AI : CHAT
@@ -690,7 +727,8 @@ async function aiChatSend(text) {
         try { aiDraftApplyTool(tc.name, tc.args); }
         catch (e) { errors.push(tc.name + ': ' + e.message); }
       }
-      _aiRenderPreview(resp.message, aiDraftDiff(), errors, resp.sources);
+      _aiRenderPreview(resp.message, aiDraftDiff(), errors, resp.sources,
+        _aiDraftFull ? aiFullChartPreviewLines(_aiDraft) : null);
     } else {
       if (resp.message) _aiMsg('assistant', resp.message);
       _aiRenderSources(resp.sources);
@@ -754,12 +792,14 @@ function _aiRenderSources(sources) {
   log.scrollTop = log.scrollHeight;
 }
 
-function _aiRenderPreview(message, diff, errors, sources) {
+function _aiRenderPreview(message, diff, errors, sources, fullLines) {
   const log = document.getElementById('ai-log');
   const card = document.createElement('div');
   card.className = 'ai-preview-card';
   let html = '';
   if (message) html += '<div class="ai-preview-msg">' + _aiMdToHtml(message) + '</div>';
+  if (fullLines && fullLines.length)
+    html += '<div class="ai-preview-chart">' + fullLines.map(l => '<div class="ai-preview-line">' + escHtml(String(l)) + '</div>').join('') + '</div>';
   if (diff.length) html += '<ul class="ai-preview-diff">' + diff.map(l => '<li>' + escHtml(l) + '</li>').join('') + '</ul>';
   if (errors.length) html += '<p class="ai-preview-err">⚠ ' + escHtml(errors.join(', ')) + '</p>';
   html += _aiSourcesHtml(sources);
@@ -810,4 +850,4 @@ if (typeof document !== 'undefined') {
   else _aiStartupMigrate();
 }
 
-if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS, aiBuildClaudeBody, aiParseClaudeContent, aiRunClaudeTurn, AI_TOOLS, _AI_TOOL_EXECUTORS, _aiHistoryPushAssistant, _aiHistoryGet: () => _aiHistory };
+if (typeof module !== 'undefined') module.exports = { aiFullChartPreviewLines, aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS, aiBuildClaudeBody, aiParseClaudeContent, aiRunClaudeTurn, AI_TOOLS, _AI_TOOL_EXECUTORS, _aiHistoryPushAssistant, _aiHistoryGet: () => _aiHistory };

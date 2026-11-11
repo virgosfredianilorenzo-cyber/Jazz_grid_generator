@@ -145,3 +145,42 @@ test('historique IA : jamais de message assistant vide', () => {
   assert.equal(h.length, n + 3);
   assert.ok(h.slice(n).every(m => m.role === 'assistant' && m.content.trim().length > 0));
 });
+
+/* ── Revue finale ── */
+test('set_full_chart répartit les temps des accords sans durée', () => {
+  const run = chords => {
+    const draft = { title: '', key: 'C', timeSig: '4/4', sections: [] };
+    ai._AI_TOOL_EXECUTORS.set_full_chart(draft, { timeSig: '4/4', sections: [{ label: 'A', measures: [{ chords }] }] });
+    return draft.sections[0].measures[0].chords.map(c => c.beats);
+  };
+  assert.deepEqual(run([{ symbol: 'C' }, { symbol: 'D' }]), [2, 2]);
+  assert.deepEqual(run([{ symbol: 'C' }, { symbol: 'D' }, { symbol: 'E' }]), [2, 1, 1]);
+  assert.deepEqual(run([{ symbol: 'C', beats: 3 }, { symbol: 'D' }]), [3, 1]);
+  assert.deepEqual(run([{ symbol: 'C' }]), [4]);
+});
+
+test('aperçu complet d\'une grille set_full_chart : grille, compositeur, annotation échappables', () => {
+  globalThis.chartPreviewText = require('../js/gridsearch.js').chartPreviewText;
+  try {
+    const draft = { title: 'Knuck', key: 'Fm', timeSig: '4/4', sections: [] };
+    ai._AI_TOOL_EXECUTORS.set_full_chart(draft, { title: 'Knuck', composer: 'G. W.', sections: [
+      { label: 'A', annotation: 'Grille proposée par l\'IA à partir de : X — à vérifier à l\'oreille', measures: [{ chords: [{ symbol: 'Fm7' }] }, { chords: [{ symbol: 'Bb7' }] }] },
+      { label: 'B', measures: [{ chords: [{ symbol: 'Eb' }] }] }] });
+    const lines = ai.aiFullChartPreviewLines(draft);
+    assert.ok(lines.some(l => l.includes('G. W.')));
+    assert.ok(lines.includes('A Fm7 | Bb7'));
+    assert.ok(lines.includes('B Eb'));
+    assert.ok(lines.some(l => l.includes('à vérifier à l\'oreille')));
+  } finally { delete globalThis.chartPreviewText; }
+});
+
+test('transpose_chart garde le mode mineur de la tonalité', () => {
+  const th = require('../js/theory.js');
+  Object.assign(globalThis, th);
+  try {
+    const draft = { key: 'Cm', sections: [{ measures: [{ chords: [{ symbol: 'Cm7' }, { symbol: 'G7' }] }] }] };
+    ai._AI_TOOL_EXECUTORS.transpose_chart(draft, { semitones: 2 });
+    assert.equal(draft.key, 'Dm');
+    assert.deepEqual(draft.sections[0].measures[0].chords.map(c => c.symbol), ['Dm7', 'A7']);
+  } finally { for (const k of Object.keys(th)) delete globalThis[k]; }
+});
