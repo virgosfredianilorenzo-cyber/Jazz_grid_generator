@@ -147,3 +147,63 @@ test('bout en bout : WAV de synthèse Fm7×8 Bbm7×8 à 120 BPM, tempo auto', ()
   assert.ok(tempo[0].bpm >= 118 && tempo[0].bpm <= 122, 'tempo ' + tempo[0].bpm);
   assert.equal(dsp.estimateKey(st.assembler.data().beatChroma), 'Fm');
 });
+
+test('listenSectionsFingerprint : tout le contenu compte, pas les champs internes', () => {
+  const mk = () => [{ id: 'a', label: 'A', annotation: '', measures: [
+    { chords: [{ symbol: 'Fm7', beats: 4, annot: null, _uncertain: true }], barlineLeft: 'normal', barlineRight: 'normal', volta: null, navSymbol: null }] }];
+  const base = L.listenSectionsFingerprint(mk());
+  const noFlag = mk(); delete noFlag[0].measures[0].chords[0]._uncertain;
+  assert.equal(L.listenSectionsFingerprint(noFlag), base, '_uncertain ignoré');
+  const edits = [
+    s => { s[0].measures[0].chords[0].annot = { showFree: true, freeText: 'x' }; },
+    s => { s[0].measures[0].barlineRight = 'repeat-end'; },
+    s => { s[0].measures[0].volta = '1'; },
+    s => { s[0].measures[0].navSymbol = 'coda'; },
+    s => { s[0].annotation = 'intro'; },
+    s => { s[0].label = 'B'; },
+    s => { s[0].measures[0].chords[0].beats = 2; },
+  ];
+  for (const f of edits) { const s = mk(); f(s); assert.notEqual(L.listenSectionsFingerprint(s), base, f.toString()); }
+  const orig = mk(); L.listenSectionsFingerprint(orig);
+  assert.equal(orig[0].measures[0].chords[0]._uncertain, true, 'entrée non modifiée');
+});
+
+test('listenProposeSections : seulement pour une section unique', () => {
+  const ms = syms => syms.map(s => ({ chords: [{ symbol: s, beats: 4 }] }));
+  const one = [{ label: 'A', measures: ms(['C', 'D', 'E', 'F', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'Db']) }];
+  assert.deepEqual(L.listenProposeSections(one), [
+    { start: 0, length: 4, label: 'A' }, { start: 4, length: 4, label: 'A' }, { start: 8, length: 4, label: 'B' }]);
+  assert.equal(L.listenProposeSections([one[0], { label: 'B', measures: ms(['C']) }]), null);
+  assert.equal(L.listenProposeSections([{ label: 'A', measures: ms(['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Db']) }]), null);
+  assert.equal(L.listenProposeSections([]), null);
+});
+
+test('listenCreateEventQueue : une seule planification, ordre conservé', () => {
+  const scheduled = [], applied = [];
+  const q = L.listenCreateEventQueue(fn => scheduled.push(fn), evs => applied.push(evs));
+  q.push([]);
+  assert.equal(scheduled.length, 0, 'rien à planifier');
+  q.push([{ type: 'tempo', bpm: 120 }, { type: 'bar', n: 1 }]);
+  q.push([{ type: 'bar', n: 2 }]);
+  assert.equal(scheduled.length, 1);
+  scheduled[0]();
+  assert.deepEqual(applied, [[{ type: 'tempo', bpm: 120 }, { type: 'bar', n: 1 }, { type: 'bar', n: 2 }]]);
+  q.push([{ type: 'bar', n: 3 }]);
+  assert.equal(scheduled.length, 2);
+  assert.deepEqual(q.take(), [{ type: 'bar', n: 3 }], 'take vide la file (arrêt)');
+  scheduled[1]();
+  assert.equal(applied.length, 1, 'file déjà vidée : rien appliqué');
+});
+
+test('listenFeedSamples : blocs de LISTEN_PROC_BUFFER (8192) = blocs de 2048', () => {
+  assert.equal(L.LISTEN_PROC_BUFFER, 8192);
+  const SR = 44100, s = synth.progression(['Fm7', 'Bb7', 'Ebmaj7'], 120);
+  const run = size => {
+    const st = L.listenCreateProcessor({ beatsPerBar: 4, chordsPerBar: 1, bpm: 120, sampleRate: SR });
+    const ev = [];
+    for (let p = 0; p < s.length; p += size) ev.push(...L.listenFeedSamples(st, s.subarray(p, p + size), SR));
+    ev.push(...st.assembler.flush());
+    return [st.frames, ev];
+  };
+  assert.deepEqual(run(L.LISTEN_PROC_BUFFER), run(2048));
+});

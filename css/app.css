@@ -469,3 +469,4 @@ body.listening .add-measure-btn, body.listening .add-section-btn, body.listening
 body.listening #toolbar { pointer-events:none; }
 body.listening #toolbar { opacity:0.45; }
 @media print { #listen-bar, #listen-dialog { display:none !important; } body.listen-bar-on { padding-top:0; } }
+#ls-drop.disabled { pointer-events:none; opacity:0.5; }

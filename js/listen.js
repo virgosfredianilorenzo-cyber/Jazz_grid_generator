@@ -104,6 +104,42 @@ function listenSplitSections(section, proposals) {
   }));
 }
 
+// Empreinte de tout le contenu des sections (accords, annotations, barres, reprises, voltas,
+// repères, libellés, annotations de section), sans les champs internes `_…` des accords.
+function listenSectionsFingerprint(sections) {
+  const c = JSON.parse(JSON.stringify(sections || []));
+  c.forEach(sec => (sec.measures || []).forEach(m => (m.chords || []).forEach(ch => {
+    Object.keys(ch).forEach(k => { if (k[0] === '_') delete ch[k]; });
+  })));
+  return JSON.stringify(c);
+}
+
+// Découpage proposé pour la grille actuelle : seulement s'il n'y a qu'une section.
+function listenProposeSections(sections) {
+  if (!sections || sections.length !== 1) return null;
+  return _lsDsp().proposeSections(sections[0].measures.map(m => (m.chords || []).map(c => c.symbol).join(' ')));
+}
+
+// File d'événements : le rappel audio empile, la grille est mise à jour plus tard (schedule), dans l'ordre.
+function listenCreateEventQueue(schedule, apply) {
+  let q = [], pending = false;
+  const take = () => { const out = q; q = []; return out; };
+  return {
+    push(events) {
+      if (!events.length) return;
+      for (const e of events) q.push(e);
+      if (!pending) {
+        pending = true;
+        schedule(() => { pending = false; const evs = take(); if (evs.length) apply(evs); });
+      }
+    },
+    take
+  };
+}
+
+// Taille des blocs du ScriptProcessorNode (le plus grand permis) : marge si le fil principal est occupé.
+const LISTEN_PROC_BUFFER = 8192;
+
 // État d'analyse : assembleur + tampon d'échantillons + magnitudes précédentes (attaques).
 function listenCreateProcessor(opts) {
   const d = _lsDsp();
@@ -157,8 +193,8 @@ const _ls = {
   state: null, chart: null, sampleRate: 44100,
   beatsPerBar: 4, chordsPerBar: 1, userBpm: null,
   sectionsByUser: false, bars: 0, noTempoShown: false,
-  data: null, offset: 0, snapshot: null, proposals: null,
-  taps: []
+  data: null, offset: 0, snapshot: null, proposals: null, proposalsFor: null,
+  taps: [], starting: false, queue: null
 };
 const _lsEl = id => document.getElementById(id);
 const _lsListening = () => typeof document !== 'undefined' && document.body.classList.contains('listening');
@@ -193,6 +229,31 @@ function _lsError(key) {
   e.style.display = key ? 'block' : 'none';
 }
 
+// Démarrage en cours (décodage, fenêtre de partage) : un seul à la fois, contrôles désactivés.
+function _lsSetStarting(on) {
+  _ls.starting = on;
+  ['ls-btn-tab', 'ls-file', 'ls-timesig', 'ls-tempo', 'ls-tap', 'ls-chords'].forEach(id => { const e = _lsEl(id); if (e) e.disabled = on; });
+  const d = _lsEl('ls-drop');
+  if (d) d.classList.toggle('disabled', on);
+}
+
+// Erreur au démarrage, après _lsBegin ou pendant : tout est relâché, message affiché.
+function _lsStartFailed(e, ctx, stream) {
+  console.error(e);
+  if (_ls.active) {
+    if (!_ls.ctx) _ls.ctx = ctx;
+    if (!_ls.stream) _ls.stream = stream;
+    try { listenStop(); } catch (e2) { console.error(e2); }
+  } else {
+    if (stream) stream.getTracks().forEach(tr => tr.stop());
+    if (ctx) ctx.close().catch(() => {});
+  }
+  _ls.active = false;
+  document.body.classList.remove('listening');
+  if (document.body.classList.contains('listen-bar-on')) _lsMsg(t('listenErrStart'));
+  else { _lsError('listenErrStart'); _lsEl('listen-dialog').classList.add('active'); }
+}
+
 function _lsSettings() {
   const timeSig = _lsEl('ls-timesig').value || '4/4';
   const v = parseFloat(_lsEl('ls-tempo').value);
@@ -215,6 +276,7 @@ function listenTap() {
 // Démarrage commun, une fois la source audio prête. false si l'utilisateur refuse de remplacer la grille.
 function _lsBegin(kind, title, settings) {
   if (_isDirty && !confirm(t('listenConfirmReplace'))) return false;
+  if (typeof PLAYER !== 'undefined' && PLAYER.playing && typeof stopPlayback === 'function') stopPlayback();
   snapshotUndo();
   chartData = listenNewChart({ title, bpm: settings.bpm, timeSig: settings.timeSig, annotation: t('listenAnnot') });
   originalKey = chartData.key; currentSemitoneOffset = 0;
@@ -226,6 +288,7 @@ function _lsBegin(kind, title, settings) {
     sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null
   });
   _ls.state = listenCreateProcessor({ beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, bpm: settings.bpm, sampleRate: _ls.sampleRate });
+  _ls.queue = listenCreateEventQueue(fn => setTimeout(fn, 0), evs => { if (_ls.active) _lsHandleEvents(evs); });
   closeListen();
   _lsEl('dropzone').style.display = 'none';
   _lsEl('chart-editor').style.display = 'block';
@@ -237,9 +300,10 @@ function _lsBegin(kind, title, settings) {
 
 // Nœud d'analyse : reçoit chaque bloc d'échantillons (horloge = flux audio lui-même, pas de minuterie,
 // donc pas de trame perdue quand l'onglet de l'appli est en arrière-plan). Sortie muette.
+// Le rappel ne fait que l'analyse ; la grille est mise à jour hors du rappel (file + setTimeout 0,
+// pas requestAnimationFrame qui s'arrête dans un onglet caché).
 function _lsMakeProcessor(ctx) {
-  const d = _lsDsp();
-  const proc = ctx.createScriptProcessor(d.HOP_SIZE, 2, 1);
+  const proc = ctx.createScriptProcessor(LISTEN_PROC_BUFFER, 2, 1);
   let mono = null;
   proc.onaudioprocess = e => {
     if (!_ls.active) return;
@@ -248,60 +312,79 @@ function _lsMakeProcessor(ctx) {
     const a = ib.getChannelData(0);
     if (ch > 1) { const b = ib.getChannelData(1); for (let i = 0; i < n; i++) mono[i] = 0.5 * (a[i] + b[i]); }
     else mono.set(a);
-    _lsHandleEvents(listenFeedSamples(_ls.state, mono, ctx.sampleRate));
+    _ls.queue.push(listenFeedSamples(_ls.state, mono, ctx.sampleRate));
+    _lsCheckNoTempo();
   };
   proc.connect(ctx.destination);
   return proc;
 }
 
 async function listenStartTab() {
-  if (_ls.active) return;
+  if (_ls.active || _ls.starting) return;
   const settings = _lsSettings();
-  let stream;
+  _lsError('');
+  _lsSetStarting(true);
+  let stream = null, ctx = null;
   try {
-    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-  } catch (e) { console.warn(e); return; } // partage annulé : rien ne change
-  if (!listenStreamHasAudio(stream)) {
-    stream.getTracks().forEach(tr => tr.stop());
-    _lsError('listenErrNoAudio');
-    return;
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    } catch (e) { console.warn(e); return; } // partage annulé : rien ne change
+    if (_ls.active) { stream.getTracks().forEach(tr => tr.stop()); return; } // une autre écoute a démarré
+    if (!listenStreamHasAudio(stream)) {
+      stream.getTracks().forEach(tr => tr.stop());
+      _lsError('listenErrNoAudio');
+      return;
+    }
+    const video = stream.getVideoTracks()[0];
+    const title = listenTitleFromTrackLabel(video && video.label, t('listenDefaultTitle'));
+    if (video) video.stop();
+    ctx = new AudioContext();
+    _ls.sampleRate = ctx.sampleRate;
+    if (!_lsBegin('tab', title, settings)) { stream.getTracks().forEach(tr => tr.stop()); ctx.close(); return; }
+    _ls.ctx = ctx; _ls.stream = stream;
+    const src = ctx.createMediaStreamSource(stream);
+    _ls.src = src;
+    _ls.proc = _lsMakeProcessor(ctx);
+    src.connect(_ls.proc); // pas vers les haut-parleurs : l'onglet joue déjà
+    stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', () => { if (_ls.stream === stream) listenStop(); }));
+    if (ctx.state === 'suspended') await ctx.resume();
+  } catch (e) {
+    _lsStartFailed(e, ctx, stream);
+  } finally {
+    _lsSetStarting(false);
   }
-  const video = stream.getVideoTracks()[0];
-  const title = listenTitleFromTrackLabel(video && video.label, t('listenDefaultTitle'));
-  if (video) video.stop();
-  const ctx = new AudioContext();
-  _ls.sampleRate = ctx.sampleRate;
-  if (!_lsBegin('tab', title, settings)) { stream.getTracks().forEach(tr => tr.stop()); ctx.close(); return; }
-  _ls.ctx = ctx; _ls.stream = stream;
-  const src = ctx.createMediaStreamSource(stream);
-  _ls.proc = _lsMakeProcessor(ctx);
-  src.connect(_ls.proc); // pas vers les haut-parleurs : l'onglet joue déjà
-  _ls.src = src;
-  stream.getAudioTracks().forEach(tr => tr.addEventListener('ended', () => { if (_ls.stream === stream) listenStop(); }));
-  if (ctx.state === 'suspended') ctx.resume();
 }
 
 async function listenStartFile(file) {
-  if (_ls.active || !file) return;
+  if (_ls.active || _ls.starting || !file) return;
   const settings = _lsSettings();
   _lsError('');
-  const ctx = new AudioContext();
-  let buffer;
+  _lsSetStarting(true);
+  let ctx = null;
   try {
-    buffer = await ctx.decodeAudioData(await file.arrayBuffer());
-  } catch (e) { console.error(e); ctx.close(); _lsError('listenErrFile'); return; }
-  _ls.sampleRate = ctx.sampleRate;
-  if (!_lsBegin('file', listenTitleFromFile(file.name), settings)) { ctx.close(); return; }
-  _ls.ctx = ctx;
-  const src = ctx.createBufferSource();
-  src.buffer = buffer;
-  _ls.proc = _lsMakeProcessor(ctx);
-  src.connect(ctx.destination); // audible
-  src.connect(_ls.proc);
-  src.onended = () => { if (_ls.src === src) listenStop(); };
-  _ls.src = src;
-  if (ctx.state === 'suspended') await ctx.resume();
-  src.start();
+    ctx = new AudioContext();
+    let buffer;
+    try {
+      buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+    } catch (e) { console.error(e); ctx.close(); _lsError('listenErrFile'); return; }
+    if (_ls.active) { ctx.close(); return; } // une autre écoute a démarré
+    _ls.sampleRate = ctx.sampleRate;
+    if (!_lsBegin('file', listenTitleFromFile(file.name), settings)) { ctx.close(); return; }
+    _ls.ctx = ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    _ls.src = src;
+    _ls.proc = _lsMakeProcessor(ctx);
+    src.connect(ctx.destination); // audible
+    src.connect(_ls.proc);
+    src.onended = () => { if (_ls.src === src) listenStop(); };
+    if (ctx.state === 'suspended') await ctx.resume();
+    src.start();
+  } catch (e) {
+    _lsStartFailed(e, ctx, null);
+  } finally {
+    _lsSetStarting(false);
+  }
 }
 
 // Pause / reprise du fichier : le contexte audio est suspendu, l'analyse aussi.
@@ -365,7 +448,9 @@ function listenStop() {
   if (!_ls.active) return;
   _ls.active = false;
   const st = _ls.state;
-  _lsHandleEvents(st ? st.assembler.flush() : [], false); // dernières mesures, sans surlignage
+  // Événements encore en file, puis les dernières mesures de l'assembleur (sans surlignage), dans l'ordre.
+  const queued = _ls.queue ? _ls.queue.take() : [];
+  _lsHandleEvents(queued.concat(st ? st.assembler.flush() : []), false);
   const src = _ls.src, proc = _ls.proc, ctx = _ls.ctx, stream = _ls.stream;
   _ls.src = _ls.proc = _ls.ctx = _ls.stream = null;
   try { if (src && src.stop) src.stop(); } catch (_) {}
@@ -386,22 +471,20 @@ function listenStop() {
   _isDirty = true;
   _ls.done = true;
   _ls.proposals = null;
-  if (!_ls.sectionsByUser && chartData.sections.length === 1) _ls.proposals = _lsProposals();
   render();
   _lsSnapshot();
+  if (!_ls.sectionsByUser) _lsRefreshProposals();
   _lsShowBar();
   if (!_ls.bars && !_ls.userBpm) _lsMsg(t('listenErrNoTempo'));
 }
 
-function _lsMeasuresJson() {
-  return JSON.stringify((chartData.sections || []).map(s => [s.label, (s.measures || []).map(m => (m.chords || []).map(c => [c.symbol, c.beats]))]));
-}
-function _lsSnapshot() { _ls.snapshot = _lsMeasuresJson(); }
-function _lsEditedSinceStop() { return _ls.snapshot !== _lsMeasuresJson(); }
+function _lsSnapshot() { _ls.snapshot = listenSectionsFingerprint(chartData.sections); }
+function _lsEditedSinceStop() { return _ls.snapshot !== listenSectionsFingerprint(chartData.sections); }
 
-function _lsProposals() {
-  const ms = chartData.sections[0].measures;
-  return _lsDsp().proposeSections(ms.map(m => m.chords.map(c => c.symbol).join(' ')));
+// Propositions de sections pour la grille telle qu'elle est maintenant (empreinte mémorisée).
+function _lsRefreshProposals() {
+  _ls.proposals = listenProposeSections(chartData.sections);
+  _ls.proposalsFor = _ls.proposals ? listenSectionsFingerprint(chartData.sections) : null;
 }
 
 // Décalage d'un temps (cumulé) ou changement du nombre d'accords par mesure, sans réécouter.
@@ -415,18 +498,25 @@ function _lsRebuild(offsetDelta, chordsPerBar) {
   const bars = _lsDsp().rebuildBars(_ls.data, { beatsPerBar: _ls.beatsPerBar, chordsPerBar: _ls.chordsPerBar, beatOffset: _ls.offset });
   chartData.sections = listenDistributeBars(chartData.sections, bars);
   _ls.bars = bars.length;
-  if (_ls.proposals) _ls.proposals = _lsProposals();
   render();
   _lsSnapshot();
+  if (_ls.proposals) _lsRefreshProposals();
   _lsUpdateBar();
 }
 function listenShift(delta) { _lsRebuild(delta, 0); }
 function listenSetChordsPerBar(n) { if (n !== _ls.chordsPerBar) _lsRebuild(0, n); }
 
+// N'applique que des propositions calculées sur la grille actuelle ; sinon elles sont recalculées
+// (et montrées à nouveau) ou retirées, jamais appliquées à l'aveugle.
 function listenApplySections() {
   if (!_ls.proposals) return;
   if (chartData !== _ls.chart) { _lsHideBar(); return; } // une autre grille a été ouverte depuis
-  if (_lsEditedSinceStop() && !confirm(t('listenConfirmReplace'))) return;
+  if (_ls.proposalsFor !== listenSectionsFingerprint(chartData.sections)) {
+    _lsRefreshProposals();
+    _lsUpdateBar();
+    _lsMsg(t(_ls.proposals ? 'listenSectionsUpdated' : 'listenSectionsNone'));
+    return;
+  }
   snapshotUndo();
   chartData.sections = listenSplitSections(chartData.sections[0], _ls.proposals);
   _ls.proposals = null;
@@ -518,5 +608,6 @@ _lsInit();
 if (typeof module !== 'undefined') module.exports = {
   listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
   listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenDistributeBars, listenSplitSections,
-  listenCreateProcessor, listenProcessFrame, listenFeedSamples
+  listenCreateProcessor, listenProcessFrame, listenFeedSamples,
+  listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };
