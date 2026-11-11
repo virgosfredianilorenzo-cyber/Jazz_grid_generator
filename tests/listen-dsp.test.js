@@ -109,3 +109,224 @@ test('estimateTempo : 10 minutes en moins de 2 s', () => {
   assert.ok(Date.now() - t0 < 2000);
   assert.ok(Math.abs(t.bpm - 132) < 2, 'bpm ' + t.bpm);
 });
+
+// ── Task 2 : assembleur de mesures, tonalité, sections ──────────────────────
+// Trames synthétiques {chroma, bass, rms, onset} : une attaque forte sur la première trame de chaque temps.
+const HOP_SEC = HOP_SIZE / SR;
+const PCS = { C: 0, Db: 1, D: 2, Eb: 3, E: 4, F: 5, Gb: 6, G: 7, Ab: 8, A: 9, Bb: 10, B: 11 };
+const IVS = { maj7: [0, 4, 7, 11], m7: [0, 3, 7, 10], '7': [0, 4, 7, 10], m7b5: [0, 3, 6, 10], dim7: [0, 3, 6, 9] };
+
+function chordVectors(sym) {
+  const mt = /^([A-G]b?)(.*)$/.exec(sym);
+  const r = PCS[mt[1]];
+  const chroma = new Array(12).fill(0), bass = new Array(12).fill(0);
+  IVS[mt[2]].forEach(i => { chroma[(r + i) % 12] = 0.25; });
+  bass[r] = 1;
+  return { chroma, bass };
+}
+
+// beats : un symbole, un objet {chroma, bass} ou null (silence) par temps.
+function framesFor(beats, bpm, opts = {}) {
+  const P = 60 / bpm / HOP_SEC;
+  const total = Math.ceil(beats.length * P);
+  const out = [];
+  for (let g = 0; g < total; g++) {
+    const k = Math.floor((g + 1e-9) / P);
+    const b = beats[Math.min(k, beats.length - 1)];
+    const first = g === Math.ceil(k * P - 1e-9);
+    if (b == null) { out.push({ chroma: new Array(12).fill(0), bass: new Array(12).fill(0), rms: 0, onset: 0 }); continue; }
+    const v = typeof b === 'string' ? chordVectors(b) : b;
+    out.push({ chroma: v.chroma.slice(), bass: v.bass.slice(), rms: opts.rms || 0.1, onset: first ? 5 : 0.05 });
+  }
+  return out;
+}
+
+function silentFrames(seconds) {
+  const n = Math.round(seconds / HOP_SEC);
+  return Array.from({ length: n }, () => ({ chroma: new Array(12).fill(0), bass: new Array(12).fill(0), rms: 0, onset: 0 }));
+}
+
+function beatsOf(bars, beatsPerBar = 4) {
+  const out = [];
+  for (const b of bars) {
+    if (Array.isArray(b)) b.forEach(x => out.push(x)); // un symbole par temps
+    else for (let i = 0; i < beatsPerBar; i++) out.push(b);
+  }
+  return out;
+}
+
+function runAssembler(frames, opts) {
+  const a = dsp.createBarAssembler(Object.assign({ hopSec: HOP_SEC }, opts));
+  const ev = [];
+  for (const f of frames) ev.push(...a.pushFrame(f));
+  ev.push(...a.flush());
+  return { a, ev, bars: ev.filter(e => e.type === 'bar') };
+}
+
+const syms = bar => bar.chords.map(c => c.symbol).join(' ');
+
+test('assembleur : 8 mesures Fm7 puis Bbm7', () => {
+  const frames = framesFor(beatsOf(['Fm7', 'Fm7', 'Fm7', 'Fm7', 'Bbm7', 'Bbm7', 'Bbm7', 'Bbm7']), 120);
+  const { ev, bars } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1, bpm: 120 });
+  assert.equal(bars.length, 8);
+  assert.deepEqual(bars.map(syms), ['Fm7', 'Fm7', 'Fm7', 'Fm7', 'Bbm7', 'Bbm7', 'Bbm7', 'Bbm7']);
+  bars.forEach(b => { assert.equal(b.chords.length, 1); assert.equal(b.chords[0].beats, 4); assert.equal(b.chords[0].uncertain, false); });
+  assert.ok(!ev.some(e => e.type === 'pause' || e.type === 'tempo'));
+});
+
+test('assembleur : les mesures sortent en direct, pas seulement au flush', () => {
+  const frames = framesFor(beatsOf(['Fm7', 'Fm7', 'Bbm7', 'Bbm7']), 120);
+  const a = dsp.createBarAssembler({ beatsPerBar: 4, chordsPerBar: 1, bpm: 120, hopSec: HOP_SEC });
+  const live = [];
+  for (const f of frames) live.push(...a.pushFrame(f));
+  assert.ok(live.filter(e => e.type === 'bar').length >= 3);
+});
+
+test('assembleur : 2 accords par mesure seulement si changement', () => {
+  const beats = beatsOf(['Fm7', ['Fm7', 'Fm7', 'Bb7', 'Bb7']]);
+  const { bars } = runAssembler(framesFor(beats, 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  assert.equal(bars.length, 2);
+  assert.deepEqual(bars[0].chords.map(c => [c.symbol, c.beats]), [['Fm7', 4]]);
+  assert.deepEqual(bars[1].chords.map(c => [c.symbol, c.beats]), [['Fm7', 2], ['Bb7', 2]]);
+
+  const b3 = beatsOf(['Fm7', ['Fm7', 'Fm7', 'Bb7']], 3);
+  const r3 = runAssembler(framesFor(b3, 120), { beatsPerBar: 3, chordsPerBar: 2, bpm: 120 });
+  assert.equal(r3.bars.length, 2);
+  assert.deepEqual(r3.bars[0].chords.map(c => [c.symbol, c.beats]), [['Fm7', 3]]);
+  assert.deepEqual(r3.bars[1].chords.map(c => [c.symbol, c.beats]), [['Fm7', 2], ['Bb7', 1]]);
+
+  const b5 = beatsOf([['Fm7', 'Fm7', 'Fm7', 'Bb7', 'Bb7']], 5);
+  const r5 = runAssembler(framesFor(b5, 120), { beatsPerBar: 5, chordsPerBar: 2, bpm: 120 });
+  assert.deepEqual(r5.bars[0].chords.map(c => [c.symbol, c.beats]), [['Fm7', 3], ['Bb7', 2]]);
+});
+
+test('assembleur : silence court → N.C.', () => {
+  const frames = framesFor(beatsOf(['Fm7', null, 'Bb7']), 120);
+  const { ev, bars } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1, bpm: 120 });
+  assert.deepEqual(bars.map(syms), ['Fm7', 'N.C.', 'Bb7']);
+  assert.equal(bars[1].chords[0].beats, 4);
+  assert.ok(!ev.some(e => e.type === 'pause'));
+});
+
+test('silence long arrête le compteur', () => {
+  const frames = framesFor(beatsOf(['Fm7', 'Fm7', null, null, null, 'Bb7', 'Ebmaj7']), 120);
+  const { ev } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1, bpm: 120 });
+  const seq = ev.map(e => e.type === 'bar' ? syms(e) : e.type);
+  assert.deepEqual(seq, ['Fm7', 'Fm7', 'pause', 'resume', 'Bb7', 'Ebmaj7']);
+});
+
+test('silence long : reprise décalée par rapport à la grille, recalée sur la première attaque', () => {
+  // La reprise tombe au milieu d'un temps de l'ancienne grille.
+  const f1 = framesFor(beatsOf(['Fm7', 'Fm7']), 120);
+  const f2 = framesFor(beatsOf(['Bb7', 'Ebmaj7']), 120);
+  const frames = f1.concat(silentFrames(5.27), f2);
+  const { ev } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  const seq = ev.map(e => e.type === 'bar' ? e.chords.map(c => c.symbol + ':' + c.beats).join(' ') : e.type);
+  assert.deepEqual(seq, ['Fm7:4', 'Fm7:4', 'pause', 'resume', 'Bb7:4', 'Ebmaj7:4']);
+});
+
+test('assembleur : silence initial puis musique (tempo estimé)', () => {
+  const prog = ['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Dm7b5', 'G7'];
+  const frames = silentFrames(3).concat(framesFor(beatsOf(prog), 120));
+  const a = dsp.createBarAssembler({ beatsPerBar: 4, chordsPerBar: 1, hopSec: HOP_SEC });
+  const ev = [];
+  let tempoAt = -1;
+  frames.forEach((f, i) => {
+    const e = a.pushFrame(f);
+    if (e.some(x => x.type === 'tempo')) tempoAt = i;
+    ev.push(...e);
+  });
+  ev.push(...a.flush());
+  const tempos = ev.filter(e => e.type === 'tempo');
+  assert.equal(tempos.length, 1);
+  assert.ok(tempos[0].bpm >= 118 && tempos[0].bpm <= 122, 'bpm ' + tempos[0].bpm);
+  assert.ok((tempoAt - 3 / HOP_SEC) * HOP_SEC >= 8 - 0.1, 'tempo établi trop tôt : trame ' + tempoAt);
+  assert.equal(ev.findIndex(e => e.type === 'tempo'), 0, 'aucune mesure avant le tempo');
+  const bars = ev.filter(e => e.type === 'bar');
+  assert.deepEqual(bars.map(syms), prog);
+  const d = a.data();
+  assert.ok(d.bpm >= 118 && d.bpm <= 122);
+  assert.ok(Math.abs(d.firstBeatFrame - 3 / HOP_SEC) < 2, 'firstBeatFrame ' + d.firstBeatFrame);
+  assert.equal(d.beatChroma.length, 24);
+});
+
+test("assembleur : pas de tempo sur une enveloppe sans attaques", () => {
+  const n = Math.round(12 / HOP_SEC);
+  const v = chordVectors('Fm7');
+  const frames = Array.from({ length: n }, () => ({ chroma: v.chroma, bass: v.bass, rms: 0.1, onset: 0 }));
+  const { ev } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1 });
+  assert.equal(ev.length, 0);
+});
+
+test('estimateTempo : indicateur de confiance', () => {
+  assert.equal(dsp.estimateTempo([], HOP_SEC).confident, false);
+  assert.equal(dsp.estimateTempo(new Array(300).fill(0), HOP_SEC).confident, false);
+  const env = onsetEnvelope(synth.clickTrain(120, 12, SR));
+  assert.equal(dsp.estimateTempo(env, HOP_SEC).confident, true);
+});
+
+test('accord incertain', () => {
+  // Moitié Cmaj7, moitié C7 : deux gabarits presque égaux.
+  const amb = { chroma: [0.25, 0, 0, 0, 0.25, 0, 0, 0.25, 0, 0, 0.125, 0.125], bass: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
+  assert.ok(dsp.matchChord(amb.chroma, amb.bass).margin < dsp.UNCERTAIN_MARGIN);
+  assert.equal(dsp.UNCERTAIN_MARGIN, 0.04);
+  const frames = framesFor(beatsOf(['Fm7', amb]), 120);
+  const { bars } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1, bpm: 120 });
+  assert.equal(bars[0].chords[0].uncertain, false);
+  assert.equal(bars[1].chords[0].uncertain, true);
+});
+
+test('rebuildBars décale d\'un temps', () => {
+  // Un temps d'anacrouse (G7) puis Fm7 | Bb7 | Ebmaj7.
+  const beats = ['G7'].concat(beatsOf(['Fm7', 'Bb7', 'Ebmaj7']));
+  const { a, bars } = runAssembler(framesFor(beats, 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  const d = a.data();
+  const same = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 });
+  assert.deepEqual(same, bars.map(b => ({ chords: b.chords })));
+  const shifted = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 1 });
+  assert.deepEqual(shifted.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
+  assert.notDeepEqual(same.map(syms), shifted.map(syms)); // sans décalage, les mesures sont à cheval
+  shifted.forEach(b => assert.equal(b.chords[0].beats, 4));
+  const one = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 1 });
+  assert.deepEqual(one.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
+  // Décalage −1 : la première mesure commence un temps plus tôt (temps absent).
+  const back = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: -1 });
+  assert.equal(back.length, 4);
+  back.forEach(b => assert.equal(b.chords[0].beats, 4));
+  // Métrique différente : 3/4 sur les mêmes données.
+  const b3 = dsp.rebuildBars(d, { beatsPerBar: 3, chordsPerBar: 1, beatOffset: 1 });
+  assert.equal(b3.length, 4);
+});
+
+test('rebuildBars garde les pauses', () => {
+  const frames = framesFor(beatsOf(['Fm7', 'Fm7', null, null, null, 'Bb7', 'Ebmaj7']), 120);
+  const { a } = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 1, bpm: 120 });
+  const r = dsp.rebuildBars(a.data(), { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 0 });
+  assert.deepEqual(r.map(syms), ['Fm7', 'Fm7', 'Bb7', 'Ebmaj7']);
+});
+
+test('estimateKey', () => {
+  const beat = (w) => ({ chroma: w, bass: new Array(12).fill(0), silent: false });
+  // Fa mineur harmonique, tonique / tierce / quinte appuyées.
+  const fm = new Array(12).fill(0);
+  [[5, 3], [7, 1], [8, 2], [10, 1], [0, 2], [1, 1], [4, 1]].forEach(([p, w]) => { fm[p] = w; });
+  assert.equal(dsp.estimateKey([beat(fm), beat(fm)]), 'Fm');
+  // La bémol majeur.
+  const ab = new Array(12).fill(0);
+  [[8, 3], [10, 1], [0, 2], [1, 1], [3, 2], [5, 1], [7, 1]].forEach(([p, w]) => { ab[p] = w; });
+  assert.equal(dsp.estimateKey([beat(ab), { chroma: new Array(12).fill(0), bass: new Array(12).fill(0), silent: true }]), 'Ab');
+});
+
+test('proposeSections', () => {
+  const rep = (s, n) => new Array(n).fill(s);
+  const bars = rep('Fm7', 8).concat(rep('Fm7', 8), rep('Eb7', 8));
+  assert.deepEqual(dsp.proposeSections(bars), [
+    { start: 0, length: 8, label: 'A' }, { start: 8, length: 8, label: 'A' }, { start: 16, length: 8, label: 'B' }
+  ]);
+  const four = ['C', 'D', 'E', 'F', 'C', 'D', 'E', 'F', 'G', 'A', 'B', 'Db'];
+  assert.deepEqual(dsp.proposeSections(four), [
+    { start: 0, length: 4, label: 'A' }, { start: 4, length: 4, label: 'A' }, { start: 8, length: 4, label: 'B' }
+  ]);
+  const none = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Db', 'Eb', 'Gb', 'Ab', 'Bb'];
+  assert.equal(dsp.proposeSections(none), null);
+});
