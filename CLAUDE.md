@@ -53,7 +53,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Lecture audio** — lecteur intégré (piano + basse soundfont, voicings jazz), navigation reprises/voltas/coda, métronome, mode concert
 - **Export MIDI** — SMF Type 0, sélecteur de répétitions
 - **Plein écran + wake lock** — l'écran ne se met pas en veille en plein écran
-- **Assistant IA** — Claude uniquement, flux draft-preview-apply ; recherche web optionnelle (« 🌐 Chercher sur le web »)
+- **Assistant IA** — Claude uniquement, flux draft-preview-apply ; recherche web optionnelle (« 🌐 Chercher sur le web », facturée par Anthropic en plus de l'usage Claude habituel)
 - **Trouver une grille** — fenêtre « 🔎 Trouver une grille » : recherche DuckDuckGo, import iReal Pro (`irealb://`) ou MusicXML
 - **Jazz Songbook** — app compagnon (`songbook/`), intègre JGG en iframe `?mode=view`
 - **4 langues** — FR, ES, IT, EN

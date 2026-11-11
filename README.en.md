@@ -18,11 +18,11 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 
 ## ✨ Features
 
-- 🤖 **Conversational AI assistant** — bottom panel, driven by natural language: creates, edits and deletes sections, measures, chords and annotations; transposes the entire chart; preview before applying with Apply / Cancel buttons
+- 🤖 **Conversational AI assistant (Claude only)** — bottom panel, driven by natural language: creates, edits and deletes sections, measures, chords and annotations; transposes the entire chart; preview before applying with Apply / Cancel buttons
 - 📂 **MusicXML import** — drag & drop or file picker; parses chords, sections, repeat barlines, key signature, tempo (iReal Pro®, MuseScore®, Sibelius, Finale…)
 - 🔎 **Find a chart** — dedicated window: DuckDuckGo search buttons (iReal Pro forum, web, free MusicXML), paste an `irealb://` / `irealbook://` link or drop a `.musicxml` / `.xml` / `.mxl` file; filterable song list for playlists, preview, import with confirmation and Ctrl+Z
 - 🎹 **iReal Pro® import** — sections, repeats, voltas, coda/segno, `N.C.`, `%`, slash and alternate chords; unknown qualities kept as free symbols; untranslatable indications moved to a section annotation
-- 🌐 **AI web search** — "🌐 Search the web" toggle (off by default, reset after each send): Claude searches, cites its sources and proposes a full chart through the preview; annotation "to be checked by ear"
+- 🌐 **AI web search** — "🌐 Search the web" toggle (off by default, reset after each send; each web search is billed by Anthropic on top of the usual Claude usage): Claude searches, cites its sources and proposes a full chart through the preview; annotation "to be checked by ear"
 - 📦 **MXL import/export** — compressed MusicXML format
 - ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord duration
 - 🔄 **Alternate chord** — tritone substitution with automatic suggestion
