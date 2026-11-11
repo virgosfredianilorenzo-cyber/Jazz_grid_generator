@@ -52,7 +52,9 @@ function irealQualityToJgg(q){ return Object.prototype.hasOwnProperty.call(_IREA
 let _irealSecN = 0;
 function _irealSecId(){ return typeof _newSectionId==='function' ? _newSectionId() : 'sec'+(++_irealSecN); }
 
-const _IREAL_CHORD = /^([A-G][b#]?)([^\/(\s|,{}\[\]<>]*)(\/[A-G][b#]?)?(\([^)]*\))?/;
+// Qualité limitée à l'alphabet iReal (+ m/j tolérés pour « maj7 ») : une lettre de contrôle collée
+// (Z Q S N T * f x n r p U Y W) n'est pas avalée par l'accord.
+const _IREAL_CHORD = /^([A-G][b#]?)([0-9b#^+\-ohsuadltmj]*)(\/[A-G][b#]?)?(\([^)]*\))?/;
 const _IREAL_NAV = {'d.c. al coda':'dc-coda','d.s. al coda':'ds-coda','d.c. al fine':'dc-fine','fine':'fine'};
 
 function _irealSymbol(root, q, bass){
@@ -111,7 +113,8 @@ function irealToChart(raw){
     if((m = /^N([1-3])/.exec(rest))){ flush(); cur.volta = m[1]; i += 2; continue; }
     if(ch==='<'){
       const e = music.indexOf('>', i);
-      const txt = (e<0 ? music.slice(i+1) : music.slice(i+1, e)).trim();
+      // « *72 » en tête : position verticale du texte dans iReal, pas du contenu
+      const txt = (e<0 ? music.slice(i+1) : music.slice(i+1, e)).replace(/^\*\d\d/, '').trim();
       i = e<0 ? music.length : e+1;
       const nav = _IREAL_NAV[txt.toLowerCase()];
       if(nav) cur.nav = nav;
@@ -146,6 +149,12 @@ function irealToChart(raw){
       i += m[0].length; continue;
     }
     i++; // l, s, Y, U, W, ',', espaces et caractères inconnus : ignorés
+  }
+  // Indication ou texte après la dernière mesure (ex. « Z<D.C. al Fine> ») : rattachés à la dernière mesure
+  if(!cur.chords.length && sec && sec.measures.length){
+    const lastM = sec.measures[sec.measures.length-1];
+    if(cur.nav && !lastM.navSymbol) lastM.navSymbol = cur.nav;
+    cur.notes.forEach(n => { sec.annotation += (sec.annotation?' ; ':'') + n; });
   }
   flush();
   if(!chart.timeSig) chart.timeSig = '4/4';

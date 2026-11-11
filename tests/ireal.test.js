@@ -162,3 +162,35 @@ test('decodeIRealLink convertit chaque morceau d\'une playlist', () => {
   assert.deepEqual(r.map(x => x.chart.title), ['Song One', 'Song Two', 'Song Three']);
   assert.equal(r[1].chart.timeSig, '3/4');
 });
+
+// ── Revue finale ──
+test('une lettre de contrôle collée à l\'accord n\'est pas avalée (Z, Q)', () => {
+  const a = conv('T44D-7 G7Z').chart.sections[0].measures;
+  const last = a[a.length - 1];
+  assert.equal(last.chords[last.chords.length - 1].symbol, 'G7');
+  assert.equal(last.barlineRight, 'final');
+  const b = conv('T44C^7Q|').chart.sections[0].measures;
+  assert.equal(b[0].chords[0].symbol, 'Cmaj7');
+  assert.equal(b[0].navSymbol, 'coda');
+});
+test('les qualités iReal usuelles restent lues en entier', () => {
+  const qs = ['7sus', '7alt', '7#9#5', '-^7', '^7#11', 'h7', '7b9b13', '13sus', '7susadd3'];
+  const {chart} = conv('T44' + qs.map(q => 'C' + q).join(' |') + ' |');
+  assert.deepEqual(chart.sections[0].measures.map(m => m.chords[0].symbol),
+    ['C7sus4', 'C7alt', 'C7#9#5', 'CmM7', 'C^7#11', 'Cm7b5', 'C7b9b13', 'C13sus', 'C7susadd3']);
+});
+test('le préfixe de position *NN des commentaires est retiré', () => {
+  const {chart, warnings} = conv('T44C |<*72D.C. al Coda>D7 |');
+  const ms = chart.sections[0].measures;
+  assert.equal(ms[1].navSymbol, 'dc-coda');
+  assert.equal(chart.sections[0].annotation, '');
+  assert.equal(warnings.length, 0);
+});
+test('navigation et notes en fin de morceau ne sont pas perdues', () => {
+  const {chart} = conv('T44C^7 |Z<D.C. al Fine>');
+  const ms = chart.sections[0].measures;
+  assert.equal(ms[ms.length - 1].navSymbol, 'dc-fine');
+  const r = conv('T44C^7 |Z<Repeat 3 times>');
+  assert.ok(r.chart.sections[0].annotation.includes('Repeat 3 times'));
+  assert.ok(r.warnings.includes('Repeat 3 times'));
+});
