@@ -378,6 +378,26 @@ function _dspBarsFromBeats(beats, beatsPerBar, chordsPerBar) {
   return out;
 }
 
+// Suivi de temps (boucle à verrouillage de phase). La grille n'est pas figée : à chaque temps prédit, on
+// cherche l'attaque la plus forte à ±TRACK_WINDOW période ; l'erreur e (trames) corrige la frontière du
+// temps (TRACK_ALPHA × e) et la période (TRACK_BETA × e). La période reste à ±TRACK_CLAMP d'une référence
+// qui la suit lentement (dérive cumulée permise). Sans attaque nette dans la fenêtre, la grille continue.
+// Décrochage (trou de lecture, saut de tempo) : si, sur REACQ_BEATS temps, les attaques tombent nettement
+// ailleurs qu'autour des temps prédits, la grille est recalée sur elles ; après un court silence de durée d
+// compatible avec ce décalage (trou de mise en mémoire tampon), la grille est retardée de d (le compte des
+// temps est gardé), sinon recalée au plus près.
+// Le tempo saisi ou tapé n'est qu'un point de départ, affiné de la même façon.
+const TRACK_WINDOW = 0.15;
+const TRACK_ALPHA = 0.2;
+const TRACK_BETA = 0.02;
+const TRACK_CLAMP = 0.05;
+const TRACK_REF_RATE = 0.02;
+const TRACK_MIN_LEVEL = 0.25;  // attaque retenue si ≥ 0.25 × niveau habituel des attaques sur les temps
+const REACQ_BEATS = 4;
+const REACQ_RATIO = 2;
+const PHASE_BINS = 20;
+const FRAME_SPAN = FRAME_SIZE / HOP_SIZE; // trames qui voient un même échantillon
+
 // opts = {beatsPerBar, chordsPerBar: 1|2, bpm?, hopSec}
 function createBarAssembler(opts) {
   const beatsPerBar = Math.max(1, opts.beatsPerBar | 0 || 4);
@@ -385,6 +405,7 @@ function createBarAssembler(opts) {
   const hopSec = opts.hopSec;
   const stats = _dspRmsStats();
   let period = opts.bpm ? 60 / opts.bpm / hopSec : null;
+  let pref = period;           // référence de période (suit lentement la période suivie)
   let bpm = opts.bpm || null;
   let tempoEmitted = false;
 
@@ -394,16 +415,20 @@ function createBarAssembler(opts) {
   let buffer = [];             // trames {g, f} en attente (anchoring)
   let soundFrames = 0;         // trames sonores dans buffer
   let nextTry = 0;             // nombre de trames sonores requis avant le prochain essai d'estimation
-  let anchor = 0, beatK = 0, beatFrames = [];
+  let cur = 0, next = 0;       // début du temps en cours, début prédit du suivant (trames, fractionnaires)
+  let pend = [];               // trames {g, f} reçues depuis le début du temps en cours
+  let level = 0;               // niveau habituel des attaques retenues
+  let profiles = [];           // profils de phase des derniers temps (décrochage)
+  let quietFrames = 0, lastGap = null; // court silence le plus récent {end, len} (trames)
   let firstBeatFrame = null;
-  const beatChroma = [];
+  const beatChroma = [], beatLengths = [];
   let seg = null;              // {start: index dans beatChroma, emitted: mesures émises}
   let silentRun = 0;
 
   const minSound = Math.round(TEMPO_MIN_SOUND_SEC / hopSec);
   const retry = Math.round(TEMPO_RETRY_SEC / hopSec);
   const accept = Math.round(TEMPO_ACCEPT_SEC / hopSec);
-  const beatStart = k => Math.round(anchor + k * period);
+  const onsetOf = it => it.f.onset || 0;
 
   function segBeats(fromBar) { return beatChroma.slice(seg.start + fromBar * beatsPerBar); }
 
@@ -412,10 +437,10 @@ function createBarAssembler(opts) {
     seg = null;
   }
 
-  function finishBeat(ev) {
-    const beat = _dspMakeBeat(beatFrames, stats.threshold());
-    beatFrames = [];
-    beatK++;
+  function finishBeat(ev, frames, b0, b1) {
+    const beat = _dspMakeBeat(frames.map(it => it.f), stats.threshold());
+    beat.at = Math.round(b0 * 100) / 100;
+    beatLengths.push(b1 - b0);
     if (!seg) { seg = { start: beatChroma.length, emitted: 0 }; beat.start = true; }
     beatChroma.push(beat);
     silentRun = beat.silent ? silentRun + 1 : 0;
@@ -436,10 +461,91 @@ function createBarAssembler(opts) {
     }
   }
 
+  // Profil de phase du temps [b0, b1) (attaques normalisées par classe de phase) ; décrochage éventuel.
+  function phaseCheck(frames, b0, b1) {
+    const prof = new Float64Array(PHASE_BINS);
+    let tot = 0;
+    for (const it of frames) {
+      let ph = (it.g - b0) / (b1 - b0);
+      ph -= Math.floor(ph); // une trame juste avant b0 (frontière arrondie) est en fin de cycle
+      const v = onsetOf(it);
+      if (v <= 0) continue;
+      prof[Math.min(PHASE_BINS - 1, Math.floor(ph * PHASE_BINS))] += v; tot += v;
+    }
+    if (tot > 0) for (let i = 0; i < PHASE_BINS; i++) prof[i] /= tot;
+    profiles.push(prof);
+    if (profiles.length > REACQ_BEATS) profiles.shift();
+    if (profiles.length < REACQ_BEATS) return;
+    const sum = new Float64Array(PHASE_BINS);
+    for (const p of profiles) for (let i = 0; i < PHASE_BINS; i++) sum[i] += p[i];
+    // Somme sur ±TRACK_WINDOW autour de chaque classe (circulaire).
+    const half = Math.round(TRACK_WINDOW * PHASE_BINS);
+    const around = c => { let s = 0; for (let d = -half; d <= half; d++) s += sum[(c + d + PHASE_BINS) % PHASE_BINS]; return s; };
+    const inWin = around(0);
+    let bc = -1, bv = 0;
+    for (let c = 2 * half; c <= PHASE_BINS - 2 * half; c++) { const v = around(c); if (v > bv) { bv = v; bc = c; } }
+    if (bc < 0 || bv <= REACQ_RATIO * inWin) return;
+    // Centre de gravité de la classe retenue et de ses voisines.
+    let m = 0, w = 0;
+    for (let d = -half; d <= half; d++) { const v = sum[(bc + d + PHASE_BINS) % PHASE_BINS]; m += v * (bc + d + 0.5); w += v; }
+    const phi = (w > 0 ? m / w : bc + 0.5) / PHASE_BINS;
+    const P = period;
+    // Les attaques tombent à b1 + phi·P : recaler au plus près (avance ou retard), ou retarder de la durée
+    // d'un court silence récent si elle correspond (le compte des temps est gardé).
+    let shift = phi < 0.5 ? phi * P : (phi - 1) * P;
+    if (lastGap && lastGap.end >= b0 - (REACQ_BEATS + 2) * P) {
+      const d = lastGap.len + FRAME_SPAN - 1; // durée du trou (les trames qui le chevauchent ne sont pas muettes)
+      const k = Math.round((d - phi * P) / P);
+      if (Math.abs(d - phi * P - k * P) <= 2 * TRACK_WINDOW * P) shift = phi * P + k * P;
+      lastGap = null;
+    }
+    next = b1 + P + shift;
+    if (next < b1 + 0.5 * P) next += P;
+    profiles = [];
+  }
+
+  // Frontière du temps en cours : attaque la plus forte près du temps prédit, corrections de phase et de période.
+  function decideBeat(ev) {
+    const w = TRACK_WINDOW * period;
+    let bi = -1;
+    for (let j = 0; j < pend.length; j++) {
+      const d = pend[j].g - next;
+      if (d < -w || d > w) continue;
+      if (bi < 0 || onsetOf(pend[j]) > onsetOf(pend[bi])) bi = j;
+    }
+    let e = 0;
+    if (bi >= 0) {
+      const v = onsetOf(pend[bi]);
+      if (v > 0 && v >= TRACK_MIN_LEVEL * level) {
+        let pos = pend[bi].g;
+        if (bi > 0 && bi + 1 < pend.length) {
+          const a = onsetOf(pend[bi - 1]), c = onsetOf(pend[bi + 1]), dd = a - 2 * v + c;
+          if (dd < 0) pos += Math.max(-0.5, Math.min(0.5, 0.5 * (a - c) / dd));
+        }
+        e = Math.max(-w, Math.min(w, pos - next));
+        level = level ? level + 0.1 * (v - level) : v;
+      }
+    }
+    let b = next + TRACK_ALPHA * e;
+    period = Math.min(pref * (1 + TRACK_CLAMP), Math.max(pref * (1 - TRACK_CLAMP), period + TRACK_BETA * e));
+    pref += TRACK_REF_RATE * (period - pref);
+    b = Math.max(b, cur + 0.5 * period);
+    const end = Math.round(b);
+    let k = 0;
+    while (k < pend.length && pend[k].g < end) k++;
+    const frames = pend.slice(0, k);
+    pend = pend.slice(k);
+    const b0 = cur;
+    cur = b; next = b + period;
+    phaseCheck(frames, b0, b);
+    finishBeat(ev, frames, b0, b);
+    if (mode !== 'running') { const rest = pend; pend = []; for (const it of rest) process(it, ev); }
+  }
+
   function startRunning(anchorFrame, ev) {
-    anchor = anchorFrame;
-    beatK = 0; beatFrames = []; silentRun = 0;
-    if (firstBeatFrame == null) firstBeatFrame = Math.round(anchor);
+    cur = anchorFrame; next = cur + period;
+    pend = []; silentRun = 0; profiles = [];
+    if (firstBeatFrame == null) firstBeatFrame = Math.round(cur);
     if (paused) { ev.push({ type: 'resume' }); paused = false; }
     mode = 'running';
     const pending = buffer;
@@ -448,10 +554,10 @@ function createBarAssembler(opts) {
   }
 
   function tryTempo(ev, force) {
-    const t = estimateTempo(buffer.map(it => it.f.onset || 0), hopSec);
+    const t = estimateTempo(buffer.map(onsetOf), hopSec);
     const ok = t.confident || (force ? t.confidence > 0 : (soundFrames >= accept && t.confidence > 0));
     if (!ok) return false;
-    period = t.period; bpm = t.bpm;
+    period = pref = t.period; bpm = t.bpm;
     if (!tempoEmitted) { ev.push({ type: 'tempo', bpm }); tempoEmitted = true; }
     let a = buffer[0].g + t.phase;
     // Phase repliée avant le début du son : la trame 0 n'a pas d'attaque (pas de trame précédente), un son
@@ -478,25 +584,31 @@ function createBarAssembler(opts) {
         // Tempo connu : la grille part de l'attaque la plus forte du premier demi-temps.
         const win = buffer.slice(0, Math.ceil(period / 2) + 1);
         let best = win[0];
-        for (const w of win) if ((w.f.onset || 0) > (best.f.onset || 0)) best = w;
+        for (const w of win) if (onsetOf(w) > onsetOf(best)) best = w;
         startRunning(best.g, ev);
       }
       return;
     }
     // running
-    if (g < beatStart(0)) return;
-    while (g >= beatStart(beatK + 1)) {
-      finishBeat(ev);
-      if (mode !== 'running') { process(it, ev); return; }
-    }
-    beatFrames.push(f);
+    if (g < Math.round(cur)) return;
+    pend.push(it);
+    while (mode === 'running' && g >= next + TRACK_WINDOW * period + 1) decideBeat(ev);
+  }
+
+  // Courts silences (trous de lecture) : durée en trames entièrement silencieuses.
+  function watchGaps(g, f) {
+    if (f.rms < stats.threshold()) { quietFrames++; return; }
+    if (quietFrames >= 2 && period && quietFrames < 2 * beatsPerBar * period) lastGap = { end: g, len: quietFrames };
+    quietFrames = 0;
   }
 
   return {
     pushFrame(f) {
       stats.add(f.rms);
       const ev = [];
-      process({ g: frameIndex++, f }, ev);
+      const g = frameIndex++;
+      watchGaps(g, f);
+      process({ g, f }, ev);
       return ev;
     },
     flush() {
@@ -506,15 +618,23 @@ function createBarAssembler(opts) {
         else startRunning(buffer[0].g, ev);
       }
       if (mode === 'running') {
-        const expected = beatStart(beatK + 1) - beatStart(beatK);
-        if (beatFrames.length * 2 >= expected && beatFrames.length) finishBeat(ev);
+        const end = Math.round(next);
+        const frames = pend.filter(it => it.g < end);
+        if (frames.length && frames.length * 2 >= end - Math.round(cur)) finishBeat(ev, frames, cur, next);
+        pend = [];
         if (seg) closeSegment(ev);
         mode = 'waiting';
       }
       return ev;
     },
     data() {
-      return { bpm, beatChroma, firstBeatFrame };
+      // Tempo : médiane des durées de temps suivies (sinon le tempo estimé ou saisi).
+      let b = bpm;
+      if (beatLengths.length >= 8) {
+        const s = beatLengths.slice().sort((x, y) => x - y);
+        b = 60 / (s[s.length >> 1] * hopSec);
+      }
+      return { bpm: b, beatChroma, firstBeatFrame };
     }
   };
 }

@@ -93,6 +93,23 @@ function progression(bars, bpm, beatsPerBar = 4, sr = SR, opts = {}) {
   return out;
 }
 
+// Comme progression (mesure = symbole, tableau de symboles ou null), mais tempo par mesure : bpmOf(i) (le tempo peut dériver d'une mesure à l'autre).
+// Un clic par temps (recommence à chaque mesure) ; opts.eighths : clics de croches en plus (amplitude).
+function progressionTempo(bars, bpmOf, beatsPerBar = 4, sr = SR, opts = {}) {
+  const parts = bars.map((b, i) => {
+    const bpm = bpmOf(i), barSec = beatsPerBar * 60 / bpm;
+    const syms = b == null ? null : Array.isArray(b) ? b : [b];
+    let c = syms ? concat(...syms.map(x => chord(x, barSec / syms.length, sr, opts))) : silence(barSec, sr);
+    let clk = clickTrain(bpm, barSec, sr, { amp: 0.8 });
+    if (opts.eighths) clk = mix(clk, clickTrain(bpm, barSec, sr, { amp: opts.eighths, offset: 30 / bpm }));
+    return mix(c, clk, 0.5);
+  });
+  return concat(...parts);
+}
+
+// Générateur pseudo-aléatoire déterministe dans [0, 1).
+function rng(seed) { return () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x80000000; }; }
+
 // Fichier WAV mono PCM 16 bits (Buffer) ; les échantillons sont écrêtés à [-1, 1].
 function wav(samples, sr = SR) {
   const buf = Buffer.alloc(44 + samples.length * 2);
@@ -115,4 +132,4 @@ function wavDecode(buf) {
   return { sampleRate, samples };
 }
 
-module.exports = { SR, midiToHz, silence, chordSamples, chordNotes, chord, clickTrain, concat, mix, progression, wav, wavDecode };
+module.exports = { SR, midiToHz, silence, chordSamples, chordNotes, chord, clickTrain, concat, mix, progression, progressionTempo, rng, wav, wavDecode };
