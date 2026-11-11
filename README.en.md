@@ -58,9 +58,7 @@ Click **⚙** in the panel header:
 
 | Setting | Values |
 |---------|--------|
-| Provider | Claude (Anthropic) · OpenAI® |
-| Claude model | `claude-sonnet-4-6`, `claude-opus-4-7` |
-| OpenAI® model | `gpt-4o`, `gpt-4o-mini` |
+| Claude model | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` |
 | API key | Entered in the app, stored locally, never sent anywhere else |
 
 <details>

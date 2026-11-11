@@ -26,7 +26,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 │   ├── touch.js       ← gestion tactile
 │   ├── midi.js        ← export Standard MIDI File (Type 0)
 │   ├── player.js      ← lecteur intégré (soundfont), navigation, métronome, mode concert, plein écran + wake lock
-│   ├── ai.js          ← chat IA (Claude, OpenAI)
+│   ├── ai.js          ← chat IA (Claude)
 │   └── init.js        ← initialisation, restauration localStorage
 ├── songbook/          ← application compagnon Jazz Songbook (setlists, IndexedDB, BLE-MIDI HX Stomp)
 │   ├── index.html
@@ -50,7 +50,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Lecture audio** — lecteur intégré (piano + basse soundfont, voicings jazz), navigation reprises/voltas/coda, métronome, mode concert
 - **Export MIDI** — SMF Type 0, sélecteur de répétitions
 - **Plein écran + wake lock** — l'écran ne se met pas en veille en plein écran
-- **Assistant IA** — Claude / OpenAI, flux draft-preview-apply
+- **Assistant IA** — Claude, flux draft-preview-apply
 - **Jazz Songbook** — app compagnon (`songbook/`), intègre JGG en iframe `?mode=view`
 - **4 langues** — FR, ES, IT, EN
 - **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL, soundfonts du lecteur et IA nécessitent internet

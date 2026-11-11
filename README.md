@@ -110,12 +110,11 @@ Il n'y a aucune configuration côté serveur. Aucun backend. Aucune base de donn
 
 ## 🤖 Configurer l'assistant IA
 
-L'assistant IA est optionnel. Si tu veux l'utiliser, il te faut une clé API (Claude ou OpenAI®).
+L'assistant IA est optionnel. Si tu veux l'utiliser, il te faut une clé API Claude (Anthropic).
 
 ### Obtenir une clé API
 
 - **Claude (Anthropic)** — crée un compte sur [console.anthropic.com](https://console.anthropic.com), puis génère une clé dans *API Keys*
-- **OpenAI®** — crée un compte sur [platform.openai.com](https://platform.openai.com), puis génère une clé dans *API keys*
 
 > Les clés API sont payantes à l'usage, mais les tarifs sont très faibles pour un usage personnel.
 
@@ -124,16 +123,14 @@ L'assistant IA est optionnel. Si tu veux l'utiliser, il te faut une clé API (Cl
 1. Ouvre l'application
 2. Clique sur l'onglet **✦ IA** en bas à droite
 3. Clique sur **⚙** (icône engrenage) dans l'en-tête du panneau
-4. Sélectionne ton provider (Claude ou OpenAI®) et le modèle souhaité
+4. Sélectionne le modèle Claude souhaité
 5. Colle ta clé API dans le champ prévu
 
-> Ta clé est stockée **uniquement dans ton navigateur** (localStorage). Elle n'est jamais envoyée ailleurs que vers l'API du provider choisi.
+> Ta clé est stockée **uniquement dans ton navigateur** (localStorage). Elle n'est jamais envoyée ailleurs que vers l'API Claude (Anthropic).
 
 | Paramètre | Valeurs disponibles |
 |-----------|---------------------|
-| Provider | Claude (Anthropic) · OpenAI® |
-| Modèle Claude | `claude-sonnet-4-6`, `claude-opus-4-8` |
-| Modèle OpenAI® | `gpt-4o`, `gpt-4o-mini` |
+| Modèle Claude | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` |
 
 <details>
 <summary>Outils disponibles</summary>
