@@ -17,6 +17,11 @@
   .section-annot-row { display:none !important; }
   /* Hide annotation display block when empty */
   .section-annot-display[style*="display:none"] { display:none !important; }
+  /* Annotation de section : encre lisible à l'impression (le texte bleu clair sur fond marine
+     devenait invisible quand le navigateur n'imprime pas les arrière-plans) */
+  .section-annot-display { background:transparent !important; color:#1a1a1a !important;
+    border-bottom:1px solid #999 !important; font-size:0.8rem !important; padding:4px 12px !important; }
+  .section-annot-display .annot-icon { color:#555 !important; }
   /* Remove dashed underline / pointer on section label (not editable) */
   .section-label { border-bottom:none !important; cursor:default !important; }
   .section-label::after { content:'' !important; }
