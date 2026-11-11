@@ -501,6 +501,7 @@ const _AI_TOOL_EXECUTORS = {
     if (!chord) throw new Error('Chord not found');
     if (a.symbol !== undefined) chord.symbol = a.symbol;
     if (a.beats !== undefined) chord.beats = parseInt(a.beats);
+    if (a.symbol !== undefined || a.beats !== undefined) delete chord._uncertain; // accord revu : plus de « ? »
   },
 
   remove_chord(draft, a) {
@@ -689,7 +690,9 @@ function _aiSystemPrompt(webSearch) {
     es: "\n\nBÚSQUEDA WEB ACTIVA: busca en la web la cuadrícula del tema pedido, preferiblemente una cuadrícula compartida (foro iReal Pro, partituras libres), y cita tus fuentes. Construye la cuadrícula con set_full_chart; en la anotación de la primera sección escribe «" + _aiT('aiGridSourceNote', 'Cuadrícula propuesta por la IA a partir de:') + "» seguido de los títulos de las fuentes y « — "+_aiT('aiGridCheck','a comprobar de oído')+" ». Si no encuentras nada fiable, dilo claramente en lugar de inventar. Si encuentras un enlace irealb://, dalo tal cual.",
     it: "\n\nRICERCA WEB ATTIVA: cerca sul web la griglia del brano richiesto, di preferenza una griglia condivisa (forum iReal Pro, spartiti liberi), e cita le fonti. Costruisci la griglia con set_full_chart; nell'annotazione della prima sezione scrivi «" + _aiT('aiGridSourceNote', "Griglia proposta dall'IA a partire da:") + "» seguito dai titoli delle fonti e « — "+_aiT('aiGridCheck','da verificare a orecchio')+" ». Se non trovi nulla di affidabile, dillo chiaramente invece di inventare. Se trovi un link irealb://, forniscilo così com'è."
   };
-  return (prompts[lang] || prompts.en) + JSON.stringify(chartData) + (webSearch ? (web[lang] || web.en) : '');
+  // Grille envoyée sans les champs internes des accords (_originalSymbol, _uncertain).
+  const chart = typeof stripInternalChordFields === 'function' ? stripInternalChordFields(chartData) : chartData;
+  return (prompts[lang] || prompts.en) + JSON.stringify(chart) + (webSearch ? (web[lang] || web.en) : '');
 }
 
 async function aiChatSend(text) {
