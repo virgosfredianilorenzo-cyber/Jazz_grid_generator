@@ -82,6 +82,19 @@ test('listenTapBpm : moyenne des 4 derniers intervalles', () => {
   // 6 frappes : seuls les 4 derniers intervalles (500 ms) comptent.
   assert.equal(L.listenTapBpm([0, 2000, 2500, 3000, 3500, 4000]), 120);
   assert.equal(L.listenTapBpm([0, 600, 1200, 1800, 2400]), 100);
+  // Pas d'arrondi : 497 ms → 120,7 BPM (l'affichage arrondit, le tempo de départ garde la fraction).
+  assert.ok(Math.abs(L.listenTapBpm([0, 497, 994, 1491, 1988]) - 60000 / 497) < 1e-9);
+});
+
+test('listenTempoSetting : tempo saisi, ou tapé (fraction gardée tant que le champ montre son arrondi)', () => {
+  assert.equal(L.listenTempoSetting('', null), null);
+  assert.equal(L.listenTempoSetting('abc', 120.7), null);
+  assert.equal(L.listenTempoSetting('20', null), null);
+  assert.equal(L.listenTempoSetting('310', null), null);
+  assert.equal(L.listenTempoSetting('132', null), 132);
+  assert.equal(L.listenTempoSetting('99.5', null), 99.5);
+  assert.equal(L.listenTempoSetting('121', 120.72), 120.72);
+  assert.equal(L.listenTempoSetting('125', 120.72), 125); // champ modifié à la main après les frappes
 });
 
 test('listenDistributeBars : garde les sections, la dernière prend le reste', () => {
@@ -217,6 +230,9 @@ test('listenTabSupported : Chrome/Edge bureau seulement', () => {
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36')), false);
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1')), false);
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 (X11; Linux x86_64) Chrome/126.0.0.0 Safari/537.36', {})), false);
+  // Safari macOS (et iPadOS en mode bureau, même UA) : getDisplayMedia existe mais pas l'audio d'un onglet.
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15')), false);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36')), true);
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 Chrome/126', null)), false);
 });
 

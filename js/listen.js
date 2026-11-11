@@ -23,10 +23,12 @@ function _lsNewId() {
   return id;
 }
 
+// Audio d'un onglet : Chrome / Edge sur ordinateur seulement (Safari macOS et iPadOS en mode bureau ont
+// getDisplayMedia mais ne partagent pas l'audio d'un onglet ; Firefox non plus).
 function listenTabSupported(nav) {
   if (!nav || !nav.mediaDevices || !nav.mediaDevices.getDisplayMedia) return false;
   const ua = nav.userAgent || '';
-  return !/Firefox\//.test(ua) && !/Android|iPhone|iPad|Mobile/.test(ua);
+  return /Chrome\/|Edg\//.test(ua) && !/Firefox\//.test(ua) && !/Android|iPhone|iPad|Mobile/.test(ua);
 }
 
 function listenStreamHasAudio(stream) {
@@ -60,7 +62,7 @@ function nextSectionLabel(labels) {
 
 function listenNewChart(opts) {
   return {
-    title: opts.title || '', key: 'C', tempo: opts.bpm || 120, timeSig: opts.timeSig || '4/4', style: '',
+    title: opts.title || '', key: 'C', tempo: opts.bpm ? Math.round(opts.bpm) : 120, timeSig: opts.timeSig || '4/4', style: '',
     sections: [{ id: _lsNewId(), label: 'A', annotation: opts.annotation || '', measures: [] }]
   };
 }
@@ -82,12 +84,20 @@ function listenBeatsPerBar(timeSig) {
   return n > 0 ? n : 4;
 }
 
-// Tempo tapé : moyenne des 4 derniers intervalles (temps en ms). null s'il y a moins de 2 frappes.
+// Tempo tapé : moyenne des 4 derniers intervalles (temps en ms), non arrondi. null s'il y a moins de 2 frappes.
 function listenTapBpm(times) {
   if (!times || times.length < 2) return null;
   const last = times.slice(-5);
   const avg = (last[last.length - 1] - last[0]) / (last.length - 1);
-  return avg > 0 ? Math.round(60000 / avg) : null;
+  return avg > 0 ? 60000 / avg : null;
+}
+
+// Tempo de départ : valeur du champ (30 à 300), ou le tempo tapé non arrondi si le champ montre encore
+// son arrondi. null = auto.
+function listenTempoSetting(value, tapBpm) {
+  const v = parseFloat(value);
+  if (!(v >= 30 && v <= 300)) return null;
+  return tapBpm && Math.round(tapBpm) === v ? tapBpm : v;
 }
 
 // Facteur de tempo après ×2 (op = 2) ou ÷2 (op = 0.5) depuis `factor` : 0.5, 1 ou 2 ; null si hors limites
@@ -207,7 +217,7 @@ const _ls = {
   beatsPerBar: 4, chordsPerBar: 1, userBpm: null,
   sectionsByUser: false, bars: 0, noTempoShown: false,
   data: null, offset: 0, snapshot: null, proposals: null, proposalsFor: null,
-  taps: [], starting: false, queue: null, tempoFactor: 1
+  taps: [], tapBpm: null, starting: false, queue: null, tempoFactor: 1
 };
 const _lsEl = id => document.getElementById(id);
 const _lsListening = () => typeof document !== 'undefined' && document.body.classList.contains('listening');
@@ -269,11 +279,10 @@ function _lsStartFailed(e, ctx, stream) {
 
 function _lsSettings() {
   const timeSig = _lsEl('ls-timesig').value || '4/4';
-  const v = parseFloat(_lsEl('ls-tempo').value);
   return {
     timeSig, beatsPerBar: listenBeatsPerBar(timeSig),
     chordsPerBar: _lsEl('ls-chords').value === '2' ? 2 : 1,
-    bpm: v >= 30 && v <= 300 ? Math.round(v) : null
+    bpm: listenTempoSetting(_lsEl('ls-tempo').value, _ls.tapBpm)
   };
 }
 
@@ -283,7 +292,7 @@ function listenTap() {
   _ls.taps.push(now);
   if (_ls.taps.length > 5) _ls.taps.shift();
   const bpm = listenTapBpm(_ls.taps);
-  if (bpm) _lsEl('ls-tempo').value = bpm;
+  if (bpm) { _ls.tapBpm = bpm; _lsEl('ls-tempo').value = Math.round(bpm); } // affiché arrondi, gardé exact
 }
 
 // Démarrage commun, une fois la source audio prête. false si l'utilisateur refuse de remplacer la grille.
@@ -635,7 +644,7 @@ _lsInit();
 
 if (typeof module !== 'undefined') module.exports = {
   listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
-  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
+  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenTempoSetting, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
   listenCreateProcessor, listenProcessFrame, listenFeedSamples,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };
