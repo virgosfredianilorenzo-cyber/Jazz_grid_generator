@@ -92,6 +92,24 @@ test('suivi : introduction rubato de 12 s puis tempo stable', () => {
   check('rubato', listen(s), BARS, 12);
 });
 
+test('suivi : introduction sans pulsation (tempo initial faux) puis tempo stable', () => {
+  // Intro de 12 s : attaques à intervalles aléatoires de 0,35 à 0,85 s ; l'estimation initiale est fausse
+  // et la boucle de phase (±5 %) ne peut pas la rattraper : nouvelle estimation sur les 10 dernières secondes.
+  const r = synth.rng(7);
+  const parts = [];
+  const intro = ['Cmaj7', 'Am7', 'Fmaj7', 'G7'];
+  let t = 0, k = 0;
+  while (t < 12) {
+    const d = 0.35 + 0.5 * r();
+    parts.push(synth.mix(synth.chord(intro[(k >> 1) % 4], d, SR), synth.clickTrain(1, d, SR, { amp: 0.6 }), 0.5));
+    t += d; k++;
+  }
+  const res = listen(synth.concat(...parts, synth.progressionTempo(BARS, () => 120)));
+  check('intro sans pulsation', res, BARS, 12);
+  const bpm = res.st.assembler.data().bpm;
+  assert.ok(Math.abs(bpm - 120) < 2, 'tempo final ' + bpm);
+});
+
 // ── Plage de tempo et octave ─────────────────────────────────────────────────
 function tempoOf(r) { const t = r.ev.find(e => e.type === 'tempo'); return t ? t.bpm : null; }
 

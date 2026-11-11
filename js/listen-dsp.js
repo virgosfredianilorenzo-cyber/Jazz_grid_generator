@@ -499,6 +499,12 @@ const REACQ_BEATS = 4;
 const REACQ_RATIO = 2;
 const PHASE_BINS = 20;
 const FRAME_SPAN = FRAME_SIZE / HOP_SIZE; // trames qui voient un même échantillon
+// Nouvelle estimation (tempo initial faux, p. ex. intro rubato) : toutes les TEMPO_RETRY_SEC, tempo estimé
+// sur les RETRACK_SEC dernières secondes ; la grille est reposée sur ce tempo s'il est fiable, ni proche du
+// tempo suivi ni à l'octave, confirmé deux fois de suite, et si sa grille tombe nettement mieux sur les
+// attaques (≥ RETRACK_GAIN ×) que les temps suivis.
+const RETRACK_SEC = 10;
+const RETRACK_GAIN = 1.3;
 
 // opts = {beatsPerBar, chordsPerBar: 1|2, bpm?, hopSec}
 function createBarAssembler(opts) {
@@ -522,6 +528,7 @@ function createBarAssembler(opts) {
   let level = 0;               // niveau habituel des attaques retenues
   let profiles = [];           // profils de phase des derniers temps (décrochage)
   let quietFrames = 0, lastGap = null; // court silence le plus récent {end, len} (trames)
+  let recent = [], retrackAt = 0, retrackCand = null; // attaques récentes {g, v} (nouvelle estimation)
   let firstBeatFrame = null;
   const beatChroma = [], beatLengths = [];
   let builder = null;          // mesures de la suite en cours (null : pas de suite ouverte)
@@ -635,9 +642,35 @@ function createBarAssembler(opts) {
     if (mode !== 'running') { const rest = pend; pend = []; for (const it of rest) process(it, ev); }
   }
 
+  // Attaque la plus forte à ±1 trame de x (attaques récentes).
+  function onsetNear(x) {
+    const i0 = recent.length ? recent[0].g : 0, c = Math.round(x) - i0;
+    let m = 0;
+    for (let d = -1; d <= 1; d++) { const it = recent[c + d]; if (it && it.v > m) m = it.v; }
+    return m;
+  }
+
+  function retrack() {
+    const t = estimateTempo(recent.map(it => it.v), hopSec);
+    const r = t.period / period;
+    if (!t.confident || Math.abs(r - 1) < 0.08 || Math.abs(r - 2) < 0.16 || Math.abs(r - 0.5) < 0.04) { retrackCand = null; return; }
+    const g0 = recent[0].g, g1 = recent[recent.length - 1].g;
+    let eNew = 0, nNew = 0, eCur = 0, nCur = 0;
+    for (let x = g0 + t.phase; x <= g1; x += t.period) { eNew += onsetNear(x); nNew++; }
+    for (let i = beatChroma.length - 1; i >= 0 && beatChroma[i].at >= g0; i--) { eCur += onsetNear(beatChroma[i].at); nCur++; }
+    if (!nNew || !nCur || eNew / nNew < RETRACK_GAIN * (eCur / nCur)) { retrackCand = null; return; }
+    if (!retrackCand || Math.abs(retrackCand / t.period - 1) > 0.03) { retrackCand = t.period; return; }
+    retrackCand = null;
+    period = pref = t.period;
+    const k = Math.ceil((cur + 0.5 * period - (g0 + t.phase)) / period);
+    next = g0 + t.phase + k * period;
+    profiles = []; level = 0;
+  }
+
   function startRunning(anchorFrame, ev) {
     cur = anchorFrame; next = cur + period;
-    pend = []; silentRun = 0; profiles = [];
+    pend = []; silentRun = 0; profiles = []; recent = []; retrackCand = null;
+    retrackAt = frameIndex + retry;
     if (firstBeatFrame == null) firstBeatFrame = Math.round(cur);
     if (paused) { ev.push({ type: 'resume' }); paused = false; }
     mode = 'running';
@@ -683,9 +716,15 @@ function createBarAssembler(opts) {
       return;
     }
     // running
+    recent.push({ g, v: onsetOf(it) });
+    if (recent.length > RETRACK_SEC / hopSec) recent.shift();
     if (g < Math.round(cur)) return;
     pend.push(it);
     while (mode === 'running' && g >= next + TRACK_WINDOW * period + 1) decideBeat(ev);
+    if (mode === 'running' && g >= retrackAt) {
+      retrackAt = g + retry;
+      if (recent.length >= RETRACK_SEC / hopSec - 1) retrack();
+    }
   }
 
   // Courts silences (trous de lecture) : durée en trames entièrement silencieuses.
