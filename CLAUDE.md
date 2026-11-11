@@ -2,7 +2,7 @@
 
 ## Présentation
 
-Éditeur de grilles jazz en ligne, 100% HTML/JS/CSS, sans build. JSZip chargé depuis CDN (import/export MXL nécessite internet).  
+Éditeur de grilles jazz en ligne, 100% HTML/JS/CSS, sans build. JSZip et soundfont-player chargés depuis CDN (MXL et lecteur audio nécessitent internet).  
 Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 ## Architecture
@@ -11,21 +11,29 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 /
 ├── index.html
 ├── css/
-│   ├── app.css        ← styles généraux + toggle 4/5 cordes basse
+│   ├── app.css        ← styles généraux, toggle 4/5 cordes, mode concert
 │   ├── modals.css
-│   └── print.css      ← réduction police automatique mesures multi-accords
+│   └── print.css      ← réduction police auto, option 1 page, symboles nav
 ├── js/
 │   ├── i18n.js        ← internationalisation (FR, ES, IT, EN)
 │   ├── diagrams.js    ← diagrammes SVG basse 4 et 5 cordes, transposeModesvg, getModesvg
-│   ├── theory.js      ← moteur de théorie musicale (modes, arpèges, tensions)
-│   ├── state.js       ← état global, window.bassStrings, setBassStrings()
+│   ├── theory.js      ← moteur de théorie musicale (modes, arpèges, tensions), escHtml
+│   ├── state.js       ← état global, window.bassStrings, setBassStrings(), _isDirty
 │   ├── render.js      ← rendu de la grille
 │   ├── modals.js      ← gestion des modales
 │   ├── actions.js     ← actions utilisateur
 │   ├── print.js       ← logique d'impression/PDF
 │   ├── touch.js       ← gestion tactile
-│   ├── ai.js          ← chat AI (Claude, OpenAI)
+│   ├── midi.js        ← export Standard MIDI File (Type 0)
+│   ├── player.js      ← lecteur intégré (soundfont), navigation, métronome, mode concert, plein écran + wake lock
+│   ├── ai.js          ← chat IA (Claude, OpenAI)
 │   └── init.js        ← initialisation, restauration localStorage
+├── songbook/          ← application compagnon Jazz Songbook (setlists, IndexedDB, BLE-MIDI HX Stomp)
+│   ├── index.html
+│   ├── css/           ← app.css, song-view.css
+│   └── js/            ← db.js, init.js, midi.js (BLE), mxml.js, player.js, scroll.js, ui.js
+├── docs/superpowers/  ← specs et plans d'implémentation (workflow brainstorming → plan)
+├── CHANGELOG.md       ← historique complet des versions
 └── OLD/               ← archives (versions monolithiques précédentes)
 ```
 
@@ -39,8 +47,13 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Sections** — labels, dupliquer, réordonner, annoter
 - **Impression/PDF** — thème clair/sombre, contraste ajustable, réduction police auto
 - **Sauvegarde JSON**
+- **Lecture audio** — lecteur intégré (piano + basse soundfont, voicings jazz), navigation reprises/voltas/coda, métronome, mode concert
+- **Export MIDI** — SMF Type 0, sélecteur de répétitions
+- **Plein écran + wake lock** — l'écran ne se met pas en veille en plein écran
+- **Assistant IA** — Claude / OpenAI, flux draft-preview-apply
+- **Jazz Songbook** — app compagnon (`songbook/`), intègre JGG en iframe `?mode=view`
 - **4 langues** — FR, ES, IT, EN
-- **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL et IA nécessitent internet
+- **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL, soundfonts du lecteur et IA nécessitent internet
 
 ## Points techniques importants
 
@@ -78,6 +91,10 @@ Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
 
-## Version en cours (v4.9)
-- Avertissement `beforeunload` si modifications non sauvegardées (`_isDirty` dans `state.js`)
-- Historique des versions anciennes dans `CHANGELOG.md` à la racine (v1.0–v4.8)
+## Version en cours (v5.0)
+- Plein écran (bouton `⛶`) + wake lock — dans `player.js` (`_wakeLock`, re-demandé sur `visibilitychange`)
+- Historique complet des versions dans `CHANGELOG.md` à la racine (v1.0–v5.0)
+
+## Prochaines pistes
+- Aide contextuelle BLE desktop dans le Songbook — spec prête : `docs/superpowers/specs/2026-05-25-ble-desktop-help-design.md` (pas encore de plan ni de code)
+- Feuille de route README : couleur par section, import iReal Pro® `.irealbook`

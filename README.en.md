@@ -276,7 +276,7 @@ Depth: **10 levels**.
 
 - [ ] Custom color picker per section
 - [ ] Import iReal Pro® `.irealbook`
-- [ ] Percussion / metronome track in the player
+- [x] ~~Percussion / metronome track in the player~~ (metronome shipped in v4.9)
 
 ---
 

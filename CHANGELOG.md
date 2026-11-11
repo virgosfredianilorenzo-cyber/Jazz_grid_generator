@@ -4,6 +4,12 @@
 - ✅ Plein écran — bouton `⛶` dans la toolbar ; masque le chrome du navigateur (barre d'adresse, onglets) ; toggle : second clic ou `Échap` pour sortir ; état actif reflété par la classe `.active` sur le bouton ; synchronisé avec le bouton natif du navigateur via `fullscreenchange`
 - ✅ Wake lock — désactive la mise en veille de l'écran à l'entrée en plein écran ; relâché automatiquement à la sortie ; re-demandé si l'onglet reprend le focus (`visibilitychange`) ; échec silencieux si le navigateur ne supporte pas l'API (Firefox)
 
+## v4.9 (juin 2026)
+- ✅ Mode concert — au play, l'UI se masque (sauf la grille) ; barre flottante `#concert-bar` avec compteur de mesure et stop ; clic sur la grille pour revenir
+- ✅ Métronome — bouton ♩ dans la toolbar (indépendant) + option dans la dialog de lecture (synchronisé aux accords) ; calé sur tempo et métrique ; volume ajustable et persisté ; gains rééquilibrés avec la lecture des accords
+- ✅ Impression 1 page — option pour réduire la fonte et faire tenir toute la grille sur une page A4
+- ✅ Symboles de navigation à l'impression — masqués par défaut, affichables via option ; encre forcée en noir (symboles nav + barres de reprise)
+
 ## v4.8 (juin 2026)
 - ✅ Voicings jazz dans le lecteur intégré — étalement sur 2 octaves : chaque note du piano est placée strictement au-dessus de la précédente (ex. Cmaj9 → C4 E4 G4 B4 D5, C13 → C4 E4 G4 Bb4 D5 A5) ; toutes les extensions (`ARP_DEF`) incluses (plus de limite à 4 sons) ; accords slash (`C/E`, `Dm7/F#`…) : la note de basse est envoyée au canal basse au lieu de la fondamentale, validée via `noteIdx()`
 
@@ -26,6 +32,21 @@
 
 ## v4.4 (mai 2026)
 - ✅ Avertissement avant fermeture de l'onglet si des modifications non sauvegardées sont en cours (flag `_isDirty`, listener `beforeunload`)
+
+## v4.3 (mai 2026)
+- ✅ ID unique par section (`#xxxx`), persisté en JSON, masqué à l'impression ; migration automatique des fichiers anciens
+- ✅ Nouvel outil IA `toggle_all_diagrams`
+- ✅ `set_annotation` expose `showSvg` pour contrôler la visibilité du diagramme
+- ✅ Fix : export/import MXL restauré ; champs méta lisibles à l'impression
+
+## v4.2 (mai 2026)
+- ✅ Rendu Markdown dans les réponses IA — paragraphes, listes, **gras**, *italique*, `code`
+
+## v4.0 (mai 2026)
+- ✅ Assistant IA conversationnel — Claude et OpenAI®
+- ✅ 15 outils IA : sections, mesures, accords, annotations, métadonnées, transposition
+- ✅ Flux draft-preview-apply avec liste des changements et undo intégré
+- ✅ Panneau IA en barre du bas, pleine largeur
 
 ## v3.0 (avril 2026)
 - ✅ Diagrammes 5 cordes (BEADG) pour les 17 modes

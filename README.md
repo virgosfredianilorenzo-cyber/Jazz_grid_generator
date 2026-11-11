@@ -342,7 +342,7 @@ Profondeur : **10 niveaux**.
 
 - [ ] Sélecteur de couleur personnalisé par section
 - [ ] Import iReal Pro® `.irealbook`
-- [ ] Instrument de percussion / métronome dans le lecteur
+- [x] ~~Instrument de percussion / métronome dans le lecteur~~ (métronome livré en v4.9)
 
 ---
 
