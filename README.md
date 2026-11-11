@@ -342,6 +342,7 @@ Profondeur : **10 niveaux**.
 
 - [ ] Sélecteur de couleur personnalisé par section
 - [ ] Import iReal Pro® `.irealbook`
+- [ ] Diagrammes : choisir entre l'affichage actuel (schéma SVG du mode) et les tétrades en tablature basse 4 ou 5 cordes
 - [x] ~~Instrument de percussion / métronome dans le lecteur~~ (métronome livré en v4.9)
 
 ---

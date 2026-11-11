@@ -276,6 +276,7 @@ Depth: **10 levels**.
 
 - [ ] Custom color picker per section
 - [ ] Import iReal Pro® `.irealbook`
+- [ ] Diagrams: choose between the current display (SVG mode diagram) and tetrads as 4- or 5-string bass tablature
 - [x] ~~Percussion / metronome track in the player~~ (metronome shipped in v4.9)
 
 ---
