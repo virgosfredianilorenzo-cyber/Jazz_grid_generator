@@ -101,16 +101,18 @@ function _aiErr(key, fallback) {
 async function aiRunClaudeTurn(body, doFetch) {
   const usage = { in: 0, out: 0 };
   let cur = body;
+  const acc = []; // blocs de tous les segments (texte, sources, outils)
   for (let pauses = 0; ; pauses++) {
     const data = await doFetch(cur);
+    acc.push(...(data.content || []));
     usage.in += data.usage?.input_tokens || 0;
     usage.out += data.usage?.output_tokens || 0;
     if (data.stop_reason === 'refusal') throw new Error(_aiErr('aiErrRefusal', 'Claude refused this request.'));
     if (data.stop_reason === 'pause_turn' && pauses < _AI_MAX_PAUSES) {
-      cur = Object.assign({}, body, { messages: [...cur.messages, { role: 'assistant', content: data.content }] });
+      cur = Object.assign({}, body, { messages: [...body.messages, { role: 'assistant', content: acc.slice() }] });
       continue;
     }
-    return Object.assign(aiParseClaudeContent(data.content), { usage });
+    return Object.assign(aiParseClaudeContent(acc), { usage });
   }
 }
 
@@ -336,34 +338,41 @@ const _AI_TOOL_EXECUTORS = {
     if (!Array.isArray(a.sections) || !a.sections.length) throw new Error('sections required');
     let n = 0;
     const mkId = () => typeof _newSectionId === 'function' ? _newSectionId() : 'sec' + (++n);
-    const timeSig = a.timeSig || draft.timeSig || '4/4';
+    const str = v => (v === undefined || v === null) ? '' : String(v);
+    const timeSig = str(a.timeSig) || draft.timeSig || '4/4';
     const defBeats = parseInt(timeSig.split('/')[0]) || 4;
     const BARS = ['normal', 'repeat-start', 'repeat-end', 'double', 'final'];
     const bar = (v, def) => BARS.includes(v) ? v : def;
+    const emptyBar = i => ({ number: i, chords: [{ symbol: '%', beats: defBeats, annot: null }], repeatStart: false, repeatEnd: false, barlineLeft: 'normal', barlineRight: 'normal', volta: null, navSymbol: null });
     const sections = a.sections.map(sec => {
-      const measures = (sec.measures || []).map((m, i) => {
-        const chords = (m.chords && m.chords.length ? m.chords : [{ symbol: '%' }]).map(c => {
-          const ch = { symbol: String(c.symbol), beats: parseInt(c.beats) || defBeats, annot: null };
-          if (c.altChord) ch.altChord = c.altChord;
-          return ch;
-        });
+      sec = sec || {};
+      const measures = (Array.isArray(sec.measures) ? sec.measures : []).map((m, i) => {
+        m = m || {};
+        const chords = (Array.isArray(m.chords) ? m.chords : [])
+          .filter(c => c && str(c.symbol).trim())
+          .map(c => {
+            const ch = { symbol: str(c.symbol).trim(), beats: parseInt(c.beats) || defBeats, annot: null };
+            if (c.altChord) ch.altChord = str(c.altChord);
+            return ch;
+          });
+        if (!chords.length) chords.push({ symbol: 'N.C.', beats: defBeats, annot: null });
         const left = bar(m.barlineLeft, 'normal'), right = bar(m.barlineRight, 'normal');
         return {
           number: i + 1, chords,
           repeatStart: left === 'repeat-start', repeatEnd: right === 'repeat-end',
           barlineLeft: left, barlineRight: right,
           volta: ['1', '2', '3'].includes(String(m.volta)) ? String(m.volta) : null,
-          navSymbol: m.navSymbol || null
+          navSymbol: m.navSymbol ? str(m.navSymbol) : null
         };
       });
-      return { id: mkId(), label: sec.label || 'A', annotation: sec.annotation || '', measures: measures.length ? measures : [{ number: 1, chords: [{ symbol: '%', beats: defBeats, annot: null }], repeatStart: false, repeatEnd: false, barlineLeft: 'normal', barlineRight: 'normal', volta: null, navSymbol: null }] };
+      return { id: mkId(), label: str(sec.label) || 'A', annotation: str(sec.annotation), measures: measures.length ? measures : [emptyBar(1)] };
     });
-    if (a.title !== undefined) draft.title = a.title;
-    if (a.key !== undefined) draft.key = a.key;
+    if (a.title !== undefined) draft.title = str(a.title);
+    if (a.key !== undefined) draft.key = str(a.key) || draft.key;
     if (a.tempo !== undefined) draft.tempo = parseInt(a.tempo) || draft.tempo;
     draft.timeSig = timeSig;
-    if (a.style !== undefined) draft.style = a.style;
-    if (a.composer !== undefined) draft.composer = a.composer;
+    if (a.style !== undefined) draft.style = str(a.style);
+    if (a.composer !== undefined) draft.composer = str(a.composer);
     draft.sections = sections;
   },
 
@@ -611,6 +620,13 @@ function _aiUpdateTokenDisplay() {
   el.title = 'Session — entrée : ' + _aiTokens.in + ' / sortie : ' + _aiTokens.out;
 }
 
+// Jamais de message assistant vide (400 à la requête suivante).
+function _aiHistoryPushAssistant(message, toolCalls) {
+  const txt = (message || '').trim()
+    || (toolCalls && toolCalls.length ? '[' + toolCalls.map(c => c.name).join(', ') + ']' : '[…]');
+  _aiHistory.push({ role: 'assistant', content: txt });
+}
+
 function aiChatToggle() {
   document.getElementById('ai-panel').classList.toggle('ai-open');
   if (document.getElementById('ai-panel').classList.contains('ai-open')) {
@@ -631,10 +647,10 @@ function _aiSystemPrompt(webSearch) {
     it: "Sei un assistente musicale in Jazz Grid Generator. Aiuta l'utente con griglie jazz usando gli strumenti disponibili. Prima di agire, riassumi in 1-2 frasi. Se ambiguo, chiedi. Rispondi in italiano.\nRegola importante: per duplicare una sezione → duplicate_section; per duplicare una misura → duplicate_bar. Per inserire la copia dopo una sezione specifica, usare il parametro afterIndex di duplicate_section.\n\nGriglia attuale:\n"
   };
   const web = {
-    fr: "\n\nRECHERCHE WEB ACTIVE : cherche sur le web la grille du morceau demandé, de préférence une grille partagée (forum iReal Pro, partitions libres), et cite tes sources. Construis la grille avec set_full_chart ; dans l'annotation de la première section, écris « " + _aiT('aiGridSourceNote', "Grille proposée par l'IA à partir de :") + " » suivi des titres des sources. Si rien de fiable n'est trouvé, dis-le clairement au lieu d'inventer. Si tu trouves un lien irealb://, donne-le tel quel.",
-    en: "\n\nWEB SEARCH ENABLED: search the web for the chord chart of the requested tune, preferring shared charts (iReal Pro forum, free lead sheets), and cite your sources. Build the chart with set_full_chart; in the first section's annotation write \"" + _aiT('aiGridSourceNote', 'Chart proposed by AI from:') + "\" followed by the source titles. If nothing reliable is found, say so clearly instead of inventing. If you find an irealb:// link, give it verbatim.",
-    es: "\n\nBÚSQUEDA WEB ACTIVA: busca en la web la cuadrícula del tema pedido, preferiblemente una cuadrícula compartida (foro iReal Pro, partituras libres), y cita tus fuentes. Construye la cuadrícula con set_full_chart; en la anotación de la primera sección escribe «" + _aiT('aiGridSourceNote', 'Cuadrícula propuesta por la IA a partir de:') + "» seguido de los títulos de las fuentes. Si no encuentras nada fiable, dilo claramente en lugar de inventar. Si encuentras un enlace irealb://, dalo tal cual.",
-    it: "\n\nRICERCA WEB ATTIVA: cerca sul web la griglia del brano richiesto, di preferenza una griglia condivisa (forum iReal Pro, spartiti liberi), e cita le fonti. Costruisci la griglia con set_full_chart; nell'annotazione della prima sezione scrivi «" + _aiT('aiGridSourceNote', "Griglia proposta dall'IA a partire da:") + "» seguito dai titoli delle fonti. Se non trovi nulla di affidabile, dillo chiaramente invece di inventare. Se trovi un link irealb://, forniscilo così com'è."
+    fr: "\n\nRECHERCHE WEB ACTIVE : cherche sur le web la grille du morceau demandé, de préférence une grille partagée (forum iReal Pro, partitions libres), et cite tes sources. Construis la grille avec set_full_chart ; dans l'annotation de la première section, écris « " + _aiT('aiGridSourceNote', "Grille proposée par l'IA à partir de :") + " » suivi des titres des sources, puis « — "+_aiT('aiGridCheck',"à vérifier à l'oreille")+" ». Si rien de fiable n'est trouvé, dis-le clairement au lieu d'inventer. Si tu trouves un lien irealb://, donne-le tel quel.",
+    en: "\n\nWEB SEARCH ENABLED: search the web for the chord chart of the requested tune, preferring shared charts (iReal Pro forum, free lead sheets), and cite your sources. Build the chart with set_full_chart; in the first section's annotation write \"" + _aiT('aiGridSourceNote', 'Chart proposed by AI from:') + "\" followed by the source titles, then \"— "+_aiT('aiGridCheck','to be checked by ear')+"\". If nothing reliable is found, say so clearly instead of inventing. If you find an irealb:// link, give it verbatim.",
+    es: "\n\nBÚSQUEDA WEB ACTIVA: busca en la web la cuadrícula del tema pedido, preferiblemente una cuadrícula compartida (foro iReal Pro, partituras libres), y cita tus fuentes. Construye la cuadrícula con set_full_chart; en la anotación de la primera sección escribe «" + _aiT('aiGridSourceNote', 'Cuadrícula propuesta por la IA a partir de:') + "» seguido de los títulos de las fuentes y « — "+_aiT('aiGridCheck','a comprobar de oído')+" ». Si no encuentras nada fiable, dilo claramente en lugar de inventar. Si encuentras un enlace irealb://, dalo tal cual.",
+    it: "\n\nRICERCA WEB ATTIVA: cerca sul web la griglia del brano richiesto, di preferenza una griglia condivisa (forum iReal Pro, spartiti liberi), e cita le fonti. Costruisci la griglia con set_full_chart; nell'annotazione della prima sezione scrivi «" + _aiT('aiGridSourceNote', "Griglia proposta dall'IA a partire da:") + "» seguito dai titoli delle fonti e « — "+_aiT('aiGridCheck','da verificare a orecchio')+" ». Se non trovi nulla di affidabile, dillo chiaramente invece di inventare. Se trovi un link irealb://, forniscilo così com'è."
   };
   return (prompts[lang] || prompts.en) + JSON.stringify(chartData) + (webSearch ? (web[lang] || web.en) : '');
 }
@@ -662,7 +678,7 @@ async function aiChatSend(text) {
       _aiHistory.slice(-_AI_MAX_HISTORY),
       AI_TOOLS, settings, { webSearch }
     );
-    _aiHistory.push({ role: 'assistant', content: resp.message });
+    _aiHistoryPushAssistant(resp.message, resp.toolCalls);
 
     if (resp.usage) { _aiTokens.in += resp.usage.in; _aiTokens.out += resp.usage.out; _aiUpdateTokenDisplay(); }
 
@@ -794,4 +810,4 @@ if (typeof document !== 'undefined') {
   else _aiStartupMigrate();
 }
 
-if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS, aiBuildClaudeBody, aiParseClaudeContent, aiRunClaudeTurn, AI_TOOLS, _AI_TOOL_EXECUTORS };
+if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS, aiBuildClaudeBody, aiParseClaudeContent, aiRunClaudeTurn, AI_TOOLS, _AI_TOOL_EXECUTORS, _aiHistoryPushAssistant, _aiHistoryGet: () => _aiHistory };

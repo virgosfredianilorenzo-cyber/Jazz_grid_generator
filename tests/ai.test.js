@@ -81,7 +81,9 @@ test('aiParseClaudeContent ignore une erreur de recherche', () => {
 });
 
 test('aiRunClaudeTurn relance sur pause_turn', async () => {
-  const first = [{ type: 'server_tool_use', id: 's', name: 'web_search', input: {} }];
+  const first = [{ type: 'server_tool_use', id: 's', name: 'web_search', input: {} },
+    { type: 'web_search_tool_result', content: [{ type: 'web_search_result', url: 'https://p.example', title: 'P' }] },
+    { type: 'text', text: 'Avant ' }, { type: 'tool_use', id: 't9', name: 'set_full_chart', input: {} }];
   const bodies = [];
   const responses = [
     { stop_reason: 'pause_turn', content: first, usage: { input_tokens: 1, output_tokens: 2 } },
@@ -93,7 +95,10 @@ test('aiRunClaudeTurn relance sur pause_turn', async () => {
   const last = bodies[1].messages[bodies[1].messages.length - 1];
   assert.equal(last.role, 'assistant');
   assert.deepEqual(last.content, first);
-  assert.equal(r.message, 'ok');
+  assert.equal(r.message, 'Avant ok');
+  assert.ok(r.sources.some(x => x.url === 'https://p.example'));
+  assert.equal(r.toolCalls.length, 1);
+  assert.deepEqual(bodies[1].messages[1].content.length, 4);
   assert.equal(r.usage.in, 4);
   assert.equal(r.usage.out, 6);
 });
@@ -114,4 +119,29 @@ test('set_full_chart remplit les champs manquants', () => {
   assert.equal(m.chords[0].annot, null);
   assert.ok(draft.sections[0].id);
   assert.ok(ai.AI_TOOLS.some(t => t.name === 'set_full_chart'));
+});
+
+test('set_full_chart force les types et ne produit jamais "undefined"', () => {
+  const draft = { title: 'o', key: 'C', timeSig: '4/4', sections: [] };
+  ai._AI_TOOL_EXECUTORS.set_full_chart(draft, { title: 123, key: 5, style: 7, composer: 9, timeSig: 3,
+    sections: [{ label: 4, annotation: 8, measures: [{ chords: [{ beats: 2 }, { symbol: 77, beats: 2 }] }, { chords: [{}] }, {}] }] });
+  assert.equal(draft.title, '123');
+  assert.equal(typeof draft.style, 'string');
+  assert.equal(typeof draft.timeSig, 'string');
+  const s = draft.sections[0];
+  assert.equal(s.label, '4');
+  assert.equal(s.annotation, '8');
+  assert.deepEqual(s.measures[0].chords.map(c => c.symbol), ['77']);
+  assert.equal(s.measures[1].chords[0].symbol, 'N.C.');
+  assert.ok(!JSON.stringify(draft).includes('undefined'));
+});
+
+test('historique IA : jamais de message assistant vide', () => {
+  const h = ai._aiHistoryGet();
+  const n = h.length;
+  ai._aiHistoryPushAssistant('', [{ name: 'set_full_chart' }]);
+  ai._aiHistoryPushAssistant('  ', []);
+  ai._aiHistoryPushAssistant('salut', []);
+  assert.equal(h.length, n + 3);
+  assert.ok(h.slice(n).every(m => m.role === 'assistant' && m.content.trim().length > 0));
 });
