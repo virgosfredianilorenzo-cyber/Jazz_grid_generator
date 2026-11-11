@@ -1,5 +1,12 @@
 # Changelog
 
+## v5.1 (en cours)
+- ✅ Trouver une grille — fenêtre « 🔎 Trouver une grille » : boutons de recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien `irealb://` / `irealbook://` ou dépôt d'un fichier `.musicxml` / `.xml` / `.mxl`, liste filtrable pour les playlists, aperçu, import avec confirmation et annulation par Ctrl+Z (`js/gridsearch.js`)
+- ✅ Import iReal Pro® — décodage des liens `irealb://` et `irealbook://` (`js/ireal.js`) : sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash et alternatifs ; qualités inconnues conservées comme symboles libres ; indications non traduisibles reportées en annotation de section
+- ✅ Assistant IA sur Claude uniquement — OpenAI retiré ; ancienne clé OpenAI effacée au démarrage ; modèles Opus 5.5 (par défaut), Sonnet 5.5, Haiku 5.5
+- ✅ Recherche web par l'IA — bouton « 🌐 Chercher sur le web » (désactivé par défaut, réinitialisé après chaque envoi) : Claude cherche sur le web, cite ses sources et propose une grille complète via l'aperçu existant ; annotation « Grille proposée par l'IA à partir de : … — à vérifier à l'oreille »
+- ✅ Tests Node — `node --test tests/*.test.js` (Node n'est requis que pour les tests, pas pour utiliser l'application)
+
 ## v5.0 (juillet 2026)
 - ✅ Plein écran — bouton `⛶` dans la toolbar ; masque le chrome du navigateur (barre d'adresse, onglets) ; toggle : second clic ou `Échap` pour sortir ; état actif reflété par la classe `.active` sur le bouton ; synchronisé avec le bouton natif du navigateur via `fullscreenchange`
 - ✅ Wake lock — désactive la mise en veille de l'écran à l'entrée en plein écran ; relâché automatiquement à la sortie ; re-demandé si l'onglet reprend le focus (`visibilitychange`) ; échec silencieux si le navigateur ne supporte pas l'API (Firefox)

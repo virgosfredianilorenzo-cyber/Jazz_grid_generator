@@ -26,8 +26,11 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 │   ├── touch.js       ← gestion tactile
 │   ├── midi.js        ← export Standard MIDI File (Type 0)
 │   ├── player.js      ← lecteur intégré (soundfont), navigation, métronome, mode concert, plein écran + wake lock
-│   ├── ai.js          ← chat IA (Claude)
+│   ├── ai.js          ← chat IA (Claude), recherche web optionnelle
+│   ├── ireal.js       ← décodeur de liens iReal Pro (`irealb://`, `irealbook://`)
+│   ├── gridsearch.js  ← fenêtre « Trouver une grille » (recherche, import iReal / MusicXML)
 │   └── init.js        ← initialisation, restauration localStorage
+├── tests/             ← tests Node (`ai`, `gridsearch`, `ireal`), fixtures et helpers
 ├── songbook/          ← application compagnon Jazz Songbook (setlists, IndexedDB, BLE-MIDI HX Stomp)
 │   ├── index.html
 │   ├── css/           ← app.css, song-view.css
@@ -50,7 +53,8 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Lecture audio** — lecteur intégré (piano + basse soundfont, voicings jazz), navigation reprises/voltas/coda, métronome, mode concert
 - **Export MIDI** — SMF Type 0, sélecteur de répétitions
 - **Plein écran + wake lock** — l'écran ne se met pas en veille en plein écran
-- **Assistant IA** — Claude, flux draft-preview-apply
+- **Assistant IA** — Claude uniquement, flux draft-preview-apply ; recherche web optionnelle (« 🌐 Chercher sur le web »)
+- **Trouver une grille** — fenêtre « 🔎 Trouver une grille » : recherche DuckDuckGo, import iReal Pro (`irealb://`) ou MusicXML
 - **Jazz Songbook** — app compagnon (`songbook/`), intègre JGG en iframe `?mode=view`
 - **4 langues** — FR, ES, IT, EN
 - **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL, soundfonts du lecteur et IA nécessitent internet
@@ -85,6 +89,8 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 
 Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur.
 
+Tests (Node requis uniquement pour eux) : `node --test tests/*.test.js`
+
 ## Checklist release (à chaque version)
 - Mettre à jour `<title>` dans `index.html` ligne 6 → `Jazz Grid Generator vX.X`
 - Mettre à jour les badges `version-X.X` dans `README.md` et `README.en.md`
@@ -97,4 +103,4 @@ Pas de build, pas de bundler. Ouvrir directement `index.html` dans un navigateur
 
 ## Prochaines pistes
 - Aide contextuelle BLE desktop dans le Songbook — spec prête : `docs/superpowers/specs/2026-05-25-ble-desktop-help-design.md` (pas encore de plan ni de code)
-- Feuille de route README : couleur par section, import iReal Pro® `.irealbook`
+- Feuille de route README : couleur par section

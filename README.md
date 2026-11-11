@@ -20,6 +20,9 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 
 - 🤖 **Assistant IA conversationnel** — panneau en bas de page, piloté en langage naturel : crée, modifie et supprime sections, mesures, accords et annotations ; transpose tout le chart ; aperçu avant application avec boutons Appliquer / Annuler
 - 📂 **Import MusicXML** — drag & drop ou sélecteur de fichier ; parse les accords, sections, barres de reprise, tonalité, tempo (iReal Pro®, MuseScore®, Sibelius, Finale…)
+- 🔎 **Trouver une grille** — fenêtre dédiée : boutons de recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien `irealb://` / `irealbook://` ou dépôt d'un fichier `.musicxml` / `.xml` / `.mxl` ; liste filtrable pour les playlists, aperçu, import avec confirmation et Ctrl+Z
+- 🎹 **Import iReal Pro®** — sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash et alternatifs ; qualités inconnues conservées comme symboles libres ; indications non traduisibles reportées en annotation de section
+- 🌐 **Recherche web par l'IA** — bouton « 🌐 Chercher sur le web » (désactivé par défaut, réinitialisé après chaque envoi) : Claude cherche, cite ses sources et propose une grille complète via l'aperçu ; annotation « à vérifier à l'oreille »
 - 📦 **Import / Export MXL** — format MusicXML compressé
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord
 - 🔄 **Accord alternatif** — substitution tritoniée avec suggestion automatique
@@ -176,13 +179,26 @@ js/
 ├── actions.js       ← mutations de la grille, auto-annotation à l'import
 ├── print.js         ← thème impression et colorisation par section
 ├── touch.js         ← support tactile (Touch Events, pinch-to-zoom)
-├── ai.js            ← assistant IA (providers, outils, draft, chat, settings)
+├── ai.js            ← assistant IA Claude (outils, draft, chat, recherche web, settings)
+├── ireal.js         ← décodeur de liens iReal Pro (irealb://, irealbook://)
+├── gridsearch.js    ← fenêtre « Trouver une grille »
 └── init.js          ← initialisation, restauration de la session
+tests/                ← tests Node (ai, gridsearch, ireal)
 doc/
 └── doc.html         ← documentation complète en ligne
 ```
 
 </details>
+
+---
+
+## 🧪 Tests
+
+Node n'est requis que pour lancer les tests, pas pour utiliser l'application :
+
+```bash
+node --test tests/*.test.js
+```
 
 ---
 
@@ -338,7 +354,7 @@ Profondeur : **10 niveaux**.
 ## 📋 Feuille de route
 
 - [ ] Sélecteur de couleur personnalisé par section
-- [ ] Import iReal Pro® `.irealbook`
+- [x] ~~Import iReal Pro® `.irealbook`~~ (liens `irealb://` / `irealbook://` via « Trouver une grille », v5.1)
 - [ ] Diagrammes : choisir entre l'affichage actuel (schéma SVG du mode) et les tétrades en tablature basse 4 ou 5 cordes
 - [x] ~~Instrument de percussion / métronome dans le lecteur~~ (métronome livré en v4.9)
 

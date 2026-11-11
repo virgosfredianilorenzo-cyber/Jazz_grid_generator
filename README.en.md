@@ -20,6 +20,9 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 
 - 🤖 **Conversational AI assistant** — bottom panel, driven by natural language: creates, edits and deletes sections, measures, chords and annotations; transposes the entire chart; preview before applying with Apply / Cancel buttons
 - 📂 **MusicXML import** — drag & drop or file picker; parses chords, sections, repeat barlines, key signature, tempo (iReal Pro®, MuseScore®, Sibelius, Finale…)
+- 🔎 **Find a chart** — dedicated window: DuckDuckGo search buttons (iReal Pro forum, web, free MusicXML), paste an `irealb://` / `irealbook://` link or drop a `.musicxml` / `.xml` / `.mxl` file; filterable song list for playlists, preview, import with confirmation and Ctrl+Z
+- 🎹 **iReal Pro® import** — sections, repeats, voltas, coda/segno, `N.C.`, `%`, slash and alternate chords; unknown qualities kept as free symbols; untranslatable indications moved to a section annotation
+- 🌐 **AI web search** — "🌐 Search the web" toggle (off by default, reset after each send): Claude searches, cites its sources and proposes a full chart through the preview; annotation "to be checked by ear"
 - 📦 **MXL import/export** — compressed MusicXML format
 - ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord duration
 - 🔄 **Alternate chord** — tritone substitution with automatic suggestion
@@ -111,13 +114,26 @@ js/
 ├── actions.js       ← chart mutations, auto-annotation on import
 ├── print.js         ← print theming and per-section color system
 ├── touch.js         ← touch support (Touch Events, pinch-to-zoom)
-├── ai.js            ← AI assistant (providers, tools, draft, chat, settings)
+├── ai.js            ← Claude AI assistant (tools, draft, chat, web search, settings)
+├── ireal.js         ← iReal Pro link decoder (irealb://, irealbook://)
+├── gridsearch.js    ← "Find a chart" window
 └── init.js          ← initialization, session restore
+tests/                ← Node tests (ai, gridsearch, ireal)
 doc/
 └── doc.html         ← full documentation
 ```
 
 </details>
+
+---
+
+## 🧪 Tests
+
+Node is only needed to run the tests, not to use the app:
+
+```bash
+node --test tests/*.test.js
+```
 
 ---
 
@@ -273,7 +289,7 @@ Depth: **10 levels**.
 ## 📋 Roadmap
 
 - [ ] Custom color picker per section
-- [ ] Import iReal Pro® `.irealbook`
+- [x] ~~Import iReal Pro® `.irealbook`~~ (`irealb://` / `irealbook://` links via "Find a chart", v5.1)
 - [ ] Diagrams: choose between the current display (SVG mode diagram) and tetrads as 4- or 5-string bass tablature
 - [x] ~~Percussion / metronome track in the player~~ (metronome shipped in v4.9)
 
