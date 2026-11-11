@@ -367,6 +367,7 @@ function confirmPlay() {
 // Space bar: toggle play/stop (ignored when focus is on an input/textarea/select)
 document.addEventListener('keydown', e => {
   if (e.code !== 'Space') return;
+  if (document.body.classList.contains('listening')) return; // écoute en cours : pas de lecture
   const tag = document.activeElement && document.activeElement.tagName;
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
   e.preventDefault();

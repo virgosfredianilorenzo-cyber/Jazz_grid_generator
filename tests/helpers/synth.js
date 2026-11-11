@@ -93,4 +93,26 @@ function progression(bars, bpm, beatsPerBar = 4, sr = SR, opts = {}) {
   return out;
 }
 
-module.exports = { SR, midiToHz, silence, chordSamples, chordNotes, chord, clickTrain, concat, mix, progression };
+// Fichier WAV mono PCM 16 bits (Buffer) ; les échantillons sont écrêtés à [-1, 1].
+function wav(samples, sr = SR) {
+  const buf = Buffer.alloc(44 + samples.length * 2);
+  buf.write('RIFF', 0); buf.writeUInt32LE(36 + samples.length * 2, 4); buf.write('WAVE', 8);
+  buf.write('fmt ', 12); buf.writeUInt32LE(16, 16); buf.writeUInt16LE(1, 20); buf.writeUInt16LE(1, 22);
+  buf.writeUInt32LE(sr, 24); buf.writeUInt32LE(sr * 2, 28); buf.writeUInt16LE(2, 32); buf.writeUInt16LE(16, 34);
+  buf.write('data', 36); buf.writeUInt32LE(samples.length * 2, 40);
+  for (let i = 0; i < samples.length; i++) {
+    const x = Math.max(-1, Math.min(1, samples[i]));
+    buf.writeInt16LE(Math.round(x < 0 ? x * 32768 : x * 32767), 44 + i * 2);
+  }
+  return buf;
+}
+
+// Inverse de wav() (mono 16 bits uniquement) : { sampleRate, samples: Float32Array }.
+function wavDecode(buf) {
+  const sampleRate = buf.readUInt32LE(24), n = buf.readUInt32LE(40) / 2;
+  const samples = new Float32Array(n);
+  for (let i = 0; i < n; i++) samples[i] = buf.readInt16LE(44 + i * 2) / 32768;
+  return { sampleRate, samples };
+}
+
+module.exports = { SR, midiToHz, silence, chordSamples, chordNotes, chord, clickTrain, concat, mix, progression, wav, wavDecode };

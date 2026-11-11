@@ -25,6 +25,7 @@ document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selec
   const ec=document.getElementById('ext-btns');ec.innerHTML='';EXTS.forEach(e=>{const b=document.createElement('button');b.className='chord-btn';b.textContent=e;b.dataset.val=e;b.onclick=()=>{b.classList.toggle('active');if(b.classList.contains('active')){if(!selectedExts.includes(e))selectedExts.push(e);}else selectedExts=selectedExts.filter(x=>x!==e);document.getElementById('free-chord').value='';document.querySelectorAll('.modal-sym-btn').forEach(x=>x.classList.remove('selected'));document.querySelector('.modal-sym-btn[data-sym=""]').classList.add('selected');document.getElementById('modal-chord-section').style.display='block';};ec.appendChild(b);});
 }
 function openModal(si,mi,ci,chord){
+  if(document.body.classList.contains('listening'))return; // édition bloquée pendant l'écoute
   editTarget={si,mi,ci};selectedExts=[];
   document.querySelectorAll('#root-btns .chord-btn,#quality-btns .chord-btn,#ext-btns .chord-btn').forEach(b=>b.classList.remove('active'));
   const bpm=parseInt((chartData.timeSig||'4/4').split('/')[0])||4;
