@@ -19,3 +19,18 @@ test('aiSettingsMigrate remplace un modèle absent et expose la liste', () => {
   assert.equal(aiSettingsMigrate({}).claudeModel, 'claude-opus-5-5');
   assert.equal(aiSettingsMigrate({}).claudeKey, '');
 });
+
+test('aiSettingsLoad réécrit le stockage sans la clé OpenAI', () => {
+  const { aiSettingsLoad } = require('../js/ai.js');
+  const store = { jgg_ai_settings: JSON.stringify({ provider: 'openai', openaiKey: 'sk-test', claudeKey: 'k' }) };
+  globalThis.localStorage = {
+    getItem: k => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = v; }
+  };
+  try {
+    const s = aiSettingsLoad();
+    assert.equal(s.claudeKey, 'k');
+    assert.ok(!store.jgg_ai_settings.includes('sk-test'));
+    assert.ok(!store.jgg_ai_settings.includes('openai'));
+  } finally { delete globalThis.localStorage; }
+});

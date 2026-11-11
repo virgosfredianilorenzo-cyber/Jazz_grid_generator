@@ -638,4 +638,11 @@ function aiConfigSave() {
   document.getElementById('ai-config').classList.remove('ai-config-open');
 }
 
-if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, AI_CLAUDE_MODELS };
+// Migration des réglages au démarrage (navigateur uniquement)
+if (typeof document !== 'undefined') {
+  const _aiStartupMigrate = () => { try { aiSettingsLoad(); } catch (e) {} };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _aiStartupMigrate);
+  else _aiStartupMigrate();
+}
+
+if (typeof module !== 'undefined') module.exports = { aiSettingsMigrate, aiSettingsLoad, AI_CLAUDE_MODELS };
