@@ -1,0 +1,446 @@
+{
+  "title": "Knucklehead",
+  "key": "Ab",
+  "tempo": 174,
+  "timeSig": "4/4",
+  "style": "Jazz-Funk",
+  "composer": "Grover Washington Jr.",
+  "sections": [
+    {
+      "id": "sec1",
+      "label": "Intro",
+      "annotation": "Vamp Fm (jusqu'à ~1:05) · Basse : F F G Ab | Bb Bb B C Eb (montée, passage chromatique Bb-B-C)",
+      "measures": [
+        {
+          "number": 1,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": true,
+          "repeatEnd": false,
+          "barlineLeft": "repeat-start",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 2,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 3,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 4,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": true,
+          "barlineLeft": "normal",
+          "barlineRight": "repeat-end",
+          "volta": null,
+          "navSymbol": null
+        }
+      ]
+    },
+    {
+      "id": "sec2",
+      "label": "A – Main",
+      "annotation": "~1:08 → 3:18 · Basse : F grave puis Eb-F-E-F à l'octave (approche chromatique E→F) · Fa dorien pour improviser",
+      "measures": [
+        {
+          "number": 1,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": true,
+          "repeatEnd": false,
+          "barlineLeft": "repeat-start",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 2,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 3,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 4,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 5,
+          "chords": [
+            {
+              "symbol": "Bbm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 6,
+          "chords": [
+            {
+              "symbol": "Bbm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 7,
+          "chords": [
+            {
+              "symbol": "Bbm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 8,
+          "chords": [
+            {
+              "symbol": "Bbm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": true,
+          "barlineLeft": "normal",
+          "barlineRight": "repeat-end",
+          "volta": null,
+          "navSymbol": null
+        }
+      ]
+    },
+    {
+      "id": "sec3",
+      "label": "B – Pont",
+      "annotation": "Basse : F grave puis descente chromatique C-B-Bb · harmonie d'après détection auto, à vérifier à l'oreille",
+      "measures": [
+        {
+          "number": 1,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 2,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 3,
+          "chords": [
+            {
+              "symbol": "Eb",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 4,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 5,
+          "chords": [
+            {
+              "symbol": "Ab",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 6,
+          "chords": [
+            {
+              "symbol": "F7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 7,
+          "chords": [
+            {
+              "symbol": "Ab",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 8,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        }
+      ]
+    },
+    {
+      "id": "sec4",
+      "label": "Intro (retour)",
+      "annotation": "Retour au riff d'intro · puis Main à ~4:43, riff à ~6:21",
+      "measures": [
+        {
+          "number": 1,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": true,
+          "repeatEnd": false,
+          "barlineLeft": "repeat-start",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 2,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 3,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": false,
+          "barlineLeft": "normal",
+          "barlineRight": "normal",
+          "volta": null,
+          "navSymbol": null
+        },
+        {
+          "number": 4,
+          "chords": [
+            {
+              "symbol": "Fm7",
+              "beats": 4,
+              "annot": null,
+              "altChord": null
+            }
+          ],
+          "repeatStart": false,
+          "repeatEnd": true,
+          "barlineLeft": "normal",
+          "barlineRight": "repeat-end",
+          "volta": null,
+          "navSymbol": null
+        }
+      ]
+    }
+  ]
+}

@@ -27,11 +27,14 @@
     <div class="dropdown-menu">
       <button id="btn-new" onclick="newChart();closeDropdowns()"></button>
       <button id="btn-open" onclick="document.getElementById('file-input').click();closeDropdowns()"></button>
+      <button id="btn-find-grid-menu" onclick="openGridSearch();closeDropdowns()"></button>
       <div class="dropdown-sep"></div>
       <button id="btn-import-json" onclick="document.getElementById('import-json').click();closeDropdowns()"></button>
       <button id="btn-export-json" onclick="exportJSON();closeDropdowns()"></button>
     </div>
   </div>
+
+  <button class="btn secondary" id="btn-find-grid" onclick="openGridSearch()"></button>
 
   <!-- ⬆ Exporter -->
   <div class="dropdown" id="dd-export">
@@ -330,6 +333,38 @@
   </div>
 </div>
 
+<!-- Trouver une grille -->
+<div id="gridsearch-dialog" class="midi-dialog-overlay">
+  <div class="midi-dialog-box gs-box">
+    <span id="gs-dialog-title" style="font-weight:bold;display:block;margin-bottom:10px;"></span>
+    <div class="gs-row">
+      <label><span id="gs-lbl-title"></span><input type="text" id="gs-title"></label>
+      <label><span id="gs-lbl-composer"></span><input type="text" id="gs-composer"></label>
+    </div>
+    <div class="gs-step" id="gs-search-on"></div>
+    <div class="gs-row">
+      <button class="btn secondary" id="gs-btn-forum"></button>
+      <button class="btn secondary" id="gs-btn-web"></button>
+      <button class="btn secondary" id="gs-btn-musicxml"></button>
+    </div>
+    <div class="gs-step" id="gs-paste-label"></div>
+    <textarea id="gs-link" rows="3" spellcheck="false"></textarea>
+    <div class="gs-row">
+      <button class="btn" id="gs-btn-decode"></button>
+      <div id="gs-drop"><span id="gs-drop-text"></span></div>
+      <input type="file" id="gs-file" accept=".musicxml,.xml,.mxl" style="display:none">
+    </div>
+    <input type="text" id="gs-filter" style="display:none">
+    <div id="gs-songlist" style="display:none"></div>
+    <div id="gs-error" style="display:none"></div>
+    <div id="gs-preview" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closeGridSearch()" id="gs-btn-cancel"></button>
+      <button class="btn" id="gs-btn-import" disabled></button>
+    </div>
+  </div>
+</div>
+
 <!-- Concert mode bar -->
 <div id="concert-bar">
   <span id="concert-progress"></span>
@@ -348,6 +383,7 @@
 <script src="js/render.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/ireal.js"></script>
+<script src="js/gridsearch.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/midi.js"></script>
 <script src="js/player.js"></script>

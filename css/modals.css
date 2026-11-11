@@ -78,3 +78,24 @@
 @media print {
   .mode-diagram-wrap { background: #f8f8f8; border-top: 1px solid #ccc; }
 }
+/* Trouver une grille */
+.gs-box { width: 520px; max-width: 94vw; max-height: 90vh; overflow-y: auto; }
+.gs-box input[type=text], .gs-box textarea { width: 100%; box-sizing: border-box; padding: 5px 8px; font-size: 0.9rem; background: #0f3460; color: #e2e8f0; border: 1px solid #f0a500; border-radius: 4px; font-family: inherit; }
+.gs-box textarea { resize: vertical; margin-top: 4px; }
+.gs-row { display: flex; gap: 8px; align-items: stretch; margin: 6px 0; flex-wrap: wrap; }
+.gs-row label { flex: 1; min-width: 150px; font-size: 0.8rem; }
+.gs-step { margin-top: 10px; font-size: 0.85rem; font-weight: bold; color: #f0a500; }
+#gs-drop { flex: 1; min-width: 150px; border: 2px dashed #f0a500; border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+#gs-drop.drag-over { background: rgba(240,165,0,0.2); }
+#gs-filter { margin-top: 8px; }
+#gs-songlist { max-height: 150px; overflow-y: auto; margin-top: 4px; border: 1px solid #3a4a6a; border-radius: 4px; }
+.gs-song { padding: 4px 8px; cursor: pointer; font-size: 0.85rem; }
+.gs-song:hover { background: rgba(240,165,0,0.15); }
+.gs-song.selected { background: rgba(240,165,0,0.35); }
+.gs-song small { opacity: 0.7; }
+#gs-error { margin-top: 8px; padding: 6px 10px; border-radius: 4px; background: rgba(220,50,50,0.25); border: 1px solid #dc3232; font-size: 0.85rem; }
+#gs-preview { margin-top: 8px; padding: 8px 10px; border-radius: 4px; background: #0f1d36; font-size: 0.85rem; max-height: 200px; overflow-y: auto; }
+.gs-meta { opacity: 0.7; font-size: 0.78rem; margin-bottom: 4px; }
+.gs-line { font-family: monospace; font-size: 0.8rem; padding: 1px 0; }
+.gs-warn { margin-top: 6px; font-size: 0.78rem; color: #f0a500; }
+.gs-warn ul { margin: 2px 0 0 18px; padding: 0; }

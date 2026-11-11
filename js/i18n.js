@@ -7,6 +7,7 @@
 const LANGS = {
   fr: {
     menuFile:'📁 Fichier',menuExport:'⬆ Exporter',btnOpen:'📂 Ouvrir…',btnNew:'✨ Nouveau',lblTranspose:'🎵 Transposer :',keyPlaceholder:'Tonalité…',lblCols:'Colonnes :',btnPrint:'🖨️ Imprimer',btnExportJSON:'💾 Sauvegarder JSON',btnImportJSON:'📥 Importer JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',btnExportMIDI:'🎹 Export MIDI',midiDialogTitle:'Export MIDI',midiDialogLabel:'Répétitions :',midiCancel:'Annuler',midiOk:'Exporter',btnPlay:'▶ Lecture',playerDialogTitle:'Lecture',playerDialogLabel:'Boucles :',playerCancel:'Annuler',playerOk:'▶ Lire',
+    btnFindGrid:'🔎 Trouver une grille',gsTitle:'Trouver une grille',gsLblTitle:'Titre',gsLblComposer:'Compositeur',gsSearchOn:'① Chercher sur :',gsBtnForum:'Forum iReal Pro ↗',gsBtnWeb:'Web (grilles iReal) ↗',gsBtnMusicXML:'MusicXML libres ↗',gsPasteLabel:'② Colle le lien trouvé, ou dépose le fichier :',gsBtnDecode:'Lire le lien',gsDrop:'Dépose un fichier MusicXML ici ou clique',gsFilter:'Filtrer les morceaux…',gsPreview:'Aperçu',gsBtnImport:'Importer dans la grille',gsCancel:'Fermer',gsErrInvalid:'Lien iReal Pro non reconnu. Copie le lien complet (il commence par irealb://).',gsErrFile:'Fichier MusicXML illisible.',gsConfirmReplace:'Remplacer la grille en cours ? Les modifications non sauvegardées seront perdues (Ctrl+Z pour annuler).',gsWarnings:'Indications non reprises :',
     dzTitle:'Déposer un fichier MusicXML',dzSub:'ou cliquer pour choisir un fichier .musicxml / .xml',
     metaKey:'Tonalité :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Mesure :',metaStyle:'Style :',
     btnAddSection:'+ Ajouter une section',secAddMeasure:'+ Mesure',secDuplicate:'⧉ Dupliquer',secDelete:'✕ Supprimer',secAnnotPlaceholder:'Annotation de section…',
@@ -22,6 +23,7 @@ const LANGS = {
   },
   es: {
     menuFile:'📁 Archivo',menuExport:'⬆ Exportar',btnOpen:'📂 Abrir…',btnNew:'✨ Nuevo',lblTranspose:'🎵 Transponer :',keyPlaceholder:'Tonalidad…',lblCols:'Columnas :',btnPrint:'🖨️ Imprimir',btnExportJSON:'💾 Guardar JSON',btnImportJSON:'📥 Importar JSON',btnExportXML:'🎼 Exportar MusicXML',btnExportMXL:'🎼 Exportar MXL',btnExportMIDI:'🎹 Exportar MIDI',midiDialogTitle:'Exportar MIDI',midiDialogLabel:'Repeticiones :',midiCancel:'Cancelar',midiOk:'Exportar',btnPlay:'▶ Reproducir',playerDialogTitle:'Reproducir',playerDialogLabel:'Bucles :',playerCancel:'Cancelar',playerOk:'▶ Reproducir',
+    btnFindGrid:'🔎 Encontrar una cuadrícula',gsTitle:'Encontrar una cuadrícula',gsLblTitle:'Título',gsLblComposer:'Compositor',gsSearchOn:'① Buscar en:',gsBtnForum:'Foro iReal Pro ↗',gsBtnWeb:'Web (cuadrículas iReal) ↗',gsBtnMusicXML:'MusicXML libres ↗',gsPasteLabel:'② Pega el enlace encontrado, o suelta el archivo:',gsBtnDecode:'Leer el enlace',gsDrop:'Suelta un archivo MusicXML aquí o haz clic',gsFilter:'Filtrar canciones…',gsPreview:'Vista previa',gsBtnImport:'Importar a la cuadrícula',gsCancel:'Cerrar',gsErrInvalid:'Enlace de iReal Pro no reconocido. Copia el enlace completo (empieza por irealb://).',gsErrFile:'Archivo MusicXML ilegible.',gsConfirmReplace:'¿Reemplazar la cuadrícula actual? Los cambios no guardados se perderán (Ctrl+Z para deshacer).',gsWarnings:'Indicaciones no incluidas:',
     dzTitle:'Arrastra un archivo MusicXML',dzSub:'o haz clic para elegir un archivo .musicxml / .xml',
     metaKey:'Tonalidad :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Compás :',metaStyle:'Estilo :',
     btnAddSection:'+ Agregar sección',secAddMeasure:'+ Compás',secDuplicate:'⧉ Duplicar',secDelete:'✕ Eliminar',secAnnotPlaceholder:'Anotación de sección…',
@@ -37,6 +39,7 @@ const LANGS = {
   },
   it: {
     menuFile:'📁 File',menuExport:'⬆ Esporta',btnOpen:'📂 Apri…',btnNew:'✨ Nuovo',lblTranspose:'🎵 Trasponi :',keyPlaceholder:'Tonalità…',lblCols:'Colonne :',btnPrint:'🖨️ Stampa',btnExportJSON:'💾 Salva JSON',btnImportJSON:'📥 Importa JSON',btnExportXML:'🎼 Esporta MusicXML',btnExportMXL:'🎼 Esporta MXL',btnExportMIDI:'🎹 Esporta MIDI',midiDialogTitle:'Esporta MIDI',midiDialogLabel:'Ripetizioni :',midiCancel:'Annulla',midiOk:'Esporta',btnPlay:'▶ Riproduci',playerDialogTitle:'Riproduzione',playerDialogLabel:'Loop :',playerCancel:'Annulla',playerOk:'▶ Riproduci',
+    btnFindGrid:'🔎 Trova una griglia',gsTitle:'Trova una griglia',gsLblTitle:'Titolo',gsLblComposer:'Compositore',gsSearchOn:'① Cerca su:',gsBtnForum:'Forum iReal Pro ↗',gsBtnWeb:'Web (griglie iReal) ↗',gsBtnMusicXML:'MusicXML liberi ↗',gsPasteLabel:'② Incolla il link trovato, o trascina il file:',gsBtnDecode:'Leggi il link',gsDrop:'Trascina un file MusicXML qui o clicca',gsFilter:'Filtra i brani…',gsPreview:'Anteprima',gsBtnImport:'Importa nella griglia',gsCancel:'Chiudi',gsErrInvalid:'Link iReal Pro non riconosciuto. Copia il link completo (inizia con irealb://).',gsErrFile:'File MusicXML illeggibile.',gsConfirmReplace:'Sostituire la griglia corrente? Le modifiche non salvate andranno perse (Ctrl+Z per annullare).',gsWarnings:'Indicazioni non riportate:',
     dzTitle:'Trascina un file MusicXML',dzSub:'o clicca per scegliere un file .musicxml / .xml',
     metaKey:'Tonalità :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Misura :',metaStyle:'Stile :',
     btnAddSection:'+ Aggiungi sezione',secAddMeasure:'+ Misura',secDuplicate:'⧉ Duplica',secDelete:'✕ Elimina',secAnnotPlaceholder:'Annotazione di sezione…',
@@ -52,6 +55,7 @@ const LANGS = {
   },
   en: {
     menuFile:'📁 File',menuExport:'⬆ Export',btnOpen:'📂 Open…',btnNew:'✨ New',lblTranspose:'🎵 Transpose :',keyPlaceholder:'Key…',lblCols:'Columns :',btnPrint:'🖨️ Print',btnExportJSON:'💾 Save JSON',btnImportJSON:'📥 Import JSON',btnExportXML:'🎼 Export MusicXML',btnExportMXL:'🎼 Export MXL',btnExportMIDI:'🎹 Export MIDI',midiDialogTitle:'Export MIDI',midiDialogLabel:'Repetitions:',midiCancel:'Cancel',midiOk:'Export',btnPlay:'▶ Play',playerDialogTitle:'Playback',playerDialogLabel:'Loops:',playerCancel:'Cancel',playerOk:'▶ Play',
+    btnFindGrid:'🔎 Find a chart',gsTitle:'Find a chart',gsLblTitle:'Title',gsLblComposer:'Composer',gsSearchOn:'① Search on:',gsBtnForum:'iReal Pro forum ↗',gsBtnWeb:'Web (iReal charts) ↗',gsBtnMusicXML:'Free MusicXML ↗',gsPasteLabel:'② Paste the link you found, or drop the file:',gsBtnDecode:'Read link',gsDrop:'Drop a MusicXML file here or click',gsFilter:'Filter songs…',gsPreview:'Preview',gsBtnImport:'Import into chart',gsCancel:'Close',gsErrInvalid:'iReal Pro link not recognised. Copy the full link (it starts with irealb://).',gsErrFile:'Unreadable MusicXML file.',gsConfirmReplace:'Replace the current chart? Unsaved changes will be lost (Ctrl+Z to undo).',gsWarnings:'Markings not carried over:',
     dzTitle:'Drop a MusicXML file here',dzSub:'or click to choose a .musicxml / .xml file',
     metaKey:'Key :',metaTempo:'Tempo :',metaBPM:'BPM',metaTime:'Time :',metaStyle:'Style :',
     btnAddSection:'+ Add section',secAddMeasure:'+ Measure',secDuplicate:'⧉ Duplicate',secDelete:'✕ Delete',secAnnotPlaceholder:'Section annotation…',
@@ -83,6 +87,21 @@ function applyTranslations(){
   document.getElementById('btn-export-xml').textContent=t('btnExportXML');
   document.getElementById('btn-export-mxl').textContent=t('btnExportMXL');
   document.getElementById('btn-export-midi').textContent=t('btnExportMIDI');
+  document.getElementById('btn-find-grid').textContent=t('btnFindGrid');
+  document.getElementById('btn-find-grid-menu').textContent=t('btnFindGrid');
+  document.getElementById('gs-dialog-title').textContent=t('gsTitle');
+  document.getElementById('gs-lbl-title').textContent=t('gsLblTitle');
+  document.getElementById('gs-lbl-composer').textContent=t('gsLblComposer');
+  document.getElementById('gs-search-on').textContent=t('gsSearchOn');
+  document.getElementById('gs-btn-forum').textContent=t('gsBtnForum');
+  document.getElementById('gs-btn-web').textContent=t('gsBtnWeb');
+  document.getElementById('gs-btn-musicxml').textContent=t('gsBtnMusicXML');
+  document.getElementById('gs-paste-label').textContent=t('gsPasteLabel');
+  document.getElementById('gs-btn-decode').textContent=t('gsBtnDecode');
+  document.getElementById('gs-drop-text').textContent=t('gsDrop');
+  document.getElementById('gs-filter').placeholder=t('gsFilter');
+  document.getElementById('gs-btn-import').textContent=t('gsBtnImport');
+  document.getElementById('gs-btn-cancel').textContent=t('gsCancel');
   document.getElementById('midi-dialog-title').textContent=t('midiDialogTitle');
   document.getElementById('midi-dialog-label').textContent=t('midiDialogLabel');
   document.getElementById('midi-btn-cancel').textContent=t('midiCancel');
