@@ -163,6 +163,9 @@ label { font-size:0.85rem; color:#aaa; }
 .bl-popup hr { border:none; border-top:1px solid #2d4a7a; margin:2px 0; }
 .beats-row { display:flex; gap:2px; }
 .chord-slot { flex:1; display:flex; flex-direction:column; border:1px solid transparent; border-radius:4px; transition:border-color 0.15s; cursor:pointer; min-width:0; }
+.chord-slot { position:relative; }
+.chord-uncertain { position:absolute; top:1px; right:3px; font-size:0.7rem; font-weight:700; color:#f0a500; opacity:0.55; pointer-events:none; user-select:none; }
+.chord-slot.uncertain .chord-symbol { opacity:0.85; }
 .chord-slot:hover { border-color:#f0a50088; background:rgba(240,165,0,0.06); }
 .chord-slot:hover .chord-edit-hint { opacity:1; }
 .chord-header { text-align:center; padding:6px 2px 2px; }

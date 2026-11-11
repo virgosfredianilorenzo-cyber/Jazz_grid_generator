@@ -112,7 +112,7 @@ function renderMeasure(measure,si,mi){
 function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=parseChordSym(chord.symbol);
   const symClass=getSymClass(chord.symbol);
   const slot=document.createElement('div');
-  slot.className='chord-slot'+(symClass?' '+symClass:'')+(annot&&(annot.showMode||annot.showArp||annot.showTens||annot.showFree)?' has-annot':'');
+  slot.className='chord-slot'+(symClass?' '+symClass:'')+(annot&&(annot.showMode||annot.showArp||annot.showTens||annot.showFree)?' has-annot':'')+(chord._uncertain?' uncertain':'');
   slot.style.flex=chord.beats||1;
   // — Rendu symbole spécial —
   if(symClass){
@@ -136,7 +136,7 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
   altBtn.textContent='♯±';altBtn.title='Ajouter un accord alternatif';
   altBtn.onclick=e=>{e.stopPropagation();openAltChordPopup(e,si,mi,ci,chord);};
   hdr.appendChild(altBtn);
-  hdr.innerHTML+=`<div class="chord-symbol">${escHtml(fmtChord(chord.symbol))}</div><div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;
+  hdr.innerHTML+=`<div class="chord-symbol">${escHtml(fmtChord(chord.symbol))}</div>${chord._uncertain?'<span class="chord-uncertain">?</span>':''}<div class="chord-duration">${chord.beats||''}♩</div><div class="chord-edit-hint">${t('editHint')}</div>`;
   hdr.querySelector('.chord-symbol').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
   hdr.querySelector('.chord-duration').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
   hdr.querySelector('.chord-edit-hint').onclick=e=>{e.stopPropagation();openModal(si,mi,ci,chord);};
