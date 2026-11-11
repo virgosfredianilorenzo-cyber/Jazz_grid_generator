@@ -277,24 +277,24 @@ test('accord incertain', () => {
 });
 
 test('rebuildBars décale d\'un temps', () => {
-  // Un temps d'anacrouse (G7) puis Fm7 | Bb7 | Ebmaj7.
-  const beats = ['G7'].concat(beatsOf(['Fm7', 'Bb7', 'Ebmaj7']));
+  // Deux temps d'anacrouse (G7) puis Fm7 | Bb7 | Ebmaj7.
+  const beats = ['G7', 'G7'].concat(beatsOf(['Fm7', 'Bb7', 'Ebmaj7']));
   const { a, bars } = runAssembler(framesFor(beats, 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
   const d = a.data();
   const same = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 });
   assert.deepEqual(same, bars.map(b => ({ chords: b.chords })));
-  const shifted = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 1 });
+  const shifted = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 2 });
   assert.deepEqual(shifted.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
   assert.notDeepEqual(same.map(syms), shifted.map(syms)); // sans décalage, les mesures sont à cheval
   shifted.forEach(b => assert.equal(b.chords[0].beats, 4));
-  const one = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 1 });
+  const one = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 2 });
   assert.deepEqual(one.map(syms), ['Fm7', 'Bb7', 'Ebmaj7']);
-  // Décalage −1 : la première mesure commence un temps plus tôt (temps absent).
-  const back = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: -1 });
-  assert.equal(back.length, 4);
+  // Décalage −2 : la première mesure commence deux temps plus tôt (temps absents).
+  const back = dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: -2 });
+  assert.deepEqual(back.map(syms), ['G7', 'Fm7', 'Bb7', 'Ebmaj7']);
   back.forEach(b => assert.equal(b.chords[0].beats, 4));
   // Métrique différente : 3/4 sur les mêmes données.
-  const b3 = dsp.rebuildBars(d, { beatsPerBar: 3, chordsPerBar: 1, beatOffset: 1 });
+  const b3 = dsp.rebuildBars(d, { beatsPerBar: 3, chordsPerBar: 1, beatOffset: 2 });
   assert.equal(b3.length, 4);
 });
 
@@ -329,4 +329,33 @@ test('proposeSections', () => {
   ]);
   const none = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'Db', 'Eb', 'Gb', 'Ab', 'Bb'];
   assert.equal(dsp.proposeSections(none), null);
+});
+
+// ── Revue finale ─────────────────────────────────────────────────────────────
+// Mélange de deux accords : (1 − λ)·a + λ·b (chroma et basse).
+function blend(a, b, lambda) {
+  const A = chordVectors(a), B = chordVectors(b);
+  return {
+    chroma: A.chroma.map((x, i) => (1 - lambda) * x + lambda * B.chroma[i]),
+    bass: A.bass.map((x, i) => (1 - lambda) * x + lambda * B.bass[i])
+  };
+}
+
+test('mode 2 : pas de coupe sur des mesures à un accord, coupe sur un vrai changement', () => {
+  // 8 mesures propres d'un accord par mesure → aucune coupe.
+  const clean = runAssembler(framesFor(beatsOf(['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7']), 120),
+    { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  assert.equal(clean.bars.length, 8);
+  assert.equal(clean.bars.filter(b => b.chords.length > 1).length, 0);
+  // Moitiés presque identiques (Cmaj7 teinté de La, un peu plus en seconde moitié) : symboles différents
+  // mais écart minime → une seule harmonie.
+  const h1 = blend('Cmaj7', 'Am7', 0.45), h2 = blend('Cmaj7', 'Am7', 0.56);
+  const bar = [h1, h1, h2, h2];
+  const amb = runAssembler(framesFor(beatsOf(['Cmaj7', bar, bar, bar, bar, 'Cmaj7']), 120), { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  assert.equal(amb.bars.length, 6);
+  assert.equal(amb.bars.filter(b => b.chords.length > 1).length, 0, amb.bars.map(syms).join(' | '));
+  // Vrai changement au milieu de la mesure.
+  const real = runAssembler(framesFor(beatsOf(['Fm7', ['Fm7', 'Fm7', 'Bb7', 'Bb7'], ['Ebmaj7', 'Ebmaj7', 'Cm7', 'Cm7']]), 120),
+    { beatsPerBar: 4, chordsPerBar: 2, bpm: 120 });
+  assert.deepEqual(real.bars.map(syms), ['Fm7', 'Fm7 Bb7', 'Ebmaj7 Cm7']);
 });

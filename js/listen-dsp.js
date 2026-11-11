@@ -222,6 +222,7 @@ function estimateTempo(onsets, hopSec, minBpm = 60, maxBpm = 200) {
 // sur la première attaque à la reprise.
 
 const UNCERTAIN_MARGIN = 0.04;   // uncertain = margin < UNCERTAIN_MARGIN (à ajuster sur des morceaux réels)
+const SPLIT_MARGIN = 0.05;       // mode 2 : gain minimal (score moyen) de deux accords sur un seul
 const SILENCE_FLOOR = 1e-4;
 const SILENCE_RATIO = 0.01;
 const TEMPO_MIN_SOUND_SEC = 8;   // son nécessaire avant d'estimer le tempo
@@ -248,24 +249,58 @@ function _dspRmsStats() {
   };
 }
 
-// Temps à partir de ses trames.
-function _dspMakeBeat(frames, thr) {
+// Somme des chroma / basse des trames sonores d'un morceau de temps : {chroma, bass, n (trames), s (sonores)}.
+function _dspAccum(frames, thr) {
   const chroma = new Array(12).fill(0), bass = new Array(12).fill(0);
-  let sounding = 0;
+  let s = 0;
   for (const f of frames) {
     if (!(f.rms >= thr)) continue;
-    sounding++;
+    s++;
     for (let i = 0; i < 12; i++) { chroma[i] += f.chroma[i]; bass[i] += (f.bass && f.bass[i]) || 0; }
   }
-  if (sounding) for (let i = 0; i < 12; i++) { chroma[i] /= sounding; bass[i] /= sounding; }
-  return { chroma, bass, silent: sounding * 2 <= frames.length };
+  return { chroma, bass, n: frames.length, s };
+}
+
+// Temps à partir de ses parties (sommes) : chroma / basse moyens des trames sonores, drapeau `silent`.
+function _dspBeatFromParts(parts) {
+  const chroma = new Array(12).fill(0), bass = new Array(12).fill(0);
+  let n = 0, s = 0;
+  for (const p of parts) {
+    n += p.n; s += p.s;
+    for (let i = 0; i < 12; i++) { chroma[i] += p.chroma[i]; bass[i] += p.bass[i]; }
+  }
+  if (s) for (let i = 0; i < 12; i++) { chroma[i] /= s; bass[i] /= s; }
+  return { chroma, bass, silent: s * 2 <= n };
+}
+
+// Temps à partir de ses trames ; `h` garde les deux moitiés (sommes) : bords d'une coupe, tempo ×2.
+function _dspMakeBeat(frames, thr) {
+  const m = Math.ceil(frames.length / 2);
+  const h = [_dspAccum(frames.slice(0, m), thr), _dspAccum(frames.slice(m), thr)];
+  return Object.assign(_dspBeatFromParts(h), { h });
+}
+
+// Demi-temps (moitié i d'un temps qui garde ses moitiés), null s'il est vide.
+function _dspHalfBeat(b, i) {
+  if (!b || b.absent || !b.h || !b.h[i] || !b.h[i].n) return null;
+  return _dspBeatFromParts([b.h[i]]);
+}
+
+// Score du gabarit `symbol` sur un chroma (même calcul que matchChord).
+function _dspTemplateScore(chroma, bass, symbol) {
+  const t = _DSP_TEMPLATES.find(x => x.symbol === symbol);
+  if (!t) return -Infinity;
+  const cn = Math.sqrt(chroma.reduce((s, x) => s + x * x, 0));
+  let dot = 0;
+  for (let i = 0; i < 12; i++) dot += chroma[i] * t.v[i];
+  return (cn > 0 ? dot / cn : 0) + BASS_BONUS * ((bass && bass[t.root]) || 0);
 }
 
 // Accord d'un groupe de temps : N.C. si plus de la moitié des temps présents sont silencieux ;
 // sinon matchChord sur le chroma moyen des temps sonores. null si aucun temps présent.
 // Un temps `absent` (bourrage) ne compte pas.
 function _dspSegmentChord(beats) {
-  const present = beats.filter(b => !b.absent);
+  const present = beats.filter(b => b && !b.absent);
   if (!present.length) return null;
   const sounding = present.filter(b => !b.silent);
   if (sounding.length * 2 < present.length) return { symbol: 'N.C.', uncertain: false };
@@ -273,25 +308,40 @@ function _dspSegmentChord(beats) {
   for (const b of sounding) for (let i = 0; i < 12; i++) { chroma[i] += b.chroma[i]; bass[i] += b.bass[i]; }
   for (let i = 0; i < 12; i++) { chroma[i] /= sounding.length; bass[i] /= sounding.length; }
   const m = matchChord(chroma, bass);
-  return { symbol: m.symbol, uncertain: m.margin < UNCERTAIN_MARGIN };
+  return { symbol: m.symbol, uncertain: m.margin < UNCERTAIN_MARGIN, score: m.score, chroma, bass };
 }
 
 // Une mesure complète (beats.length = beatsPerBar). Mode 2 = « jusqu'à 2 » : coupe ceil(n/2) + floor(n/2)
-// (4/4 → 2+2, 3/4 → 2+1, 5/4 → 3+2), second accord seulement si les deux moitiés diffèrent.
+// (4/4 → 2+2, 3/4 → 2+1, 5/4 → 3+2). Second accord seulement si les deux moitiés diffèrent, qu'aucune
+// n'est incertaine et que l'ajustement à deux accords gagne au moins SPLIT_MARGIN sur l'accord unique.
+// Les moitiés sont évaluées sans les bords de la coupe (dernier demi-temps avant, premier demi-temps après),
+// où une fenêtre d'analyse voit les deux accords.
 function _dspBar(beats, chordsPerBar) {
   const n = beats.length;
+  const whole = _dspSegmentChord(beats);
   if (chordsPerBar === 2 && n >= 2) {
     const n1 = Math.ceil(n / 2);
-    const c1 = _dspSegmentChord(beats.slice(0, n1)), c2 = _dspSegmentChord(beats.slice(n1));
-    if (c1 && c2 && c1.symbol !== c2.symbol) {
+    const A = beats.slice(0, n1), B = beats.slice(n1);
+    const a = _dspHalfBeat(A[A.length - 1], 0), b = _dspHalfBeat(B[0], 1);
+    if (a) A[A.length - 1] = a;
+    if (b) B[0] = b;
+    const c1 = _dspSegmentChord(A), c2 = _dspSegmentChord(B);
+    let split = !!(c1 && c2 && c1.symbol !== c2.symbol);
+    if (split && c1.symbol !== 'N.C.' && c2.symbol !== 'N.C.') {
+      const gain = whole && whole.symbol !== 'N.C.'
+        ? (n1 * (c1.score - _dspTemplateScore(c1.chroma, c1.bass, whole.symbol)) +
+           (n - n1) * (c2.score - _dspTemplateScore(c2.chroma, c2.bass, whole.symbol))) / n
+        : Infinity;
+      split = !c1.uncertain && !c2.uncertain && gain >= SPLIT_MARGIN;
+    }
+    if (split) {
       return { chords: [
         { symbol: c1.symbol, beats: n1, uncertain: c1.uncertain },
         { symbol: c2.symbol, beats: n - n1, uncertain: c2.uncertain }
       ] };
     }
   }
-  const c = _dspSegmentChord(beats);
-  return { chords: [{ symbol: c.symbol, beats: n, uncertain: c.uncertain }] };
+  return { chords: [{ symbol: whole.symbol, beats: n, uncertain: whole.uncertain }] };
 }
 
 // Mesures d'une suite de temps contigus qui se termine (fin d'écoute ou pause) : les silences longs
