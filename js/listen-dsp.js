@@ -404,7 +404,9 @@ function createBarAssembler(opts) {
     period = t.period; bpm = t.bpm;
     if (!tempoEmitted) { ev.push({ type: 'tempo', bpm }); tempoEmitted = true; }
     let a = buffer[0].g + t.phase;
-    if (a - period >= buffer[0].g - 1) a -= period; // phase repliée juste avant le début du son
+    // Phase repliée avant le début du son : la trame 0 n'a pas d'attaque (pas de trame précédente), un son
+    // qui commence à l'échantillon 0 n'a son premier temps visible qu'au deuxième temps.
+    if (a - period >= buffer[0].g - period / 2) a -= period;
     startRunning(a, ev);
     return true;
   }

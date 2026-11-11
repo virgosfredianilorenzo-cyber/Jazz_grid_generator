@@ -219,3 +219,24 @@ test('listenTabSupported : Chrome/Edge bureau seulement', () => {
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 (X11; Linux x86_64) Chrome/126.0.0.0 Safari/537.36', {})), false);
   assert.equal(L.listenTabSupported(n('Mozilla/5.0 Chrome/126', null)), false);
 });
+
+// ── Revue finale ─────────────────────────────────────────────────────────────
+function feedAll(samples, opts, block = 8192) {
+  const SR = 44100;
+  const st = L.listenCreateProcessor(Object.assign({ beatsPerBar: 4, chordsPerBar: 1, bpm: null, sampleRate: SR }, opts));
+  const ev = [];
+  for (let p = 0; p < samples.length; p += block) ev.push(...L.listenFeedSamples(st, samples.subarray(p, p + block), SR));
+  ev.push(...st.assembler.flush());
+  return { st, ev, bars: ev.filter(e => e.type === 'bar') };
+}
+
+test('son dès l\'échantillon 0, tempo auto : la mesure 1 commence sur le premier accord', () => {
+  const bars = ['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Dm7b5', 'G7', 'Cm7', 'Cm7'].concat(['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Dm7b5', 'G7', 'Cm7', 'Cm7']);
+  const s = synth.progression(bars, 120); // premier clic et premier accord à l'échantillon 0
+  const one = feedAll(s, { chordsPerBar: 1 });
+  assert.deepEqual(one.bars.map(b => b.chords.map(c => c.symbol).join(' ')), bars);
+  const two = feedAll(s, { chordsPerBar: 2 });
+  assert.deepEqual(two.bars.map(b => b.chords.map(c => c.symbol).join(' ')), bars, 'pas de coupe parasite en mode 2');
+  // Premier temps : avant la première attaque visible (trame 0 sans attaque), replié avant le début du son.
+  assert.ok(one.st.assembler.data().firstBeatFrame <= 0, 'firstBeatFrame ' + one.st.assembler.data().firstBeatFrame);
+});
