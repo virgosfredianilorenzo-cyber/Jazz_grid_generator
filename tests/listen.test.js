@@ -207,3 +207,15 @@ test('listenFeedSamples : blocs de LISTEN_PROC_BUFFER (8192) = blocs de 2048', (
   };
   assert.deepEqual(run(L.LISTEN_PROC_BUFFER), run(2048));
 });
+
+test('listenTabSupported : Chrome/Edge bureau seulement', () => {
+  const md = { getDisplayMedia() {} };
+  const n = (userAgent, mediaDevices = md) => ({ userAgent, mediaDevices });
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36')), true);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0')), true);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0')), false);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36')), false);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1')), false);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 (X11; Linux x86_64) Chrome/126.0.0.0 Safari/537.36', {})), false);
+  assert.equal(L.listenTabSupported(n('Mozilla/5.0 Chrome/126', null)), false);
+});

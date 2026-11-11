@@ -23,6 +23,12 @@ function _lsNewId() {
   return id;
 }
 
+function listenTabSupported(nav) {
+  if (!nav || !nav.mediaDevices || !nav.mediaDevices.getDisplayMedia) return false;
+  const ua = nav.userAgent || '';
+  return !/Firefox\//.test(ua) && !/Android|iPhone|iPad|Mobile/.test(ua);
+}
+
 function listenStreamHasAudio(stream) {
   if (!stream || typeof stream.getAudioTracks !== 'function') return false;
   return stream.getAudioTracks().some(tr => tr && tr.readyState !== 'ended');
@@ -215,7 +221,7 @@ function _lsLoadDsp() {
 async function openListen() {
   if (_ls.active) return;
   try { await _lsLoadDsp(); } catch (e) { console.error(e); alert(t('listenErrFile')); return; }
-  _lsEl('ls-btn-tab').style.display = (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) ? '' : 'none';
+  _lsEl('ls-btn-tab').style.display = listenTabSupported(navigator) ? '' : 'none';
   _lsEl('ls-tab-hint').style.display = _lsEl('ls-btn-tab').style.display;
   _lsError('');
   _ls.taps = [];
@@ -606,7 +612,7 @@ function _lsInit() {
 _lsInit();
 
 if (typeof module !== 'undefined') module.exports = {
-  listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
+  listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
   listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenDistributeBars, listenSplitSections,
   listenCreateProcessor, listenProcessFrame, listenFeedSamples,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
