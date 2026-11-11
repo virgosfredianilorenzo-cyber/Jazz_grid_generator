@@ -90,6 +90,13 @@ function listenTapBpm(times) {
   return avg > 0 ? Math.round(60000 / avg) : null;
 }
 
+// Facteur de tempo après ×2 (op = 2) ou ÷2 (op = 0.5) depuis `factor` : 0.5, 1 ou 2 ; null si hors limites
+// (un temps n'est coupé qu'une fois en deux).
+function listenScaleTempoFactor(factor, op) {
+  const f = (factor || 1) * op;
+  return f === 0.5 || f === 1 || f === 2 ? f : null;
+}
+
 // Remplit les sections existantes (mêmes id / libellé / annotation) avec `bars`, dans l'ordre,
 // en gardant leur nombre de mesures ; la dernière prend le reste.
 function listenDistributeBars(sections, bars) {
@@ -200,7 +207,7 @@ const _ls = {
   beatsPerBar: 4, chordsPerBar: 1, userBpm: null,
   sectionsByUser: false, bars: 0, noTempoShown: false,
   data: null, offset: 0, snapshot: null, proposals: null, proposalsFor: null,
-  taps: [], starting: false, queue: null
+  taps: [], starting: false, queue: null, tempoFactor: 1
 };
 const _lsEl = id => document.getElementById(id);
 const _lsListening = () => typeof document !== 'undefined' && document.body.classList.contains('listening');
@@ -291,7 +298,7 @@ function _lsBegin(kind, title, settings) {
   Object.assign(_ls, {
     active: true, done: false, kind, chart: chartData,
     beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, userBpm: settings.bpm,
-    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null
+    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null, tempoFactor: 1
   });
   _ls.state = listenCreateProcessor({ beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, bpm: settings.bpm, sampleRate: _ls.sampleRate });
   _ls.queue = listenCreateEventQueue(fn => setTimeout(fn, 0), evs => { if (_ls.active) _lsHandleEvents(evs); });
@@ -493,24 +500,33 @@ function _lsRefreshProposals() {
   _ls.proposalsFor = _ls.proposals ? listenSectionsFingerprint(chartData.sections) : null;
 }
 
-// Décalage d'un temps (cumulé) ou changement du nombre d'accords par mesure, sans réécouter.
-function _lsRebuild(offsetDelta, chordsPerBar) {
+// Décalage d'un temps (cumulé), changement du nombre d'accords par mesure ou du tempo (×2 / ÷2, le
+// décalage repart de 0), sans réécouter.
+function _lsRebuild(offsetDelta, chordsPerBar, tempoFactor) {
   if (!_ls.done || !_ls.data) return;
   if (chartData !== _ls.chart) { _lsHideBar(); return; } // une autre grille a été ouverte depuis
   if (_lsEditedSinceStop() && !confirm(t('listenConfirmReplace'))) return;
   snapshotUndo();
-  _ls.offset += offsetDelta;
+  if (tempoFactor) { _ls.tempoFactor = tempoFactor; _ls.offset = 0; }
+  else _ls.offset += offsetDelta;
   if (chordsPerBar) _ls.chordsPerBar = chordsPerBar;
-  const bars = _lsDsp().rebuildBars(_ls.data, { beatsPerBar: _ls.beatsPerBar, chordsPerBar: _ls.chordsPerBar, beatOffset: _ls.offset });
+  const bars = _lsDsp().rebuildBars(_ls.data, {
+    beatsPerBar: _ls.beatsPerBar, chordsPerBar: _ls.chordsPerBar, beatOffset: _ls.offset, tempoFactor: _ls.tempoFactor
+  });
   chartData.sections = listenDistributeBars(chartData.sections, bars);
+  if (tempoFactor && _ls.data.bpm) {
+    chartData.tempo = Math.round(_ls.data.bpm * _ls.tempoFactor);
+    _lsEl('meta-tempo').value = chartData.tempo;
+  }
   _ls.bars = bars.length;
   render();
   _lsSnapshot();
   if (_ls.proposals) _lsRefreshProposals();
   _lsUpdateBar();
 }
-function listenShift(delta) { _lsRebuild(delta, 0); }
-function listenSetChordsPerBar(n) { if (n !== _ls.chordsPerBar) _lsRebuild(0, n); }
+function listenShift(delta) { _lsRebuild(delta, 0, 0); }
+function listenSetChordsPerBar(n) { if (n !== _ls.chordsPerBar) _lsRebuild(0, n, 0); }
+function listenScaleTempo(op) { const f = listenScaleTempoFactor(_ls.tempoFactor, op); if (f) _lsRebuild(0, 0, f); }
 
 // N'applique que des propositions calculées sur la grille actuelle ; sinon elles sont recalculées
 // (et montrées à nouveau) ou retirées, jamais appliquées à l'aveugle.
@@ -556,7 +572,9 @@ function _lsUpdateBar() {
   const live = _ls.active;
   _lsEl('listen-bar').classList.toggle('done', !live);
   _lsEl('lb-status').style.display = live ? '' : 'none';
-  const tempo = _ls.userBpm || (_ls.state && _ls.state.assembler.data().bpm);
+  // Tempo suivi (le tempo saisi n'est qu'un point de départ) ; après l'arrêt, avec le facteur ×2 / ÷2.
+  const tracked = live ? _ls.state && _ls.state.assembler.data().bpm : _ls.data && _ls.data.bpm;
+  const tempo = (tracked || _ls.userBpm) * (live ? 1 : _ls.tempoFactor);
   _lsEl('lb-tempo').textContent = tempo ? Math.round(tempo) + ' BPM' : '… BPM';
   _lsEl('lb-timesig').textContent = chartData.timeSig;
   const total = chartData.sections.reduce((n, s) => n + s.measures.length, 0);
@@ -569,6 +587,8 @@ function _lsUpdateBar() {
   _lsEl('lb-cpb-2').classList.toggle('active', _ls.chordsPerBar === 2);
   const canRebuild = !!(_ls.data && _ls.data.beatChroma && _ls.data.beatChroma.length);
   ['lb-shift-left', 'lb-shift-right', 'lb-cpb-1', 'lb-cpb-2'].forEach(id => { _lsEl(id).disabled = !canRebuild; });
+  _lsEl('lb-tempo-half').disabled = !canRebuild || !listenScaleTempoFactor(_ls.tempoFactor, 0.5);
+  _lsEl('lb-tempo-double').disabled = !canRebuild || !listenScaleTempoFactor(_ls.tempoFactor, 2);
   const ps = _lsEl('lb-sections');
   if (!live && _ls.proposals) {
     _lsEl('lb-sections-list').textContent = _ls.proposals.map(p => p.label + '(' + p.length + ')').join(' ');
@@ -601,6 +621,8 @@ function _lsInit() {
   _lsEl('lb-pause').addEventListener('click', listenTogglePause);
   _lsEl('lb-shift-left').addEventListener('click', () => listenShift(-1));
   _lsEl('lb-shift-right').addEventListener('click', () => listenShift(1));
+  _lsEl('lb-tempo-half').addEventListener('click', () => listenScaleTempo(0.5));
+  _lsEl('lb-tempo-double').addEventListener('click', () => listenScaleTempo(2));
   _lsEl('lb-cpb-1').addEventListener('click', () => listenSetChordsPerBar(1));
   _lsEl('lb-cpb-2').addEventListener('click', () => listenSetChordsPerBar(2));
   _lsEl('lb-apply').addEventListener('click', listenApplySections);
@@ -613,7 +635,7 @@ _lsInit();
 
 if (typeof module !== 'undefined') module.exports = {
   listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
-  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenDistributeBars, listenSplitSections,
+  listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
   listenCreateProcessor, listenProcessFrame, listenFeedSamples,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };

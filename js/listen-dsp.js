@@ -144,15 +144,21 @@ function _dspSampleAt(arr, x) {
 }
 
 // Tempo par autocorrélation de l'enveloppe d'attaques lissée (délais entiers, sommet et hauteur
-// affinés par interpolation parabolique) ; parmi les pics ≥ 0.9 × le maximum, le plus petit délai (tempo
-// le plus rapide). La période est ensuite affinée (±0.5 trame) en ajustant une grille de temps sur
+// affinés par interpolation parabolique), de 40 à 280 BPM ; parmi les pics ≥ 0.9 × le maximum, le plus
+// petit délai (tempo le plus rapide). Octave : au-dessus de OCTAVE_FAST_BPM, si le pic au double du délai
+// (moitié du tempo) est nettement plus haut (pic rapide < OCTAVE_ACCENT × pic lent : une attaque sur deux
+// est plus faible, ce sont des croches), la moitié du tempo est retenue ; des noires égales (bebop à 240)
+// gardent le tempo rapide. Des croches parfaitement égales restent ambiguës : boutons ×2 / ÷2. La période est ensuite affinée (±0.5 trame) en ajustant une grille de temps sur
 // tout le signal, ce qui donne aussi la phase : décalage (en trames, dans [0, period)) du premier
 // temps qui maximise la somme des attaques sur la grille phase + k·period.
 // period et phase sont fractionnaires (en trames de hopSec).
 // confidence = hauteur du pic retenu / variance de l'enveloppe (0 si aucun pic) ;
 // confident = confidence ≥ TEMPO_MIN_CONFIDENCE. Le repli (120 BPM) n'est jamais « confident ».
 const TEMPO_MIN_CONFIDENCE = 0.1;
-function estimateTempo(onsets, hopSec, minBpm = 60, maxBpm = 200) {
+const TEMPO_MIN_BPM = 40, TEMPO_MAX_BPM = 280;
+const OCTAVE_FAST_BPM = 160;
+const OCTAVE_ACCENT = 0.955;
+function estimateTempo(onsets, hopSec, minBpm = TEMPO_MIN_BPM, maxBpm = TEMPO_MAX_BPM) {
   const n = onsets.length;
   const fallback = { bpm: 120, period: 60 / 120 / hopSec, phase: 0, confidence: 0, confident: false };
   if (n < 4) return fallback;
@@ -195,7 +201,12 @@ function estimateTempo(onsets, hopSec, minBpm = 60, maxBpm = 200) {
   }
   if (!peaks.length) return fallback;
   const maxAc = Math.max(...peaks.map(k => k.v));
-  const pk = peaks.find(k => k.v >= 0.9 * maxAc), p0 = pk.p;
+  let pk = peaks.find(k => k.v >= 0.9 * maxAc);
+  if (60 / (pk.p * hopSec) > OCTAVE_FAST_BPM) {
+    const slow = peaks.find(k => Math.abs(k.p - 2 * pk.p) <= 1.5);
+    if (slow && pk.v < OCTAVE_ACCENT * slow.v) pk = slow;
+  }
+  const p0 = pk.p;
   const confidence = Math.max(0, pk.v / variance);
 
   // Ajustement de grille : période (pas 0.01) et phase (pas 0.1) maximisant la moyenne des attaques.
@@ -721,15 +732,60 @@ function createBarAssembler(opts) {
   };
 }
 
+// Somme de parties de temps (voir _dspAccum).
+function _dspSumParts(parts) {
+  const out = { chroma: new Array(12).fill(0), bass: new Array(12).fill(0), n: 0, s: 0 };
+  for (const p of parts) {
+    out.n += p.n; out.s += p.s;
+    for (let i = 0; i < 12; i++) { out.chroma[i] += p.chroma[i]; out.bass[i] += p.bass[i]; }
+  }
+  return out;
+}
+
+// Tempo ×2 (factor 2 : chaque temps coupé en ses deux moitiés) ou ÷2 (factor 0.5 : temps fusionnés par
+// paires, à partir du premier temps de chaque suite ; un dernier temps seul reste seul). Autre facteur :
+// temps inchangés. Les marques `start` (suites) sont gardées.
+function scaleBeats(beats, factor) {
+  beats = beats || [];
+  if (factor === 2) {
+    const out = [];
+    for (const b of beats) {
+      if (!b.h) { out.push(b, Object.assign({}, b, { start: undefined })); continue; }
+      b.h.forEach((part, i) => {
+        const nb = Object.assign(_dspBeatFromParts([part]), { at: b.at });
+        if (i === 0 && b.start) nb.start = true;
+        out.push(nb);
+      });
+    }
+    return out;
+  }
+  if (factor === 0.5) {
+    const out = [];
+    let i = 0;
+    while (i < beats.length) {
+      const a = beats[i], b = beats[i + 1];
+      if (!b || b.start || !a.h || !b.h) { out.push(a); i++; continue; }
+      const h = [_dspSumParts(a.h), _dspSumParts(b.h)];
+      const nb = Object.assign(_dspBeatFromParts(h), { h, at: a.at });
+      if (a.start) nb.start = true;
+      out.push(nb);
+      i += 2;
+    }
+    return out;
+  }
+  return beats;
+}
+
 // Reconstruit toutes les mesures depuis les temps gardés : chaque suite (temps marqué `start` : début
 // d'écoute, reprise après pause) repasse dans un assembleur de mesures neuf, temps par temps, comme en direct
-// (sans décalage, même métrique et même mode : mesures identiques au direct).
+// (sans décalage, même métrique, même mode et facteur 1 : mesures identiques au direct).
 // beatOffset : décalage global (en temps) ajouté au premier temps choisi de chaque suite.
+// tempoFactor : 2 (tempo double, temps coupés) ou 0.5 (moitié, temps fusionnés), 1 par défaut.
 function rebuildBars(data, opts) {
   const beatsPerBar = Math.max(1, opts.beatsPerBar | 0 || 4);
   const chordsPerBar = opts.chordsPerBar === 2 ? 2 : 1;
   const off = opts.beatOffset | 0;
-  const beats = (data && data.beatChroma) || [];
+  const beats = scaleBeats((data && data.beatChroma) || [], opts.tempoFactor);
   const out = [];
   let builder = null;
   for (const b of beats) {
@@ -801,7 +857,7 @@ function proposeSections(symbolsPerBar, sizes = [8, 4]) {
 }
 
 if (typeof module !== 'undefined') module.exports = {
-  FRAME_SIZE, HOP_SIZE, CHORD_QUALITIES, ROOT_NAMES, UNCERTAIN_MARGIN,
+  FRAME_SIZE, HOP_SIZE, CHORD_QUALITIES, ROOT_NAMES, UNCERTAIN_MARGIN, TEMPO_MIN_BPM, TEMPO_MAX_BPM,
   fftMagnitudes, chromaFromFrame, matchChord, onsetStrength, estimateTempo,
-  createBarAssembler, rebuildBars, estimateKey, proposeSections
+  createBarAssembler, rebuildBars, scaleBeats, estimateKey, proposeSections
 };

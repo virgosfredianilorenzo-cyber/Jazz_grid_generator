@@ -240,3 +240,13 @@ test('son dès l\'échantillon 0, tempo auto : la mesure 1 commence sur le premi
   // Premier temps : avant la première attaque visible (trame 0 sans attaque), replié avant le début du son.
   assert.ok(one.st.assembler.data().firstBeatFrame <= 0, 'firstBeatFrame ' + one.st.assembler.data().firstBeatFrame);
 });
+
+test('listenScaleTempoFactor : ×2 / ÷2 entre 0,5 et 2', () => {
+  assert.equal(L.listenScaleTempoFactor(1, 2), 2);
+  assert.equal(L.listenScaleTempoFactor(1, 0.5), 0.5);
+  assert.equal(L.listenScaleTempoFactor(2, 0.5), 1);
+  assert.equal(L.listenScaleTempoFactor(0.5, 2), 1);
+  assert.equal(L.listenScaleTempoFactor(2, 2), null);
+  assert.equal(L.listenScaleTempoFactor(0.5, 0.5), null);
+  assert.equal(L.listenScaleTempoFactor(undefined, 2), 2);
+});

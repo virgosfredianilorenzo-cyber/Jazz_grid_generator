@@ -91,3 +91,27 @@ test('suivi : introduction rubato de 12 s puis tempo stable', () => {
   const s = synth.concat(...parts, synth.progressionTempo(BARS, () => 120));
   check('rubato', listen(s), BARS, 12);
 });
+
+// ── Plage de tempo et octave ─────────────────────────────────────────────────
+function tempoOf(r) { const t = r.ev.find(e => e.type === 'tempo'); return t ? t.bpm : null; }
+
+test('tempo : ballade à 50 BPM', () => {
+  const bars = BARS.slice(0, 16);
+  const r = listen(synth.progressionTempo(bars, () => 50));
+  assert.ok(Math.abs(tempoOf(r) - 50) < 1.5, 'tempo ' + tempoOf(r));
+  check('ballade', r, bars);
+});
+
+test('tempo : bebop à 240 BPM (noires égales)', () => {
+  const bars = BARS.slice(0, 32);
+  const r = listen(synth.progressionTempo(bars, () => 240));
+  assert.ok(Math.abs(tempoOf(r) - 240) < 5, 'tempo ' + tempoOf(r));
+  check('bebop', r, bars);
+});
+
+test('tempo : croches égales à 100 BPM (temps appuyés) → 100, pas 200', () => {
+  const bars = BARS.slice(0, 16);
+  const r = listen(synth.progressionTempo(bars, () => 100, 4, SR, { eighths: 0.65 }));
+  assert.ok(Math.abs(tempoOf(r) - 100) < 2, 'tempo ' + tempoOf(r));
+  check('croches', r, bars);
+});

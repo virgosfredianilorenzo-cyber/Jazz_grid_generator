@@ -398,3 +398,23 @@ test('premier temps de mesure : recalage en cours de suite quand les changements
   assert.equal(s.length, 24, s.join(' | ')); // le compte des mesures est gardé
   assert.deepEqual(dsp.rebuildBars(a.data(), { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0 }), bars.map(b => ({ chords: b.chords })));
 });
+
+test('rebuildBars ×2 / ÷2 : temps coupés en deux ou fusionnés par paires', () => {
+  const prog = [H('Fm7', 'Bb7'), 'Ebmaj7', H('Dm7b5', 'G7'), 'Cm7', H('Fm7', 'Bb7'), 'Ebmaj7', H('Dm7b5', 'G7'), 'Cm7'];
+  const exp = ['Fm7 Bb7', 'Ebmaj7', 'Dm7b5 G7', 'Cm7', 'Fm7 Bb7', 'Ebmaj7', 'Dm7b5 G7', 'Cm7'];
+  const frames = framesFor(beatsOf(prog), 120);
+  // Tempo saisi à la moitié (60) : chaque « temps » en couvre deux → ×2.
+  const half = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 2, bpm: 60 });
+  assert.equal(half.a.data().beatChroma.length, 16);
+  const x2 = dsp.rebuildBars(half.a.data(), { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0, tempoFactor: 2 });
+  assert.deepEqual(x2.map(syms), exp);
+  // Tempo saisi au double (240) : deux « temps » par temps → ÷2.
+  const dbl = runAssembler(frames, { beatsPerBar: 4, chordsPerBar: 2, bpm: 240 });
+  assert.equal(dbl.a.data().beatChroma.length, 64);
+  const d2 = dsp.rebuildBars(dbl.a.data(), { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0, tempoFactor: 0.5 });
+  assert.deepEqual(d2.map(syms), exp);
+  // Facteur 1 (ou absent) : inchangé ; ×2 puis ÷2 sur les mêmes données redonne la même grille.
+  const same = dsp.rebuildBars(dbl.a.data(), { beatsPerBar: 4, chordsPerBar: 2, beatOffset: 0, tempoFactor: 1 });
+  assert.deepEqual(same, dbl.bars.map(b => ({ chords: b.chords })));
+  assert.deepEqual(dsp.scaleBeats(dsp.scaleBeats(dbl.a.data().beatChroma, 0.5), 2).map(b => b.silent), dbl.a.data().beatChroma.map(b => b.silent));
+});
