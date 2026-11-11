@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { irealUnscramble, splitSongs } = require('../js/ireal.js');
+const { encodeLink } = require('./helpers/ireal-encode.js');
+const SONGS = require('./helpers/ireal-songs.js');
 const fx = f => fs.readFileSync(path.join(__dirname, 'fixtures', f), 'utf8').trim();
 
 test('irealUnscramble laisse intactes les chaînes courtes', () => {
@@ -27,19 +29,25 @@ test('splitSongs lit un morceau irealbook', () => {
   assert.equal(r[0].key, 'C-');
   assert.ok(r[0].music.startsWith('*A{T44C-7'));
 });
+test('les fixtures irealb correspondent à l\'encodeur de test (données lisibles)', () => {
+  assert.equal(fx('ireal-one.txt'), encodeLink(SONGS.one));
+  assert.equal(fx('ireal-playlist.txt'), encodeLink(SONGS.playlist, SONGS.playlistName));
+});
 test('splitSongs lit un morceau irealb', () => {
   const r = splitSongs(fx('ireal-one.txt'));
-  assert.equal(r.length, 1);
-  assert.equal(r[0].title, 'Autumn Leaves');
-  assert.equal(r[0].key, 'G');
-  assert.equal(r[0].tempo, 120);
+  assert.deepEqual(r, [{title:'Autumn Leaves', composer:'Kosma Joseph', style:'Medium Swing', key:'G', tempo:120, music:SONGS.one[0].music}]);
   assert.ok(r[0].music.includes('T44'));
 });
 test('splitSongs ignore le nom de playlist', () => {
   const r = splitSongs(fx('ireal-playlist.txt'));
-  assert.equal(r.length, 3);
-  assert.ok(r.every(s => s.title !== 'My Playlist'));
-  assert.equal(r[2].tempo, null);
+  assert.deepEqual(r.map(s => s.title), ['Song One', 'Song Two', 'Song Three']);
+  assert.deepEqual(r.map(s => s.tempo), [100, 60, null]);
+  assert.equal(r[1].music, SONGS.playlist[1].music);
+});
+test('splitSongs tolère les retours à la ligne et espaces dans le lien', () => {
+  const l = fx('ireal-playlist.txt');
+  const broken = l.slice(0, 20) + '\n' + l.slice(20, 90) + ' \r\n  ' + l.slice(90);
+  assert.deepEqual(splitSongs(broken), splitSongs(l));
 });
 test('splitSongs rejette un lien invalide', () => {
   assert.throws(() => splitSongs('https://example.com'), /IREAL_INVALID/);
