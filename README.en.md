@@ -70,6 +70,7 @@ Click **⚙** in the panel header:
 | Category | Tools |
 |----------|-------|
 | Chart | `set_chart_metadata`, `transpose_chart`, `set_columns`, `set_bass_strings` |
+| Full chart | `set_full_chart` (replaces the whole chart, used with web search) |
 | Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
 | Measures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
 | Chords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |

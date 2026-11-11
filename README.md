@@ -141,6 +141,7 @@ L'assistant IA est optionnel. Si tu veux l'utiliser, il te faut une clé API Cla
 | Catégorie | Outils |
 |-----------|--------|
 | Chart | `set_chart_metadata`, `transpose_chart`, `set_columns`, `set_bass_strings` |
+| Grille complète | `set_full_chart` (remplace toute la grille, utilisé avec la recherche web) |
 | Sections | `add_section`, `duplicate_section`, `rename_section`, `remove_section` |
 | Mesures | `add_bar`, `duplicate_bar`, `remove_bar`, `set_barline` |
 | Accords | `add_chord`, `edit_chord`, `remove_chord`, `set_chord_alt` |

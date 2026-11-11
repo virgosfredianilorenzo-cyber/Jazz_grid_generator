@@ -628,7 +628,7 @@
           <li>Duplique sections et mesures avec contenu complet</li>
           <li>Transpose tout le chart</li>
           <li>Aperçu avant application : Appliquer / Annuler</li>
-          <li>Claude &amp; OpenAI</li>
+          <li>Claude (Anthropic) uniquement</li>
           <li>Clé API stockée en localStorage</li>
         </ul>
       </div>
@@ -755,21 +755,21 @@ doc/
 
     <div class="config-grid">
       <div class="config-row config-header"><div>Paramètre</div><div>Valeurs</div></div>
-      <div class="config-row"><div>Provider</div><div>Claude (Anthropic) · OpenAI</div></div>
-      <div class="config-row"><div>Modèle Claude</div><div><code>claude-sonnet-4-6</code>, <code>claude-opus-4-7</code></div></div>
-      <div class="config-row"><div>Modèle OpenAI</div><div><code>gpt-4o</code>, <code>gpt-4o-mini</code></div></div>
+      <div class="config-row"><div>Modèle Claude</div><div>Claude Opus 5.5 (<code>claude-opus-5-5</code>, par défaut), Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), Claude Haiku 5.5 (<code>claude-haiku-5-5</code>)</div></div>
 
-      <div class="config-row"><div>Clé API</div><div>Saisie dans l'app, stockée en <code>localStorage</code></div></div>
+      <div class="config-row"><div>Clé API</div><div>Clé Anthropic, saisie dans l'app, stockée en <code>localStorage</code></div></div>
+      <div class="config-row"><div>🌐 Recherche web</div><div>Interrupteur près du champ de saisie, valable pour un seul message ; les recherches sont facturées en plus des jetons par Anthropic</div></div>
     </div>
 
     <h3>Outils disponibles</h3>
     <div class="config-grid">
       <div class="config-row config-header"><div>Catégorie</div><div>Outils</div></div>
       <div class="config-row"><div>Chart</div><div><code>set_chart_metadata</code>, <code>transpose_chart</code>, <code>set_columns</code>, <code>set_bass_strings</code></div></div>
+      <div class="config-row"><div>Grille complète</div><div><code>set_full_chart</code> — remplace toute la grille (utilisé avec la recherche web)</div></div>
       <div class="config-row"><div>Sections</div><div><code>add_section</code>, <code>duplicate_section</code>, <code>rename_section</code>, <code>remove_section</code></div></div>
       <div class="config-row"><div>Mesures</div><div><code>add_bar</code>, <code>duplicate_bar</code>, <code>remove_bar</code>, <code>set_barline</code></div></div>
       <div class="config-row"><div>Accords</div><div><code>add_chord</code>, <code>edit_chord</code>, <code>remove_chord</code>, <code>set_chord_alt</code></div></div>
-      <div class="config-row"><div>Annotations</div><div><code>set_annotation</code></div></div>
+      <div class="config-row"><div>Annotations</div><div><code>set_annotation</code>, <code>toggle_all_diagrams</code></div></div>
     </div>
 
     <h3>Flux de travail</h3>
