@@ -100,9 +100,10 @@ Tests (Node requis uniquement pour eux) : `node --test tests/*.test.js`
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
 
-## Version en cours (v5.1)
+## Version en cours (v5.2)
+- Tablature d'arpège : `getArpDegrees` (`theory.js`), `arpTabNotes` / `arpTabSvg` (`diagrams.js`), choix stocké dans `annot.diagram` (`'arp'` ou absent)
 - Trouver une grille + import iReal Pro (`gridsearch.js`, `ireal.js`), IA sur Claude uniquement avec recherche web, grille à l'écoute (`listen.js`, `listen-dsp.js`)
-- Historique complet des versions dans `CHANGELOG.md` à la racine (v1.0–v5.1)
+- Historique complet des versions dans `CHANGELOG.md` à la racine (v1.0–v5.2)
 
 ## Prochaines pistes
 - Aide contextuelle BLE desktop dans le Songbook — spec prête : `docs/superpowers/specs/2026-05-25-ble-desktop-help-design.md` (pas encore de plan ni de code)
