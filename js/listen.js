@@ -255,12 +255,19 @@ const _ls = {
 const _lsEl = id => document.getElementById(id);
 const _lsListening = () => typeof document !== 'undefined' && document.body.classList.contains('listening');
 
+// Chemin du moteur, avec la même version (?v=…) que listen.js : pas d'ancien moteur en cache.
+function listenDspSrc(listenSrc) {
+  const q = listenSrc && listenSrc.indexOf('?') >= 0 ? listenSrc.slice(listenSrc.indexOf('?')) : '';
+  return 'js/listen-dsp.js' + q;
+}
+
 function _lsLoadDsp() {
   if (typeof chromaFromFrame === 'function') return Promise.resolve();
   if (_ls.dspPromise) return _ls.dspPromise;
   _ls.dspPromise = new Promise((resolve, reject) => {
     const s = document.createElement('script');
-    s.src = 'js/listen-dsp.js';
+    const own = document.querySelector('script[src^="js/listen.js"]');
+    s.src = listenDspSrc(own && own.getAttribute('src'));
     s.onload = () => resolve();
     s.onerror = () => { _ls.dspPromise = null; s.remove(); reject(new Error('listen-dsp')); };
     document.head.appendChild(s);
@@ -700,6 +707,6 @@ _lsInit();
 if (typeof module !== 'undefined') module.exports = {
   listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
   listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenTempoSetting, listenKeyName, listenRespellChord, listenRespellSections, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
-  listenCreateProcessor, listenProcessFrame, listenFeedSamples, listenPauseProcessor,
+  listenCreateProcessor, listenProcessFrame, listenFeedSamples, listenPauseProcessor, listenDspSrc,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };
