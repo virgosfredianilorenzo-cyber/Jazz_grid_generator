@@ -96,6 +96,7 @@ Tests (Node requis uniquement pour eux) : `node --test tests/*.test.js`
 
 ## Checklist release (à chaque version)
 - Mettre à jour `<title>` dans `index.html` ligne 6 → `Jazz Grid Generator vX.X`
+- Mettre à jour le suffixe `?v=X.X` de **tous** les `<script>` / `<link>` locaux de `index.html` (sinon les navigateurs mélangent anciens et nouveaux fichiers en cache — vérifié par `tests/assets.test.js`)
 - Mettre à jour les badges `version-X.X` dans `README.md` et `README.en.md`
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
