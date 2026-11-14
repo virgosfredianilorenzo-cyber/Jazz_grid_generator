@@ -75,3 +75,12 @@ test('arpTabSvg : cordes, cases, degrés, fondamentale marquée', () => {
   const bString = /font-size="16"[^>]*>B</; // nom de corde (le « B » de TAB est plus petit)
   assert.ok(bString.test(s5) && !bString.test(s4));
 });
+
+test('parseChordSym : 6/9 garde sa qualité (et sa basse éventuelle)', () => {
+  const p = s => { const r = ctx.parseChordSym(s); return r.root + '|' + r.quality; };
+  assert.equal(p('C6/9'), 'C|6/9');
+  assert.equal(p('C6/9/E'), 'C|6/9');
+  assert.equal(p('C7/E'), 'C|7');
+  assert.equal(p('Bbm7'), 'Bb|m7');
+  assert.equal(ctx.arpTabNotes('C', ctx.parseChordSym('C6/9').quality, 4).map(x => x.degree).join(' '), '1 3 5 6 9');
+});

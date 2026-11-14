@@ -107,7 +107,7 @@ function parseMusicXML(xmlStr){const doc=new DOMParser().parseFromString(xmlStr,
   if(cur.measures.length>0)sections.push(cur);
   return{title,key,tempo,timeSig:ts,style:'Swing',sections};
 }
-function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const c=sym.split('/')[0],rm=c.match(/^([A-G][#b]?)/);return rm?{root:rm[1],quality:c.slice(rm[1].length)}:null;}
+function parseChordSym(sym){if(!sym||sym==='%'||sym==='–'||sym==='%%'||sym==='N.C.'||sym==='/beat')return null;const rm=sym.match(/^([A-G][#b]?)(6\/9|[^/]*)/);return rm?{root:rm[1],quality:rm[2]}:null;} // 6/9 n'est pas une basse
 function fmtChord(sym){if(!sym||sym==='%')return '–';if(sym==='%%')return '𝄎';if(sym==='N.C.')return 'N.C.';if(sym==='/beat')return '/';return sym.replace(/maj7/g,'Δ7').replace(/maj9/g,'Δ9').replace(/maj13/g,'Δ13').replace(/m7b5/g,'ø7').replace(/dim7/g,'°7').replace(/dim/g,'°');}
 function isSpecialSym(sym){return sym==='%'||sym==='%%'||sym==='N.C.'||sym==='/beat';}
 function getSymClass(sym){if(sym==='%')return 'sym-repeat';if(sym==='%%')return 'sym-repeat2';if(sym==='N.C.')return 'sym-nc';if(sym==='/beat')return 'sym-slash';return '';}
