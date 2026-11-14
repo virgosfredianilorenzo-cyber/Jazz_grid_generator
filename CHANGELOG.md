@@ -1,6 +1,6 @@
 # Changelog
 
-## v5.1 (en cours)
+## v5.1 (novembre 2026)
 - ✅ Trouver une grille — fenêtre « 🔎 Trouver une grille » : boutons de recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien `irealb://` / `irealbook://` ou dépôt d'un fichier `.musicxml` / `.xml` / `.mxl`, liste filtrable pour les playlists, aperçu, import avec confirmation et annulation par Ctrl+Z (`js/gridsearch.js`)
 - ✅ Import iReal Pro® — décodage des liens `irealb://` et `irealbook://` (`js/ireal.js`) : sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash et alternatifs ; qualités inconnues conservées comme symboles libres ; indications non traduisibles reportées en annotation de section
 - ✅ Assistant IA sur Claude uniquement — OpenAI retiré ; ancienne clé OpenAI effacée au démarrage ; modèles Opus 5.5 (par défaut), Sonnet 5.5, Haiku 5.5

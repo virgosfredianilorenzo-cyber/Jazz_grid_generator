@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-5.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.1-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -303,6 +303,14 @@ Profondeur : **10 niveaux**.
 ---
 
 ## 📋 Changelog
+
+### v5.1 (novembre 2026)
+- ✅ Trouver une grille — fenêtre « 🔎 Trouver une grille » : recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien iReal Pro ou dépôt d'un fichier MusicXML, aperçu puis import
+- ✅ Import iReal Pro® — décodage des liens `irealb://` et `irealbook://` : sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash
+- ✅ Assistant IA sur Claude uniquement — OpenAI retiré ; modèles Opus 5.5 (par défaut), Sonnet 5.5, Haiku 5.5
+- ✅ Recherche web par l'IA — bouton « 🌐 Chercher sur le web » (désactivé par défaut, facturé par Anthropic en plus de l'usage Claude)
+- ✅ Créer une grille à l'écoute — « 🎧 Créer une grille à l'écoute » : onglet (Chrome/Edge ordinateur) ou fichier audio ; grille remplie en direct, tétrades, accords incertains marqués « ? », pause de l'analyse pour un onglet ; à l'arrêt : tonalité, décalage d'un temps, sections proposées ; analyse locale, rien n'est enregistré ni envoyé
+- ✅ Tests Node — `node --test tests/*.test.js`
 
 ### v5.0 (juillet 2026)
 - ✅ Plein écran — bouton `⛶` dans la toolbar ; masque le chrome du navigateur ; second clic ou `Échap` pour sortir ; synchronisé avec le bouton natif du navigateur via `fullscreenchange`

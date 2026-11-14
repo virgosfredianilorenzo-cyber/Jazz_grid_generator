@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-5.0-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.1-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -238,6 +238,14 @@ Depth: **10 levels**.
 ---
 
 ## 📋 Changelog
+
+### v5.1 (November 2026)
+- ✅ Find a chart — "🔎 Find a chart" window: DuckDuckGo search (iReal Pro forum, web, free MusicXML), paste an iReal Pro link or drop a MusicXML file, preview then import
+- ✅ iReal Pro® import — decodes `irealb://` and `irealbook://` links: sections, repeats, voltas, coda/segno, `N.C.`, `%`, slash chords
+- ✅ AI assistant on Claude only — OpenAI removed; Opus 5.5 (default), Sonnet 5.5, Haiku 5.5 models
+- ✅ AI web search — "🌐 Search the web" toggle (off by default, billed by Anthropic on top of regular Claude usage)
+- ✅ Create a chart by ear — "🎧 Create a chart by ear": browser tab (desktop Chrome/Edge) or audio file; chart filled live, seventh chords only, uncertain chords marked "?", analysis pause for tabs; on stop: key, one-beat shift, proposed sections; local analysis, nothing is recorded or sent
+- ✅ Node tests — `node --test tests/*.test.js`
 
 ### v5.0 (July 2026)
 - ✅ Fullscreen — `⛶` button in the toolbar; hides browser chrome (address bar, tabs); click again or `Escape` to exit; synced with the browser's native fullscreen button via `fullscreenchange`
