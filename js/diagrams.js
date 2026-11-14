@@ -114,3 +114,64 @@ function getModesvg(modeName) {
   }
   return MODE_SVGS[key] || null;
 }
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Tablature d'arpège (vue « Arpège » du schéma)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const ARP_TAB_TUNING = {
+  4: { open: [28, 33, 38, 43], names: ['E', 'A', 'D', 'G'] },
+  5: { open: [23, 28, 33, 38, 43], names: ['B', 'E', 'A', 'D', 'G'] },
+};
+
+// Notes de l'arpège sur le manche, en montant dans une position. string = index depuis la corde la plus grave.
+// Fondamentale sur la corde la plus grave, jamais à vide (case 12 plutôt que 0) ; chaque note suivante sur la
+// corde la plus grave (≥ la précédente) qui la garde dans la fenêtre [pos-1, pos+3], sinon la case la plus basse.
+function arpTabNotes(root, quality, strings) {
+  const { open, names } = ARP_TAB_TUNING[strings === 5 ? 5 : 4];
+  const def = getArpDegrees(quality);
+  const rootFret = ((noteIdx(root) - open[0]) % 12 + 12) % 12 || 12;
+  const base = open[0] + rootFret, lo = Math.max(1, rootFret - 1), hi = rootFret + 3;
+  let cur = 0;
+  return def.i.map((iv, k) => {
+    const target = base + iv;
+    let j = -1;
+    for (let s = cur; s < open.length && j < 0; s++) { const f = target - open[s]; if (f >= lo && f <= hi) j = s; }
+    if (j < 0) for (let s = cur; s < open.length; s++) { const f = target - open[s]; if (f >= 1 && (j < 0 || f < target - open[j])) j = s; }
+    cur = j;
+    const degree = def.n[k];
+    return { string: j, name: names[j], fret: target - open[j], degree, isRoot: degree === '1' || degree === '8' };
+  });
+}
+
+// Tablature SVG : cordes nommées à gauche (aiguë en haut), cases sur les cordes, degrés dessous.
+// Pas de <g> : print.css met en blanc les textes groupés des schémas de mode.
+function arpTabSvg(root, quality, strings) {
+  const n = strings === 5 ? 5 : 4;
+  const { names } = ARP_TAB_TUNING[n];
+  const notes = arpTabNotes(root, quality, n);
+  const left = 58, colW = 54, top = 18, rowH = 28;
+  const width = left + notes.length * colW + 14;
+  const yOf = s => top + (n - 1 - s) * rowH;          // corde la plus aiguë en haut
+  const bottom = yOf(0), degY = bottom + 30, height = degY + 12;
+  const fmtDeg = d => d.replace(/b/g, '♭').replace(/#/g, '♯');
+  const out = [`<svg class="arp-tab" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`];
+  for (let s = 0; s < n; s++) {
+    const y = yOf(s);
+    out.push(`<text x="10" y="${y + 6}" font-family="Arial" font-size="16" font-weight="bold">${names[s]}</text>`);
+    out.push(`<line x1="${left - 26}" y1="${y}" x2="${width - 6}" y2="${y}" stroke="black" stroke-width="1.5" />`);
+  }
+  out.push(`<line x1="${left - 26}" y1="${yOf(n - 1)}" x2="${left - 26}" y2="${bottom}" stroke="black" stroke-width="3" />`);
+  const mid = (yOf(n - 1) + bottom) / 2;
+  ['T', 'A', 'B'].forEach((c, k) => out.push(`<text class="arp-deg" x="${left - 14}" y="${mid - 8 + k * 11}" font-family="Arial" font-size="10" font-weight="bold">${c}</text>`));
+  notes.forEach((nt, k) => {
+    const x = left + k * colW + colW / 2, y = yOf(nt.string);
+    const cls = nt.isRoot ? 'arp-root' : 'arp-fret', fill = nt.isRoot ? '#e63946' : '#f0a500';
+    const w = String(nt.fret).length > 1 ? 26 : 16;
+    out.push(`<rect class="arp-mask" x="${x - w / 2}" y="${y - 11}" width="${w}" height="22" fill="white" />`);
+    out.push(`<text class="${cls}" x="${x}" y="${y + 7}" font-family="Arial" font-size="20" font-weight="bold" text-anchor="middle" fill="${fill}">${nt.fret}</text>`);
+    out.push(`<text class="${nt.isRoot ? 'arp-root' : 'arp-deg'}" x="${x}" y="${degY}" font-family="Arial" font-size="15" text-anchor="middle" fill="${nt.isRoot ? '#e63946' : '#666'}">${fmtDeg(nt.degree)}</text>`);
+  });
+  out.push('</svg>');
+  return out.join(' ');
+}
+
+if (typeof module !== 'undefined') module.exports = { arpTabNotes, arpTabSvg };
