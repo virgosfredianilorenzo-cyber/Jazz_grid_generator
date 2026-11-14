@@ -28,7 +28,7 @@ Build jazz chord charts from scratch or by importing MusicXML files (iReal Pro®
 - ✏️ **Full chord editing** — 17 roots, 24 qualities, slash bass, free-form input, per-chord duration
 - 🔄 **Alternate chord** — tritone substitution with automatic suggestion
 - 🎼 **Music theory annotations** per chord: compatible modes, 4-note arpeggios with inversions, available tensions, avoid notes, free text notes
-- 🎸 **4- and 5-string bass fretboard diagrams** — 🎸 4/5 toggle in toolbar; 17 modes in 5-string (BEADG); automatic transposition per chord root; 🔴 root · 🟡 arpeggio · 🔵 other degrees
+- 🎸 **4- and 5-string bass fretboard diagrams** — 🎸 4/5 toggle in toolbar; 17 modes in 5-string (BEADG); automatic transposition per chord root; 🔴 root · 🟡 arpeggio · 🔵 other degrees; **Arpeggio (tab)** view selectable in the chord annotation ("Diagram: Mode / Arpeggio"): arpeggio tablature including the chord's extensions (9, 11, 13), fret numbers and degrees
 - 🎵 **Transposition** — by semitone (±) or direct key selection, with enharmonic awareness
 - 🗂️ **Section management** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), numeric suffixes, duplicate, reorder, annotate; unique ID `#xxxx` in section header
 - 🔀 **Drag & drop** — sections and measures moveable with mouse or touch
@@ -302,7 +302,7 @@ Depth: **10 levels**.
 
 - [ ] Custom color picker per section
 - [x] ~~Import iReal Pro® `.irealbook`~~ (`irealb://` / `irealbook://` links via "Find a chart", v5.1)
-- [ ] Diagrams: choose between the current display (SVG mode diagram) and tetrads as 4- or 5-string bass tablature
+- [x] ~~Diagrams: choose between the current display (SVG mode diagram) and tetrads as 4- or 5-string bass tablature~~ ("Arpeggio (tab)" view, v5.2)
 - [x] ~~Percussion / metronome track in the player~~ (metronome shipped in v4.9)
 
 ---

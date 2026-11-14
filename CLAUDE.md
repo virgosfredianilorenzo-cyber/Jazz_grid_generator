@@ -16,7 +16,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 │   └── print.css      ← réduction police auto, option 1 page, symboles nav
 ├── js/
 │   ├── i18n.js        ← internationalisation (FR, ES, IT, EN)
-│   ├── diagrams.js    ← diagrammes SVG basse 4 et 5 cordes, transposeModesvg, getModesvg
+│   ├── diagrams.js    ← diagrammes SVG basse 4 et 5 cordes, transposeModesvg, getModesvg, tablature d'arpège (arpTabNotes, arpTabSvg)
 │   ├── theory.js      ← moteur de théorie musicale (modes, arpèges, tensions), escHtml
 │   ├── state.js       ← état global, window.bassStrings, setBassStrings(), _isDirty
 │   ├── render.js      ← rendu de la grille
@@ -32,7 +32,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 │   ├── listen.js      ← « Créer une grille à l'écoute » : capture (onglet / fichier), mesures en direct, correction à l'arrêt
 │   ├── listen-dsp.js  ← moteur d'analyse audio (FFT, chroma, tétrades, tempo), chargé paresseusement à la première utilisation
 │   └── init.js        ← initialisation, restauration localStorage
-├── tests/             ← tests Node (`ai`, `gridsearch`, `ireal`, `listen-dsp`, `listen`, `uncertain`), fixtures et helpers
+├── tests/             ← tests Node (`ai`, `arptab`, `gridsearch`, `ireal`, `listen-dsp`, `listen`, `uncertain`…), fixtures et helpers
 ├── songbook/          ← application compagnon Jazz Songbook (setlists, IndexedDB, BLE-MIDI HX Stomp)
 │   ├── index.html
 │   ├── css/           ← app.css, song-view.css

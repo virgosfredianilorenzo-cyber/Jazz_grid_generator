@@ -28,7 +28,7 @@ Crée des grilles jazz à partir d'un document vierge ou depuis un fichier Music
 - ✏️ **Édition complète des accords** — 17 fondamentales, 24 qualités, basse en slash, saisie libre, durée par accord
 - 🔄 **Accord alternatif** — substitution tritoniée avec suggestion automatique
 - 🎼 **Annotations de théorie musicale** par accord : modes compatibles, arpèges à 4 sons avec inversions, tensions disponibles, notes à éviter, notes libres
-- 🎸 **Diagrammes de manche basse 4 et 5 cordes** — toggle 🎸 4/5 dans la toolbar ; 17 modes en 5 cordes (BEADG) ; transposition automatique selon la fondamentale ; 🔴 fondamentale · 🟡 arpège · 🔵 autres degrés
+- 🎸 **Diagrammes de manche basse 4 et 5 cordes** — toggle 🎸 4/5 dans la toolbar ; 17 modes en 5 cordes (BEADG) ; transposition automatique selon la fondamentale ; 🔴 fondamentale · 🟡 arpège · 🔵 autres degrés ; vue **Arpège (tab)** au choix dans l'annotation de l'accord (« Schéma : Mode / Arpège ») : tablature de l'arpège avec les extensions du nom de l'accord (9, 11, 13), numéros de cases et degrés
 - 🎵 **Transposition** — par demi-ton (±) ou sélection directe de tonalité, avec gestion enharmonique
 - 🗂️ **Gestion des sections** — labels (A–I, Intro, Verse, Chorus, Bridge, Coda…), suffixes chiffrés, dupliquer, réordonner, annoter ; ID unique `#xxxx` dans l'en-tête
 - 🔀 **Drag & drop** — sections et mesures déplaçables à la souris et au toucher
@@ -367,7 +367,7 @@ Profondeur : **10 niveaux**.
 
 - [ ] Sélecteur de couleur personnalisé par section
 - [x] ~~Import iReal Pro® `.irealbook`~~ (liens `irealb://` / `irealbook://` via « Trouver une grille », v5.1)
-- [ ] Diagrammes : choisir entre l'affichage actuel (schéma SVG du mode) et les tétrades en tablature basse 4 ou 5 cordes
+- [x] ~~Diagrammes : choisir entre l'affichage actuel (schéma SVG du mode) et les tétrades en tablature basse 4 ou 5 cordes~~ (vue « Arpège (tab) », v5.2)
 - [x] ~~Instrument de percussion / métronome dans le lecteur~~ (métronome livré en v4.9)
 
 ---
