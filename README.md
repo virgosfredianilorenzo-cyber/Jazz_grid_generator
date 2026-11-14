@@ -2,7 +2,7 @@
 
 > Éditeur de grilles jazz en ligne — assistant IA, théorie musicale, diagrammes de manche basse, import/export MusicXML, sortie PDF.
 
-![Version](https://img.shields.io/badge/version-5.2-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.2.1-f0a500?style=flat-square)
 ![Licence](https://img.shields.io/badge/licence-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Langues](https://img.shields.io/badge/langues-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -303,6 +303,9 @@ Profondeur : **10 niveaux**.
 ---
 
 ## 📋 Changelog
+
+### v5.2.1 (novembre 2026)
+- 🐛 Grille vide en vue Arpège après une mise à jour — le navigateur gardait d'anciens fichiers en cache ; les JS/CSS sont maintenant chargés avec la version (`?v=`) et rechargés à chaque nouvelle version
 
 ### v5.2 (novembre 2026)
 - ✅ Tablature d'arpège — dans l'annotation d'un accord, « Schéma : Mode / Arpège (tab) » : tablature basse 4 ou 5 cordes de l'arpège avec les extensions du nom de l'accord (9, 11, 13, 6/9), jouée en montant dans une position, cases et degrés, fondamentale en rouge ; enregistrée dans le JSON, imprimable

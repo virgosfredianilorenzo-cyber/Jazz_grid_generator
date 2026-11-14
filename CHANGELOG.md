@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2.1 (novembre 2026)
+- 🐛 Grille vide en vue Arpège après la mise en ligne de la v5.2 — un navigateur gardait l'ancien `diagrams.js` en cache avec le nouveau `render.js` ; les 19 JS/CSS de `index.html` sont chargés avec `?v=<version>`, le moteur d'écoute suit la version de `listen.js` (`listenDspSrc`) ; test `tests/assets.test.js`
+
 ## v5.2 (novembre 2026)
 - ✅ Tablature d'arpège — dans l'annotation d'un accord, « Schéma : Mode / Arpège (tab) » : tablature basse 4 ou 5 cordes de l'arpège (extensions du nom de l'accord : 9, 11, 13, 6/9), en montant dans une position, cases et degrés, fondamentale en rouge ; enregistrée dans le JSON (`annot.diagram`), imprimable (`arpTabNotes`, `arpTabSvg` dans `js/diagrams.js`, `getArpDegrees` dans `js/theory.js`)
 - ✅ Accords 6/9 — `parseChordSym` garde la qualité `6/9` (`C6/9` n'est plus lu comme un accord 6 avec une basse « 9 »)
