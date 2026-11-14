@@ -727,6 +727,23 @@ function createBarAssembler(opts) {
     }
   }
 
+  function flushAll() {
+    const ev = [];
+    if (mode === 'anchoring') {
+      if (period == null) { if (soundFrames < 4 || !tryTempo(ev, true)) return ev; }
+      else startRunning(buffer[0].g, ev);
+    }
+    if (mode === 'running') {
+      const end = Math.round(next);
+      const frames = pend.filter(it => it.g < end);
+      if (frames.length && frames.length * 2 >= end - Math.round(cur)) finishBeat(ev, frames, cur, next);
+      pend = [];
+      if (builder) closeSegment(ev);
+      mode = 'waiting';
+    }
+    return ev;
+  }
+
   // Courts silences (trous de lecture) : durée en trames entièrement silencieuses.
   function watchGaps(g, f) {
     if (f.rms < stats.threshold()) { quietFrames++; return; }
@@ -743,20 +760,15 @@ function createBarAssembler(opts) {
       process({ g, f }, ev);
       return ev;
     },
-    flush() {
-      const ev = [];
-      if (mode === 'anchoring') {
-        if (period == null) { if (soundFrames < 4 || !tryTempo(ev, true)) return ev; }
-        else startRunning(buffer[0].g, ev);
-      }
-      if (mode === 'running') {
-        const end = Math.round(next);
-        const frames = pend.filter(it => it.g < end);
-        if (frames.length && frames.length * 2 >= end - Math.round(cur)) finishBeat(ev, frames, cur, next);
-        pend = [];
-        if (builder) closeSegment(ev);
-        mode = 'waiting';
-      }
+    flush() { return flushAll(); },
+    // Pause de l'analyse (onglet : la musique continue, on n'écoute plus) : fin de la suite comme au flush,
+    // événement 'pause' ; les trames suivantes reprennent comme après un silence long ('resume', grille
+    // recalée sur la première attaque, tempo gardé).
+    pause() {
+      const ev = flushAll();
+      ev.push({ type: 'pause' });
+      paused = true;
+      buffer = []; soundFrames = 0; quietFrames = 0; lastGap = null;
       return ev;
     },
     data() {

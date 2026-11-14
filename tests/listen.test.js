@@ -289,3 +289,15 @@ test('orthographe : dièses dans les tonalités à dièses, bémols sinon', () =
   L.listenRespellSections(secs, 'E');
   assert.deepEqual(secs[0].measures[0].chords, [{ symbol: 'C#m7', beats: 4, _uncertain: true }, { symbol: 'N.C.', beats: 4 }]);
 });
+
+test('listenPauseProcessor : échantillons en attente oubliés, suite fermée, événement pause', () => {
+  const s = synth.progression(['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Fm7', 'Bb7'], 120);
+  const st = L.listenCreateProcessor({ beatsPerBar: 4, chordsPerBar: 1, bpm: 120, sampleRate: 44100 });
+  const ev = L.listenFeedSamples(st, s.subarray(0, 44100 * 10 + 3000), 44100);
+  const p = L.listenPauseProcessor(st);
+  assert.equal(st.len, 0);
+  assert.equal(st.prevMags, null);
+  assert.equal(p[p.length - 1].type, 'pause');
+  const bars = ev.concat(p).filter(e => e.type === 'bar').map(b => b.chords[0].symbol);
+  assert.deepEqual(bars, ['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Fm7']);
+});

@@ -418,3 +418,19 @@ test('rebuildBars ×2 / ÷2 : temps coupés en deux ou fusionnés par paires', (
   assert.deepEqual(same, dbl.bars.map(b => ({ chords: b.chords })));
   assert.deepEqual(dsp.scaleBeats(dsp.scaleBeats(dbl.a.data().beatChroma, 0.5), 2).map(b => b.silent), dbl.a.data().beatChroma.map(b => b.silent));
 });
+
+test('pause de l\'analyse (onglet) : la suite est fermée, la reprise se recale sur le son', () => {
+  const a = dsp.createBarAssembler({ beatsPerBar: 4, chordsPerBar: 1, bpm: 120, hopSec: HOP_SEC });
+  const ev = [];
+  for (const f of framesFor(beatsOf(['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Fm7']), 120)) ev.push(...a.pushFrame(f));
+  ev.push(...a.pause());
+  // Pendant la pause, rien n'est analysé ; la musique reprend ailleurs dans la mesure (pub sautée).
+  const f2 = framesFor(beatsOf(['Dm7b5', 'G7', 'Cm7', 'Cm7', 'Fm7']), 120).slice(4);
+  for (const f of f2) ev.push(...a.pushFrame(f));
+  ev.push(...a.flush());
+  const seq = ev.map(e => e.type === 'bar' ? syms(e) : e.type);
+  assert.deepEqual(seq, ['Fm7', 'Bb7', 'Ebmaj7', 'Abmaj7', 'Fm7', 'pause', 'resume', 'Dm7b5', 'G7', 'Cm7', 'Cm7', 'Fm7']);
+  const d = a.data();
+  assert.equal(d.beatChroma.filter(b => b.start).length, 2);
+  assert.deepEqual(dsp.rebuildBars(d, { beatsPerBar: 4, chordsPerBar: 1, beatOffset: 0 }).map(syms), seq.filter(x => x !== 'pause' && x !== 'resume'));
+});

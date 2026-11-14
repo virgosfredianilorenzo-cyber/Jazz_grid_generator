@@ -202,6 +202,13 @@ function listenCreateProcessor(opts) {
   };
 }
 
+// Pause de l'analyse : échantillons en attente oubliés, la reprise repart d'une trame neuve.
+function listenPauseProcessor(state) {
+  state.len = 0;
+  state.prevMags = null;
+  return state.assembler.pause();
+}
+
 // Une trame (FRAME_SIZE échantillons) → événements de l'assembleur.
 function listenProcessFrame(state, frame, sr) {
   const d = _lsDsp();
@@ -243,7 +250,7 @@ const _ls = {
   beatsPerBar: 4, chordsPerBar: 1, userBpm: null,
   sectionsByUser: false, bars: 0, noTempoShown: false,
   data: null, offset: 0, snapshot: null, proposals: null, proposalsFor: null,
-  taps: [], tapBpm: null, starting: false, queue: null, tempoFactor: 1
+  taps: [], tapBpm: null, starting: false, queue: null, tempoFactor: 1, analysisPaused: false
 };
 const _lsEl = id => document.getElementById(id);
 const _lsListening = () => typeof document !== 'undefined' && document.body.classList.contains('listening');
@@ -263,7 +270,7 @@ function _lsLoadDsp() {
 
 async function openListen() {
   if (_ls.active) return;
-  try { await _lsLoadDsp(); } catch (e) { console.error(e); alert(t('listenErrFile')); return; }
+  try { await _lsLoadDsp(); } catch (e) { console.error(e); alert(t('listenErrEngine')); return; }
   _lsEl('ls-btn-tab').style.display = listenTabSupported(navigator) ? '' : 'none';
   _lsEl('ls-tab-hint').style.display = _lsEl('ls-btn-tab').style.display;
   _lsError('');
@@ -321,9 +328,10 @@ function listenTap() {
   if (bpm) { _ls.tapBpm = bpm; _lsEl('ls-tempo').value = Math.round(bpm); } // affiché arrondi, gardé exact
 }
 
-// Démarrage commun, une fois la source audio prête. false si l'utilisateur refuse de remplacer la grille.
-function _lsBegin(kind, title, settings) {
-  if (_isDirty && !confirm(t('listenConfirmReplace'))) return false;
+// Démarrage commun, une fois la source audio prête. false si l'utilisateur refuse de remplacer la grille
+// (confirmed : déjà demandé, avant la fenêtre de partage).
+function _lsBegin(kind, title, settings, confirmed) {
+  if (!confirmed && _isDirty && !confirm(t('listenConfirmReplace'))) return false;
   if (typeof PLAYER !== 'undefined' && PLAYER.playing && typeof stopPlayback === 'function') stopPlayback();
   snapshotUndo();
   chartData = listenNewChart({ title, bpm: settings.bpm, timeSig: settings.timeSig, annotation: t('listenAnnot') });
@@ -333,7 +341,7 @@ function _lsBegin(kind, title, settings) {
   Object.assign(_ls, {
     active: true, done: false, kind, chart: chartData,
     beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, userBpm: settings.bpm,
-    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null, tempoFactor: 1, key: null
+    sectionsByUser: false, bars: 0, noTempoShown: false, data: null, offset: 0, snapshot: null, proposals: null, tempoFactor: 1, key: null, analysisPaused: false
   });
   _ls.state = listenCreateProcessor({ beatsPerBar: settings.beatsPerBar, chordsPerBar: settings.chordsPerBar, bpm: settings.bpm, sampleRate: _ls.sampleRate });
   _ls.queue = listenCreateEventQueue(fn => setTimeout(fn, 0), evs => { if (_ls.active) _lsHandleEvents(evs); });
@@ -354,7 +362,7 @@ function _lsMakeProcessor(ctx) {
   const proc = ctx.createScriptProcessor(LISTEN_PROC_BUFFER, 2, 1);
   let mono = null;
   proc.onaudioprocess = e => {
-    if (!_ls.active) return;
+    if (!_ls.active || _ls.analysisPaused) return;
     const ib = e.inputBuffer, n = ib.length, ch = ib.numberOfChannels;
     if (!mono || mono.length !== n) mono = new Float32Array(n);
     const a = ib.getChannelData(0);
@@ -369,13 +377,18 @@ function _lsMakeProcessor(ctx) {
 
 async function listenStartTab() {
   if (_ls.active || _ls.starting) return;
+  // Confirmation avant la fenêtre de partage (après, elle resterait cachée derrière l'onglet partagé).
+  // confirm() est synchrone : aucun await ne la précède, getDisplayMedia garde l'activation du clic.
+  if (_isDirty && !confirm(t('listenConfirmReplace'))) return;
   const settings = _lsSettings();
   _lsError('');
   _lsSetStarting(true);
   let stream = null, ctx = null;
   try {
     try {
-      stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true, audio: true, preferCurrentTab: false, selfBrowserSurface: 'exclude', displaySurface: 'browser'
+      });
     } catch (e) { console.warn(e); return; } // partage annulé : rien ne change
     if (_ls.active) { stream.getTracks().forEach(tr => tr.stop()); return; } // une autre écoute a démarré
     if (!listenStreamHasAudio(stream)) {
@@ -388,7 +401,7 @@ async function listenStartTab() {
     if (video) video.stop();
     ctx = new AudioContext();
     _ls.sampleRate = ctx.sampleRate;
-    if (!_lsBegin('tab', title, settings)) { stream.getTracks().forEach(tr => tr.stop()); ctx.close(); return; }
+    if (!_lsBegin('tab', title, settings, true)) { stream.getTracks().forEach(tr => tr.stop()); ctx.close(); return; }
     _ls.ctx = ctx; _ls.stream = stream;
     const src = ctx.createMediaStreamSource(stream);
     _ls.src = src;
@@ -435,11 +448,19 @@ async function listenStartFile(file) {
   }
 }
 
-// Pause / reprise du fichier : le contexte audio est suspendu, l'analyse aussi.
+// Pause / reprise. Fichier : le contexte audio est suspendu, l'analyse aussi. Onglet : seule l'analyse
+// s'arrête (publicité…), l'onglet continue de jouer ; la suite de mesures est fermée et la grille se
+// recale sur le son à la reprise.
 async function listenTogglePause() {
-  if (!_ls.active || _ls.kind !== 'file' || !_ls.ctx) return;
-  const ctx = _ls.ctx;
-  if (ctx.state === 'running') await ctx.suspend(); else await ctx.resume();
+  if (!_ls.active) return;
+  if (_ls.kind === 'file') {
+    const ctx = _ls.ctx;
+    if (!ctx) return;
+    if (ctx.state === 'running') await ctx.suspend(); else await ctx.resume();
+  } else {
+    _ls.analysisPaused = !_ls.analysisPaused;
+    if (_ls.analysisPaused && _ls.state && _ls.queue) _ls.queue.push(listenPauseProcessor(_ls.state));
+  }
   _lsUpdateBar();
 }
 
@@ -495,6 +516,7 @@ function listenNewSection() {
 function listenStop() {
   if (!_ls.active) return;
   _ls.active = false;
+  _ls.analysisPaused = false;
   const st = _ls.state;
   // Événements encore en file, puis les dernières mesures de l'assembleur (sans surlignage), dans l'ordre.
   const queued = _ls.queue ? _ls.queue.take() : [];
@@ -617,8 +639,13 @@ function _lsUpdateBar() {
   const total = chartData.sections.reduce((n, s) => n + s.measures.length, 0);
   _lsEl('lb-bar').textContent = t('listenBar') + ' ' + total;
   _lsEl('lb-live').style.display = live ? '' : 'none';
-  _lsEl('lb-pause').style.display = live && _ls.kind === 'file' ? '' : 'none';
-  _lsEl('lb-pause').textContent = t(_ls.ctx && _ls.ctx.state === 'suspended' ? 'listenResume' : 'listenPause');
+  const tab = _ls.kind === 'tab';
+  const paused = tab ? _ls.analysisPaused : !!(_ls.ctx && _ls.ctx.state === 'suspended');
+  _lsEl('lb-status').textContent = t(paused ? 'listenStatusPaused' : 'listenStatus');
+  const pb = _lsEl('lb-pause');
+  pb.style.display = live ? '' : 'none';
+  pb.textContent = t(tab ? (paused ? 'listenResumeAnalysis' : 'listenPauseAnalysis') : (paused ? 'listenResume' : 'listenPause'));
+  pb.title = tab ? t('listenPauseAnalysisHint') : '';
   _lsEl('lb-done').style.display = live ? 'none' : '';
   _lsEl('lb-cpb-1').classList.toggle('active', _ls.chordsPerBar === 1);
   _lsEl('lb-cpb-2').classList.toggle('active', _ls.chordsPerBar === 2);
@@ -673,6 +700,6 @@ _lsInit();
 if (typeof module !== 'undefined') module.exports = {
   listenTabSupported, listenStreamHasAudio, listenTitleFromFile, listenTitleFromTrackLabel, nextSectionLabel, listenNewChart,
   listenMeasureFromBar, listenBeatsPerBar, listenTapBpm, listenTempoSetting, listenKeyName, listenRespellChord, listenRespellSections, listenDistributeBars, listenSplitSections, listenScaleTempoFactor,
-  listenCreateProcessor, listenProcessFrame, listenFeedSamples,
+  listenCreateProcessor, listenProcessFrame, listenFeedSamples, listenPauseProcessor,
   listenSectionsFingerprint, listenProposeSections, listenCreateEventQueue, LISTEN_PROC_BUFFER
 };
