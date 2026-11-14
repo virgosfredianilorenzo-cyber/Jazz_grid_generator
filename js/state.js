@@ -7,6 +7,8 @@
 function _newSectionId(){const c='BCDFGHJKMNPQRSTVWXZ23456789';let id='';for(let i=0;i<4;i++)id+=c[Math.floor(Math.random()*c.length)];return id;}
 function _ensureSectionIds(data){(data.sections||[]).forEach(s=>{if(!s.id)s.id=_newSectionId();});}
 
+function stripInternalChordFields(chart){const c=JSON.parse(JSON.stringify(chart));(c.sections||[]).forEach(s=>(s.measures||[]).forEach(m=>(m.chords||[]).forEach(ch=>{delete ch._originalSymbol;delete ch._uncertain;})));return c;}
+
 let chartData={title:'Mon Thème Jazz',key:'C',tempo:120,timeSig:'4/4',style:'Swing',sections:[]};
 let currentSemitoneOffset=0,originalKey='C';
 let editTarget=null,annotTarget=null;

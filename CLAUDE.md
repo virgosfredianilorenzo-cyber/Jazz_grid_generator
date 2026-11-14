@@ -29,8 +29,10 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 │   ├── ai.js          ← chat IA (Claude), recherche web optionnelle
 │   ├── ireal.js       ← décodeur de liens iReal Pro (`irealb://`, `irealbook://`)
 │   ├── gridsearch.js  ← fenêtre « Trouver une grille » (recherche, import iReal / MusicXML)
+│   ├── listen.js      ← « Créer une grille à l'écoute » : capture (onglet / fichier), mesures en direct, correction à l'arrêt
+│   ├── listen-dsp.js  ← moteur d'analyse audio (FFT, chroma, tétrades, tempo), chargé paresseusement à la première utilisation
 │   └── init.js        ← initialisation, restauration localStorage
-├── tests/             ← tests Node (`ai`, `gridsearch`, `ireal`), fixtures et helpers
+├── tests/             ← tests Node (`ai`, `gridsearch`, `ireal`, `listen-dsp`, `listen`, `uncertain`), fixtures et helpers
 ├── songbook/          ← application compagnon Jazz Songbook (setlists, IndexedDB, BLE-MIDI HX Stomp)
 │   ├── index.html
 │   ├── css/           ← app.css, song-view.css
@@ -55,6 +57,7 @@ Déployé sur : https://www.virgos.fr/JazzGridGenerator/
 - **Plein écran + wake lock** — l'écran ne se met pas en veille en plein écran
 - **Assistant IA** — Claude uniquement, flux draft-preview-apply ; recherche web optionnelle (« 🌐 Chercher sur le web », facturée par Anthropic en plus de l'usage Claude habituel)
 - **Trouver une grille** — fenêtre « 🔎 Trouver une grille » : recherche DuckDuckGo, import iReal Pro (`irealb://`) ou MusicXML
+- **Grille à l'écoute** — « 🎧 Créer une grille à l'écoute » : onglet (Chrome/Edge, `getDisplayMedia` audio) ou fichier audio, analyse locale sans bibliothèque (`listen-dsp.js` chargé à la demande), tétrades uniquement, accords incertains marqués `?` (retirés à l'export JSON, masqués à l'impression), annotation « à vérifier à l'oreille » ; rien n'est enregistré ni envoyé
 - **Jazz Songbook** — app compagnon (`songbook/`), intègre JGG en iframe `?mode=view`
 - **4 langues** — FR, ES, IT, EN
 - **Sans build** — ouvrir `index.html` directement ; cœur fonctionnel hors ligne, MXL, soundfonts du lecteur et IA nécessitent internet
@@ -97,9 +100,9 @@ Tests (Node requis uniquement pour eux) : `node --test tests/*.test.js`
 - Ajouter une section `### vX.X` dans `README.md`, `README.en.md` et `CHANGELOG.md`
 - Créer un tag git et une release GitHub avec notes de version
 
-## Version en cours (v5.0)
-- Plein écran (bouton `⛶`) + wake lock — dans `player.js` (`_wakeLock`, re-demandé sur `visibilitychange`)
-- Historique complet des versions dans `CHANGELOG.md` à la racine (v1.0–v5.0)
+## Version en cours (v5.1)
+- Trouver une grille + import iReal Pro (`gridsearch.js`, `ireal.js`), IA sur Claude uniquement avec recherche web, grille à l'écoute (`listen.js`, `listen-dsp.js`)
+- Historique complet des versions dans `CHANGELOG.md` à la racine (v1.0–v5.1)
 
 ## Prochaines pistes
 - Aide contextuelle BLE desktop dans le Songbook — spec prête : `docs/superpowers/specs/2026-05-25-ble-desktop-help-design.md` (pas encore de plan ni de code)

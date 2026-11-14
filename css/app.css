@@ -163,6 +163,9 @@ label { font-size:0.85rem; color:#aaa; }
 .bl-popup hr { border:none; border-top:1px solid #2d4a7a; margin:2px 0; }
 .beats-row { display:flex; gap:2px; }
 .chord-slot { flex:1; display:flex; flex-direction:column; border:1px solid transparent; border-radius:4px; transition:border-color 0.15s; cursor:pointer; min-width:0; }
+.chord-slot { position:relative; }
+.chord-uncertain { position:absolute; top:1px; right:3px; font-size:0.7rem; font-weight:700; color:#f0a500; opacity:0.55; pointer-events:none; user-select:none; }
+.chord-slot.uncertain .chord-symbol { opacity:0.85; }
 .chord-slot:hover { border-color:#f0a50088; background:rgba(240,165,0,0.06); }
 .chord-slot:hover .chord-edit-hint { opacity:1; }
 .chord-header { text-align:center; padding:6px 2px 2px; }
@@ -434,3 +437,36 @@ body.view-mode #sections-container { padding: 8px; }
 body.concert-mode #concert-bar { display: flex; }
 body.concert-mode > *:not(#chart-editor):not(#concert-bar) { display: none !important; }
 body.concert-mode #chart-editor { cursor: pointer; }
+
+/* ── Grille à l'écoute ── */
+.ls-choices { display:flex; gap:10px; flex-wrap:wrap; margin:4px 0 6px; }
+.ls-big { flex:1; min-width:180px; min-height:64px; font-size:1rem; display:flex; align-items:center; justify-content:center; text-align:center; }
+#ls-drop { border:2px dashed #f0a500; border-radius:6px; padding:8px 10px; cursor:pointer; }
+#ls-drop.drag-over { background:rgba(240,165,0,0.2); }
+.ls-hint { font-size:0.78rem; color:#aaa; margin-bottom:6px; }
+.ls-settings label { display:flex; flex-direction:column; gap:3px; }
+.ls-settings select, .ls-settings input { padding:4px 6px; background:#0f3460; color:#e2e8f0; border:1px solid #f0a500; border-radius:4px; font-size:0.9rem; }
+.ls-tempo-row { display:flex; gap:4px; }
+.ls-tempo-row input { width:80px; }
+.ls-tempo-row .btn { padding:4px 10px; }
+#ls-error { margin-top:8px; padding:6px 10px; border-radius:4px; background:rgba(220,50,50,0.25); border:1px solid #dc3232; font-size:0.85rem; }
+#listen-bar { display:none; position:fixed; top:0; left:0; right:0; z-index:300; background:#2a0f1a; border-bottom:2px solid #f87171; color:#eee; padding:6px 14px; align-items:center; gap:10px; flex-wrap:wrap; font-size:0.85rem; }
+#listen-bar.done { background:#16213e; border-bottom-color:#f0a500; }
+body.listen-bar-on #listen-bar { display:flex; }
+body.listen-bar-on { padding-top:var(--lb-h, 44px); }
+body.listen-bar-on #toolbar { top:var(--lb-h, 44px); }
+#listen-bar .btn { padding:4px 10px; font-size:0.8rem; }
+#listen-bar .btn.active { background:#f0a500; color:#1a1a2e; }
+#listen-bar .btn:disabled { opacity:0.4; cursor:default; }
+#lb-status { font-weight:bold; color:#f87171; }
+.lb-info { color:#f0a500; font-family:'Courier New',monospace; }
+#lb-live, #lb-done { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.lb-group { display:inline-flex; gap:4px; align-items:center; }
+#lb-msg { flex-basis:100%; color:#fca5a5; }
+/* Édition bloquée pendant l'écoute */
+body.listening .measure, body.listening .section-header, body.listening .section-annot-display,
+body.listening .add-measure-btn, body.listening .add-section-btn, body.listening #chart-header,
+body.listening #toolbar { pointer-events:none; }
+body.listening #toolbar { opacity:0.45; }
+@media print { #listen-bar, #listen-dialog { display:none !important; } body.listen-bar-on { padding-top:0; } }
+#ls-drop.disabled { pointer-events:none; opacity:0.5; }

@@ -184,3 +184,14 @@ test('transpose_chart garde le mode mineur de la tonalité', () => {
     assert.deepEqual(draft.sections[0].measures[0].chords.map(c => c.symbol), ['Dm7', 'A7']);
   } finally { for (const k of Object.keys(th)) delete globalThis[k]; }
 });
+
+test('edit_chord retire la marque « ? » (_uncertain) d\'un accord détecté à l\'écoute', () => {
+  const { _AI_TOOL_EXECUTORS } = require('../js/ai.js');
+  const mk = () => ({ sections: [{ measures: [{ chords: [{ symbol: 'Dbm7', beats: 4, annot: null, _uncertain: true }] }] }] });
+  const d = mk();
+  _AI_TOOL_EXECUTORS.edit_chord(d, { sectionIndex: 0, barIndex: 0, chordIndex: 0, symbol: 'C#m7' });
+  assert.deepEqual(d.sections[0].measures[0].chords[0], { symbol: 'C#m7', beats: 4, annot: null });
+  const d2 = mk();
+  _AI_TOOL_EXECUTORS.edit_chord(d2, { sectionIndex: 0, barIndex: 0, chordIndex: 0, beats: 2 });
+  assert.equal(d2.sections[0].measures[0].chords[0]._uncertain, undefined);
+});

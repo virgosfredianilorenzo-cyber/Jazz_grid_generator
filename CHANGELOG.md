@@ -1,10 +1,11 @@
 # Changelog
 
-## v5.1 (en cours)
+## v5.1 (novembre 2026)
 - ✅ Trouver une grille — fenêtre « 🔎 Trouver une grille » : boutons de recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien `irealb://` / `irealbook://` ou dépôt d'un fichier `.musicxml` / `.xml` / `.mxl`, liste filtrable pour les playlists, aperçu, import avec confirmation et annulation par Ctrl+Z (`js/gridsearch.js`)
 - ✅ Import iReal Pro® — décodage des liens `irealb://` et `irealbook://` (`js/ireal.js`) : sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash et alternatifs ; qualités inconnues conservées comme symboles libres ; indications non traduisibles reportées en annotation de section
 - ✅ Assistant IA sur Claude uniquement — OpenAI retiré ; ancienne clé OpenAI effacée au démarrage ; modèles Opus 5.5 (par défaut), Sonnet 5.5, Haiku 5.5
 - ✅ Recherche web par l'IA — bouton « 🌐 Chercher sur le web » (désactivé par défaut, réinitialisé après chaque envoi ; chaque recherche est facturée par Anthropic en plus de l'usage Claude habituel) : Claude cherche sur le web, cite ses sources et propose une grille complète via l'aperçu existant ; annotation « Grille proposée par l'IA à partir de : … — à vérifier à l'oreille »
+- ✅ Créer une grille à l'écoute — « 🎧 Créer une grille à l'écoute » : écoute d'un onglet (Chrome/Edge ordinateur, « Partager l'audio ») ou d'un fichier audio déposé, lu en temps réel ; la grille se remplit en direct mesure par mesure (mesure courante surlignée, « Nouvelle section » / touche `N`, édition verrouillée, « ■ Arrêter ») ; pause (fichier : lecture et analyse ; onglet : « ⏸ Pause analyse », l'onglet continue de jouer, la grille se recale à la reprise) ; confirmation de remplacement avant la fenêtre de partage d'onglet ; réglages métrique, tempo (auto / saisi / tapé), 1 ou 2 accords par mesure ; tétrades uniquement (maj7, m7, 7, m7b5, dim7), accords incertains marqués « ? » (non imprimé, non sauvegardé), silences courts → N.C. ; à l'arrêt : tonalité proposée, décalage d'un temps, bascule 1/2 accords, sections proposées, confirmation et Ctrl+Z ; rien n'est enregistré ni envoyé, moteur d'analyse local sans bibliothèque chargé à la demande (`js/listen.js`, `js/listen-dsp.js`) ; annotation « Grille détectée à l'écoute — à vérifier à l'oreille »
 - ✅ Tests Node — `node --test tests/*.test.js` (Node n'est requis que pour les tests, pas pour utiliser l'application)
 
 ## v5.0 (juillet 2026)

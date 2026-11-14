@@ -93,4 +93,5 @@
   .measure .beats-row:has(.chord-slot:nth-child(3)) .chord-symbol { font-size:0.62rem !important; }
   .measure .beats-row:has(.chord-slot:nth-child(3)) .theory-row { font-size:0.44rem !important; line-height:1.1 !important; }
   .measure .beats-row:has(.chord-slot:nth-child(3)) .chord-theory { max-height:2.2em; overflow:hidden; }
+  .chord-uncertain { display:none!important; }
 }

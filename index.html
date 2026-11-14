@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jazz Grid Generator v5.0</title>
+<title>Jazz Grid Generator v5.1</title>
 <link rel="stylesheet" href="css/app.css">
 <link rel="stylesheet" href="css/modals.css">
 <link rel="stylesheet" href="css/print.css">
@@ -28,6 +28,7 @@
       <button id="btn-new" onclick="newChart();closeDropdowns()"></button>
       <button id="btn-open" onclick="document.getElementById('file-input').click();closeDropdowns()"></button>
       <button id="btn-find-grid-menu" onclick="openGridSearch();closeDropdowns()"></button>
+      <button id="btn-listen-menu" onclick="openListen();closeDropdowns()"></button>
       <div class="dropdown-sep"></div>
       <button id="btn-import-json" onclick="document.getElementById('import-json').click();closeDropdowns()"></button>
       <button id="btn-export-json" onclick="exportJSON();closeDropdowns()"></button>
@@ -35,6 +36,7 @@
   </div>
 
   <button class="btn secondary" id="btn-find-grid" onclick="openGridSearch()"></button>
+  <button class="btn secondary" id="btn-listen" onclick="openListen()"></button>
 
   <!-- ⬆ Exporter -->
   <div class="dropdown" id="dd-export">
@@ -350,6 +352,58 @@
   </div>
 </div>
 
+<!-- Grille à l'écoute : fenêtre de démarrage -->
+<div id="listen-dialog" class="midi-dialog-overlay">
+  <div class="midi-dialog-box gs-box">
+    <span id="ls-dialog-title" style="font-weight:bold;display:block;margin-bottom:10px;"></span>
+    <div class="ls-choices">
+      <button class="btn ls-big" id="ls-btn-tab"></button>
+      <div id="ls-drop" class="ls-big"><span id="ls-drop-text"></span></div>
+      <input type="file" id="ls-file" accept="audio/*" style="display:none">
+    </div>
+    <div class="ls-hint" id="ls-tab-hint"></div>
+    <div class="gs-row ls-settings">
+      <label><span id="ls-lbl-timesig"></span>
+        <select id="ls-timesig">
+          <option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option>
+          <option value="5/4">5/4</option><option value="6/8">6/8</option><option value="7/8">7/8</option><option value="12/8">12/8</option>
+        </select>
+      </label>
+      <label><span id="ls-lbl-tempo"></span>
+        <span class="ls-tempo-row"><input type="number" id="ls-tempo" min="30" max="300" step="1"><button class="btn secondary" id="ls-tap" type="button"></button></span>
+      </label>
+      <label><span id="ls-lbl-chords"></span>
+        <select id="ls-chords"><option value="1" selected>1</option><option value="2">2</option></select>
+      </label>
+    </div>
+    <div id="ls-error" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+      <button class="btn secondary" onclick="closeListen()" id="ls-btn-cancel"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Grille à l'écoute : bandeau -->
+<div id="listen-bar">
+  <span id="lb-status"></span>
+  <span id="lb-tempo" class="lb-info"></span>
+  <span id="lb-timesig" class="lb-info"></span>
+  <span id="lb-bar" class="lb-info"></span>
+  <span id="lb-live">
+    <button class="btn secondary" id="lb-newsec"></button>
+    <button class="btn secondary" id="lb-pause"></button>
+    <button class="btn danger" id="lb-stop"></button>
+  </span>
+  <span id="lb-done">
+    <span class="lb-group"><button class="btn secondary" id="lb-shift-left">◀</button><span id="lb-shift-label"></span><button class="btn secondary" id="lb-shift-right">▶</button></span>
+    <span class="lb-group"><span id="lb-tempo-label"></span><button class="btn secondary" id="lb-tempo-half">÷2</button><button class="btn secondary" id="lb-tempo-double">×2</button></span>
+    <span class="lb-group"><span id="lb-cpb-label"></span><button class="btn secondary" id="lb-cpb-1">1</button><button class="btn secondary" id="lb-cpb-2">2</button></span>
+    <span class="lb-group" id="lb-sections"><span id="lb-sections-label"></span> <b id="lb-sections-list"></b> <button class="btn" id="lb-apply"></button><button class="btn secondary" id="lb-ignore"></button></span>
+    <button class="btn secondary" id="lb-close"></button>
+  </span>
+  <span id="lb-msg" style="display:none"></span>
+</div>
+
 <!-- Concert mode bar -->
 <div id="concert-bar">
   <span id="concert-progress"></span>
@@ -369,6 +423,7 @@
 <script src="js/modals.js"></script>
 <script src="js/ireal.js"></script>
 <script src="js/gridsearch.js"></script>
+<script src="js/listen.js"></script>
 <script src="js/actions.js"></script>
 <script src="js/midi.js"></script>
 <script src="js/player.js"></script>
