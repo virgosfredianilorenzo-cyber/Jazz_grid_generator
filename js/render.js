@@ -147,7 +147,12 @@ function renderChordSlot(chord,si,mi,ci){const annot=chord.annot||{},parsed=pars
     const modeName=modes[idx].name;
     // showSvg : true par défaut sauf si explicitement false (mesures multi-accords)
     const doSvg = annot.showSvg !== false;
-    if(doSvg){
+    if(doSvg&&annot.diagram==='arp'){
+      const wrap=document.createElement('div');
+      wrap.className='mode-diagram-wrap';
+      wrap.innerHTML=arpTabSvg(parsed.root,parsed.quality,window.bassStrings===5?5:4);
+      slot.appendChild(wrap);
+    } else if(doSvg){
       const svgContent=getModesvg(modeName);
       if(svgContent){
         const wrap=document.createElement('div');

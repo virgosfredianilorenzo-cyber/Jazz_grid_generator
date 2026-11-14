@@ -75,6 +75,13 @@
   stroke: #aaa !important; 
 }
 .mode-diagram-label { display:none; }
+/* Tablature d'arpège : couleurs propres (la règle générale ci-dessus met tous les textes en clair) */
+.mode-diagram-wrap svg.arp-tab text.arp-root { fill:#e63946 !important; }
+.mode-diagram-wrap svg.arp-tab text.arp-fret { fill:#f0a500 !important; }
+.mode-diagram-wrap svg.arp-tab text.arp-deg  { fill:#9aa !important; }
+.mode-diagram-wrap svg.arp-tab rect.arp-mask { fill:#0d1e35; }
+.annot-diag-row { display:flex; align-items:center; gap:4px; margin:0 0 8px; font-size:0.75rem; color:#aaa; }
+.annot-diag-row span { margin-right:4px; }
 @media print {
   .mode-diagram-wrap { background: #f8f8f8; border-top: 1px solid #ccc; }
 }

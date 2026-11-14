@@ -77,6 +77,11 @@
   .mode-diagram-wrap svg line { stroke:#333 !important; }
   /* Diagram background → white */
   .mode-diagram-wrap { background:#fff !important; }
+  /* Tablature d'arpège : cases en noir, fondamentale en rouge, masque blanc sous les cases */
+  .mode-diagram-wrap svg.arp-tab text.arp-fret { fill:#000 !important; }
+  .mode-diagram-wrap svg.arp-tab text.arp-deg  { fill:#555 !important; font-weight:normal !important; }
+  .mode-diagram-wrap svg.arp-tab text.arp-root { fill:#e63946 !important; }
+  .mode-diagram-wrap svg.arp-tab rect.arp-mask { fill:#fff !important; }
 
   /* Mesures multi-accords (2+ chord-slot) : police réduite, max 2 lignes */
   .measure .beats-row:has(.chord-slot:nth-child(2)) .chord-symbol { font-size:0.72rem !important; }
