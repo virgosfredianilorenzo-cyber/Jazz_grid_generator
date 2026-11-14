@@ -1,5 +1,8 @@
 # Changelog
 
+## v5.2 (en cours)
+- ✅ Tablature d'arpège — dans l'annotation d'un accord, « Schéma : Mode / Arpège (tab) » : tablature basse 4 ou 5 cordes de l'arpège (extensions du nom de l'accord : 9, 11, 13, 6/9), en montant dans une position, cases et degrés, fondamentale en rouge ; enregistrée dans le JSON (`annot.diagram`), imprimable (`arpTabNotes`, `arpTabSvg` dans `js/diagrams.js`, `getArpDegrees` dans `js/theory.js`)
+
 ## v5.1 (novembre 2026)
 - ✅ Trouver une grille — fenêtre « 🔎 Trouver une grille » : boutons de recherche DuckDuckGo (forum iReal Pro, web, MusicXML libres), collage d'un lien `irealb://` / `irealbook://` ou dépôt d'un fichier `.musicxml` / `.xml` / `.mxl`, liste filtrable pour les playlists, aperçu, import avec confirmation et annulation par Ctrl+Z (`js/gridsearch.js`)
 - ✅ Import iReal Pro® — décodage des liens `irealb://` et `irealbook://` (`js/ireal.js`) : sections, reprises, voltas, coda/segno, `N.C.`, `%`, accords slash et alternatifs ; qualités inconnues conservées comme symboles libres ; indications non traduisibles reportées en annotation de section
