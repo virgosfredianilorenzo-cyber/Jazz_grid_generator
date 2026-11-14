@@ -2,7 +2,7 @@
 
 > A web-based jazz chord chart editor — AI assistant, music theory, bass fretboard diagrams, MusicXML import/export, optimized PDF output.
 
-![Version](https://img.shields.io/badge/version-5.1-f0a500?style=flat-square)
+![Version](https://img.shields.io/badge/version-5.2-f0a500?style=flat-square)
 ![License](https://img.shields.io/badge/license-Apache%202.0-86efac?style=flat-square)
 ![HTML](https://img.shields.io/badge/built%20with-HTML%2FJS-c4b5fd?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-FR%20%7C%20ES%20%7C%20IT%20%7C%20EN-7dd3fc?style=flat-square)
@@ -238,6 +238,10 @@ Depth: **10 levels**.
 ---
 
 ## 📋 Changelog
+
+### v5.2 (November 2026)
+- ✅ Arpeggio tablature — in a chord's annotation, "Diagram: Mode / Arpeggio (tab)": 4- or 5-string bass tablature of the arpeggio including the chord's extensions (9, 11, 13, 6/9), played ascending in one position, fret numbers and degrees, root in red; saved in JSON, printable
+- ✅ 6/9 chords — `C6/9` is now read as a 6/9 chord (no longer as a 6 chord over a "9" bass): modes and arpeggio adjusted
 
 ### v5.1 (November 2026)
 - ✅ Find a chart — "🔎 Find a chart" window: DuckDuckGo search (iReal Pro forum, web, free MusicXML), paste an iReal Pro link or drop a MusicXML file, preview then import
